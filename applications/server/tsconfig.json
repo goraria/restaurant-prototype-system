@@ -1,0 +1,137 @@
+{
+  "compilerOptions": {
+    /* Basic Options */
+    "target": "ES2022", // Hoặc phiên bản ECMAScript mới hơn bạn muốn nhắm tới
+    "module": "CommonJS", // Phổ biến cho Node.js backend
+    "lib": ["ES2022", "DOM"], // Thêm 'DOM' nếu bạn có code liên quan (thường không cần cho API thuần)
+    "outDir": "./dist", // Thư mục chứa code JavaScript sau khi build
+    "rootDir": ".", // Thư mục gốc chứa code TypeScript (toàn bộ project)
+    "strict": true, // Bật tất cả các kiểm tra strict type (rất khuyến khích)
+    "esModuleInterop": true, // Cho phép import default từ các module CommonJS
+    "skipLibCheck": true, // Bỏ qua kiểm tra type của các file declaration (.d.ts) để tăng tốc build
+    "forceConsistentCasingInFileNames": true, // Đảm bảo tên file nhất quán về kiểu chữ hoa/thường
+
+    /* Module Resolution Options */
+    "moduleResolution": "node", // Cách trình biên dịch tìm module
+    "baseUrl": ".", // Thư mục gốc cho các đường dẫn không tương đối (quan trọng cho paths)
+    "paths": { // Định nghĩa các alias (quan trọng)
+      "@app/*": ["app/*"],
+      "@config/*": ["config/*"],
+      "@controllers/*": ["controllers/*"],
+      "@middlewares/*": ["middlewares/*"],
+      "@models/*": ["models/*"],
+      "@routes/*": ["routes/*"],
+      "@utils/*": ["utils/*"],
+      "@types/*": ["types/*"]
+    },
+    "resolveJsonModule": true, // Cho phép import file .json
+
+    /* Advanced Options */
+    "experimentalDecorators": true, // Bật nếu bạn dùng decorators (ví dụ với TypeORM hoặc tsyringe)
+    "emitDecoratorMetadata": true, // Bật nếu bạn dùng decorators với metadata (ví dụ với TypeORM)
+    "sourceMap": true // Tạo source map để debug dễ dàng hơn (hữu ích khi dev)
+  },
+  "include": [
+    "**/*.ts" // Bao gồm tất cả các file .ts trong project
+  ],
+  "exclude": [
+    "node_modules", // Loại trừ thư mục node_modules
+    "build" // Loại trừ thư mục build
+    // Thêm các thư mục/file khác bạn muốn loại trừ
+  ]
+}
+//{
+//  "compilerOptions": {
+//    /* Basic Options */
+//    "target": "ES2022", // Hoặc phiên bản ECMAScript mới hơn bạn muốn nhắm tới
+//    "module": "CommonJS", // Phổ biến cho Node.js backend
+//    "lib": ["ES2022", "DOM"], // Thêm 'DOM' nếu bạn có code liên quan (thường không cần cho API thuần)
+//    "outDir": "./build", // Thư mục chứa code JavaScript sau khi build
+//    "rootDir": ".", // Thư mục gốc chứa code TypeScript (toàn bộ project)
+//    "strict": true, // Bật tất cả các kiểm tra strict type (rất khuyến khích)
+//    "esModuleInterop": true, // Cho phép import default từ các module CommonJS
+//    "skipLibCheck": true, // Bỏ qua kiểm tra type của các file declaration (.d.ts) để tăng tốc build
+//    "forceConsistentCasingInFileNames": true, // Đảm bảo tên file nhất quán về kiểu chữ hoa/thường
+//
+//    /* Module Resolution Options */
+//    "moduleResolution": "node", // Cách trình biên dịch tìm module
+//    "baseUrl": ".", // Thư mục gốc cho các đường dẫn không tương đối (quan trọng cho paths)
+//    "paths": { // Định nghĩa các alias (quan trọng)
+//      "@app/*": ["app/*"],
+//      "@config/*": ["config/*"],
+//      "@controllers/*": ["controllers/*"],
+//      "@middlewares/*": ["middlewares/*"],
+//      "@models/*": ["models/*"],
+//      "@routes/*": ["routes/*"],
+//      "@utils/*": ["utils/*"],
+//      "@types/*": ["types/*"]
+//    },
+//    "resolveJsonModule": true, // Cho phép import file .json
+//
+//    /* Advanced Options */
+//    "experimentalDecorators": true, // Bật nếu bạn dùng decorators (ví dụ với TypeORM hoặc tsyringe)
+//    "emitDecoratorMetadata": true, // Bật nếu bạn dùng decorators với metadata (ví dụ với TypeORM)
+//    "sourceMap": true // Tạo source map để debug dễ dàng hơn (hữu ích khi dev)
+//  },
+//  "include": [
+//    "**/*.ts" // Bao gồm tất cả các file .ts trong project
+//  ],
+//  "exclude": [
+//    "node_modules", // Loại trừ thư mục node_modules
+//    "build" // Loại trừ thư mục build
+//    // Thêm các thư mục/file khác bạn muốn loại trừ
+//  ]
+//}
+//// tsconfig.json
+//{
+//  "compilerOptions": {
+//    /* Basic Options */
+//    "target": "ES2022", // Hoặc phiên bản ECMAScript mới hơn bạn muốn target
+//    "module": "NodeNext", // Sử dụng module system mới nhất của Node
+//    "lib": ["ES2022"], // Thư viện chuẩn phù hợp với target
+//    "allowJs": true, // Cho phép biên dịch file JavaScript (nếu có)
+//    "checkJs": false, // Không kiểm tra type trong file JavaScript
+//    "declaration": true, // Tạo file .d.ts tương ứng
+//    "declarationMap": true, // Tạo source map cho file .d.ts
+//    "sourceMap": true, // Tạo file .map.js cho debugging
+//    "outDir": "./dist", // Thư mục chứa code JavaScript sau khi biên dịch
+//    "rootDir": ".", // Thư mục gốc chứa code TypeScript (toàn bộ project)
+//
+//    /* Strict Type-Checking Options */
+//    "strict": true, // Bật tất cả các tùy chọn kiểm tra type nghiêm ngặt
+//    "noImplicitAny": true, // Báo lỗi nếu có type 'any' ngầm định
+//    "strictNullChecks": true, // Xử lý null và undefined một cách nghiêm ngặt
+//    "strictFunctionTypes": true, // Kiểm tra type của function parameter chặt chẽ hơn
+//    "strictBindCallApply": true, // Kiểm tra 'bind', 'call', 'apply' chặt chẽ hơn
+//    "strictPropertyInitialization": true, // Yêu cầu khởi tạo property trong class constructor
+//    "noImplicitThis": true, // Báo lỗi nếu 'this' có type 'any'
+//    "alwaysStrict": true, // Biên dịch ở strict mode và thêm "use strict"
+//
+//    /* Module Resolution Options */
+//    "moduleResolution": "NodeNext", // Cách trình biên dịch tìm module
+//    "baseUrl": ".", // Thư mục gốc để giải quyết các đường dẫn không tương đối
+//    "paths": {
+//      "@/*": ["./*"] // Định nghĩa alias: @/folder trỏ đến ./folder
+//      // Ví dụ: import ... from '@/app/...' thay vì import ... from './app/...'
+//    },
+//    "resolveJsonModule": true, // Cho phép import file .json
+//    "esModuleInterop": true, // Cho phép default import từ module CommonJS
+//    "allowSyntheticDefaultImports": true, // Cho phép default import khi module không có default export
+//
+//    /* Advanced Options */
+//    "skipLibCheck": true, // Bỏ qua kiểm tra type của các file declaration (.d.ts)
+//    "forceConsistentCasingInFileNames": true, // Đảm bảo viết hoa/thường của tên file nhất quán
+//    "experimentalDecorators": true, // Cho phép sử dụng decorators (nếu cần)
+//    "emitDecoratorMetadata": true // Cho phép emit metadata cho decorators (nếu cần)
+//  },
+//  "include": [
+//    "**/*.ts", // Bao gồm tất cả file .ts trong dự án
+//    "**/*.json" // Bao gồm các file json (ví dụ: cho resolveJsonModule)
+//  ],
+//  "exclude": [
+//    "node_modules", // Loại trừ thư mục node_modules
+//    "dist", // Loại trừ thư mục output
+//    "**/__tests__", // Loại trừ thư mục test (ví dụ)
+//    "**/*.spec.ts" // Loại trừ các file test (ví dụ)
+//  ]
+//}
