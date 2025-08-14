@@ -15,6 +15,7 @@
     "moduleResolution": "node", // Cách trình biên dịch tìm module
     "baseUrl": ".", // Thư mục gốc cho các đường dẫn không tương đối (quan trọng cho paths)
     "paths": { // Định nghĩa các alias (quan trọng)
+      "@/*": ["*"],
       "@app/*": ["app/*"],
       "@config/*": ["config/*"],
       "@controllers/*": ["controllers/*"],
