@@ -3,8 +3,5 @@
     "type": "git",
     "url": "https://github.com/goraria/eindrucksvoll-lieblings-haustier.git"
   },
-  "workspaces": [
-    "applications/*",
-    "packages/*"
-  ]
+  "private": "true"
 }
