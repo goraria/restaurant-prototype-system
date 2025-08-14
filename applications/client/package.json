@@ -42,6 +42,8 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@reduxjs/toolkit": "^2.8.2",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.55.0",
     "axios": "^1.11.0",
     "boxicons": "^2.1.4",
     "class-variance-authority": "^0.7.1",

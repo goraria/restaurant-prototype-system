@@ -24,27 +24,30 @@
 #/default/.vscode
 
 **/.env**
-client/.env.local
-client/.env.development 
-client/.env.production
-template/.env.local
-template/.env.development
-template/.env.production
-server/.env
-#/client/.env
-#/mobile/.env
-#/server/.env
-#/process/.env
-#/template/.env
-#/default/.env
+/applications/admin/.env.local
+/applications/client/.env.local
+/applications/cross/.env.local
+/applications/desktop/.env.local
+/applications/server/.env.local
+/applications/admin/.env.production
+/applications/client/.env.production
+/applications/cross/.env.production
+/applications/desktop/.env.production
+/applications/server/.env.production
+#/applications/admin/.env
+#/applications/client/.env
+#/applications/mobile/.env
+#/applications/desktop/.env
+#/applications/server/.env
 
 /applications/server/dist
 /applications/client/.next
-/applications/mobile/.expo
-/applications/mobile/expo-env.d.ts
+/applications/cross/.expo
+/applications/cross/expo-env.d.ts
 /applications/admin/vite-env.d.ts
 /applications/client/next-env.d.ts
 **/**-env.d.ts
+**/**.d.ts
 
 Thumbs.db
 .DS_Store
@@ -53,9 +56,8 @@ Thumbs.db
 **/yarn.lock
 **/pnpm-lock.yaml
 
-#/client/.DS_Store
-#/mobile/.DS_Store
-#/server/.DS_Store
-#/process/.DS_Store
-#/template/.DS_Store
-#/default/.DS_Store
+#/applications/admin/.DS_Store
+#/applications/client/.DS_Store
+#/applications/mobile/.DS_Store
+#/applications/desktop/.DS_Store
+#/applications/server/.DS_Store

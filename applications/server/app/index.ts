@@ -1,45 +1,39 @@
-// import 'module-alias/register';
-
-import express from 'express';
-import dotenv from 'dotenv';
-import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
-import session from 'express-session';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import helmet from "helmet";
-import morgan from "morgan";
+import helmet from 'helmet';
+import morgan from 'morgan';
 import multer from "multer";
 import path from "path";
+import dotenv from 'dotenv';
+import bodyParser from 'body-parser';
+import cookieParser from "cookie-parser";
+import session from "express-session";
+import http from "http";
 import { fileURLToPath } from "node:url";
-import http from 'http';
+// import { connectDB } from '@config/database';
 import { Server as SocketIOServer } from 'socket.io';
-// import { ApolloServer, BaseContext, HeaderMap } from '@apollo/server';
-// import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-// import prisma from '@/config/prisma';
+import {  } from '@clerk/express';
+import prisma from '@/config/prisma';
 
 /* ROUTE IMPORTS */
 import authRoutes from "@/routes/authRoutes";
 import productRoutes from "@/routes/productRoutes";
-// import postRoutes from "@/routes/postRoutes";
 import taskRoutes from "@/routes/taskRoutes";
 import userRoutes from "@/routes/userRoutes";
-// import managerRoutes from "@/routes/managerRoutes";
-// import inventoryRoutes from "@/routes/inventoryRoutes";
-// import { csrfProtect, issueCsrfToken } from '@/middlewares/csrfMiddleware';
-
-import { connectDB } from "@config/database";
+import apiRoutes from '@routes/userRoutesNew';
 
 /* CONFIGURATIONS */
 dotenv.config();
+// dotenv.config({ path: ".env.local" });
 
-const app = express();
+const app: Express = express();
+// const PORT = process.env.PORT || 5000;
 // Disable ETag for dynamic API responses to avoid 304 on auth/me
 app.set('etag', false);
 app.use(express.json());
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
-app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -67,12 +61,6 @@ app.use(cors({
   ],
   credentials: true,
 }));
-
-// CSRF token issue endpoint (GET only)
-// app.get('/csrf-token', issueCsrfToken);
-
-// Apply CSRF protection for all state-changing routes after this point
-// app.use((req, res, next) => csrfProtect(req, res, next));
 
 /* STATIC FILES */
 /* UPLOAD MULTER CONFIG */
@@ -103,9 +91,56 @@ const upload = multer({ storage: storage });
 
 const isProduction = process.env.EXPRESS_ENV === 'production';
 
-// if (isProduction) {
-//     mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
-// }
+// Kết nối Database
+// connectDB();
+
+// Middlewares Cơ bản
+// app.use(cors()); // Cho phép Cross-Origin Resource Sharing
+// app.use(helmet()); // Bảo mật ứng dụng bằng cách thiết lập các HTTP headers
+// app.use(morgan('dev')); // Logging HTTP requests (chế độ 'dev' cho development)
+// app.use(express.json()); // Parse JSON request bodies (thay thế body-parser.json)
+// app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
+
+// app.use(express.json());
+// app.use(helmet());
+// app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+// app.use(morgan("common"));
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(cors());
+
+/* STATIC FILES */
+/* UPLOAD MULTER CONFIG */
+// const __filename = fileURLToPath(process.env.url!);
+// // const __dirname = path.resolve();
+// const __dirname = path.dirname(__filename);
+// app.use("/assets", express.static(path.join(__dirname, "assets")));
+//
+// const storage = multer.diskStorage({
+//     destination: (
+//         req,
+//         file,
+//         cb
+//     ): void => {
+//         cb(null, "assets");
+//     },
+//     filename: (
+//         req,
+//         file,
+//         cb
+//     ): void => {
+//         // cb(null, req.body.name);
+//         cb(null, file.originalname);
+//     },
+// });
+//
+// const upload = multer({ storage });
+
+// --- Ví dụ tích hợp Clerk (nếu bạn dùng) ---
+// app.get('/protected-route', ClerkExpressRequireAuth(), (req, res) => {
+//   res.json(req.auth);
+// });
+// --------------------------------------------
 
 /* ROUTES */
 app.use("/auth", authRoutes)
@@ -143,8 +178,8 @@ io.on('connection', (socket) => {
     socket.emit('pong', { msg: 'pong', data });
   });
   socket.on('get_users', async () => {
-    // const users = await prisma.users.findMany();
-    // socket.emit('users', users);
+    const users = await prisma.users.findMany();
+    socket.emit('users', users);
   });
   // Lắng nghe ngắt kết nối
   socket.on('disconnect', () => {
@@ -157,10 +192,7 @@ export { io };
 
 const port = process.env.EXPRESS_PORT || 8080;
 
-// server.listen(port, () => {
-//   console.log(`Server is running on http://localhost:${port}`);
-//   console.log(`Environment: ${process.env.EXPRESS_ENV}`);
-// });
+///////////////////////////////////////////////////////////
 
 // Xử lý tắt server an toàn (graceful shutdown) - tùy chọn
 process.on('SIGINT', () => {
@@ -174,6 +206,12 @@ process.on('SIGTERM', () => {
   // Đóng các kết nối khác (DB, etc.) ở đây nếu cần
   process.exit(0);
 });
+
+///////////////////////////////////////////////////////////
+
+const ws = new WebSocket('ws://localhost:8080');
+
+///////////////////////////////////////////////////////////
 
 // --- GraphQL Schema Demo ---
 // Có thể tách riêng ra file schema + resolvers sau
@@ -205,18 +243,18 @@ const typeDefs = `#graphql
 //   prisma: typeof prisma;
 //   token: string | null;
 // }
-
-const resolvers = {
-  Query: {
-    hello: () => 'Hello from GraphQL!',
-    users: async () => {
-      // return await prisma.users.findMany();
-    },
-    // users: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
-    //   return ctx.prisma.users.findMany();
-  },
-};
-
+//
+// const resolvers = {
+//   Query: {
+//     hello: () => 'Hello from GraphQL!',
+//     users: async () => {
+//       return await prisma.users.findMany();
+//     },
+//     // users: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
+//     //   return ctx.prisma.users.findMany();
+//   },
+// };
+//
 // async function startApolloServer() {
 //   const apolloServer = new ApolloServer<GraphQLContext>({
 //     typeDefs,
@@ -224,7 +262,7 @@ const resolvers = {
 //     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 //   });
 //   await apolloServer.start();
-
+//
 //   // Tự viết handler thay vì @apollo/server/express4
 //   const graphqlCors = cors({
 //     origin: [
@@ -234,7 +272,7 @@ const resolvers = {
 //     credentials: true,
 //   });
 //   const jsonBody = bodyParser.json({ limit: '50mb' });
-
+//
 //   app.use('/graphql', graphqlCors, jsonBody, async (req, res) => {
 //     try {
 //       const headers = new HeaderMap();
@@ -253,18 +291,18 @@ const resolvers = {
 //       const token = authHeader.startsWith('Bearer ')
 //         ? authHeader.substring(7)
 //         : authHeader || null;
-
+//
 //       const ctx: GraphQLContext = { prisma, token };
 //       const httpGraphQLResponse = await apolloServer.executeHTTPGraphQLRequest({
 //         httpGraphQLRequest,
 //         context: async () => ctx,
 //       });
-
+//
 //       for (const [key, value] of httpGraphQLResponse.headers) {
 //         res.setHeader(key, value);
 //       }
 //       res.status(httpGraphQLResponse.status || 200);
-
+//
 //       if (httpGraphQLResponse.body.kind === 'complete') {
 //         res.send(httpGraphQLResponse.body.string);
 //         return;
@@ -290,34 +328,42 @@ const resolvers = {
   });
 })();
 
-// mongoose.connect(process.env.MONGODB_URI!, {
+///////////////////////////////////////////////////////////
+
+// app.get('/', (req: Request, res: Response) => {
+//     res.send('API is running...');
+// });
 //
-// }).then(() => {
-//     app.listen(PORT, () => {
-//         console.log(`Server is running on http://localhost:${PORT}`);
-//     });
-// }).catch((error: any) => {
-//     console.log(`Server did not connect: ${error}`);
+// // Gắn các routes API (ví dụ /api/v1)
+// app.use('/api/v1', apiRoutes);
+//
+// // Middleware xử lý lỗi cơ bản (Nên đặt cuối cùng)
+// // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+//     console.error(err.stack);
+//     res.status(500).send({ error: 'Something went wrong!', message: err.message });
+// });
+//
+// // Middleware xử lý không tìm thấy route (404)
+// app.use((req: Request, res: Response) => {
+//     res.status(404).send({ error: 'Not Found', message: `Route ${req.originalUrl} not found.` });
 // });
 
-// mongoose.connect(process.env.MONGODB_URI!, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-//     useCreateIndex: true
-// }).then(() => {
-//     app.listen(port, () => {
-//         console.log(`Server is running on http://localhost:${port}`);
-//     });
-// }).catch(err => {
-//     console.log(err);
+// // Khởi động server
+// app.listen(PORT, () => {
+//     console.log(`Server is running on http://localhost:${PORT}`);
+//     console.log(`Environment: ${process.env.NODE_ENV}`);
 // });
-
-/* SERVER */
-
-// const port = process.env.PORT || 5000;
 //
-// if (!isProduction) {
-//     app.listen(port, () => {
-//         console.log(`Server is running on http://localhost:${port}`);
-//     });
-// }
+// // Xử lý tắt server an toàn (graceful shutdown) - tùy chọn
+// process.on('SIGINT', () => {
+//     console.log('SIGINT signal received: closing HTTP server');
+//     // Đóng các kết nối khác (DB, etc.) ở đây nếu cần
+//     process.exit(0);
+// });
+//
+// process.on('SIGTERM', () => {
+//     console.log('SIGTERM signal received: closing HTTP server');
+//     // Đóng các kết nối khác (DB, etc.) ở đây nếu cần
+//     process.exit(0);
+// });
