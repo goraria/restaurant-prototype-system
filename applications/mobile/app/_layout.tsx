@@ -43,12 +43,12 @@ export default function RootLayout() {
       <ClerkProvider tokenCache={tokenCache}>
         <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
           <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-          <Stack>
+          <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen
               name='index'
               options={{
                 title: 'Starter Base',
-                headerRight: () => <ThemeToggle />,
+                // headerRight: () => <ThemeToggle />, // header tắt global nên option này không cần
               }}
             />
           </Stack>
