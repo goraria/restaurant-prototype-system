@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import {
   ClerkProvider,
-  SignInButton,
-  SignUpButton,
   SignedIn,
   SignedOut,
   UserButton,
 } from '@clerk/nextjs'
+import { ClerkSignIn, ClerkSignUp } from "@/components/elements/clerk-buttons";
+import { dark, neobrutalism } from "@clerk/themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Providers from "@/components/layout/providers";
+import { ThemeProvider } from "@/components/layout/theme-provider";
+import { ToasterProvider } from "@/components/layout/toaster-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,26 +43,80 @@ export default function RootLayout({
       {/*{children}*/}
       {/*</body>*/}
       {/*</html>*/}
-      <ClerkProvider>
-        <html lang="en">
+      <ClerkProvider
+        appearance={{
+          // baseTheme: [dark],
+          // variables: {
+          //   colorPrimary: "white",
+          //   colorBackground: "white",
+          // },
+          signIn: {},
+          signUp: {},
+        }}
+      >
+        <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <header className="flex justify-end items-center p-4 gap-4 h-16">
-          <SignedOut>
-            <SignInButton />
-            <SignUpButton>
-              <button className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
-                Sign Up
-              </button>
-            </SignUpButton>
-          </SignedOut>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
-        </header>
-        {children}
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <ToasterProvider />
+          </ThemeProvider>
+        </Providers>
         </body>
         </html>
       </ClerkProvider>
     </>
+  );
+}
+export function RootLayouts({
+                                     children,
+                                   }: Readonly<{
+  children: ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+    <body
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    >
+    <Providers>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        {children}
+        {/* <QuickSetting
+              className="absolute top-5 right-5"
+            />
+            <ModeToggle
+              className="absolute top-5 right-5"
+            /> */}
+
+            <header className="flex justify-end items-center p-4 gap-4 h-16">
+              <SignedOut>
+                <ClerkSignIn label="Sign in" buttonProps={{ variant: "ghost" }} />
+                <ClerkSignUp
+                  label="Sign Up"
+                  buttonProps={{
+                    className:
+                      "bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5",
+                  }}
+                />
+              </SignedOut>
+              <SignedIn>
+                <UserButton />
+              </SignedIn>
+            </header>
+        <ToasterProvider />
+      </ThemeProvider>
+    </Providers>
+    </body>
+    </html>
   );
 }

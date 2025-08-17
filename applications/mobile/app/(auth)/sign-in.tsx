@@ -1,9 +1,10 @@
+import { SignIn } from '@clerk/clerk-expo/web'
 import { useSignIn } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
 import { Text, TextInput, TouchableOpacity, View, StyleSheet } from 'react-native'
 import React from 'react'
 
-export default function Page() {
+export default function SignInPage() {
   const { signIn, setActive, isLoaded } = useSignIn()
   const router = useRouter()
 
@@ -41,31 +42,36 @@ export default function Page() {
   console.log('SignInScreen mounted')
 
   return (
-    <View style={styles.container}>
-      <Text style={{ color: 'red', fontWeight: 'bold' }}>DEBUG: Sign In Screen</Text>
-      <Text>Sign in</Text>
-      <TextInput
-        autoCapitalize="none"
-        value={emailAddress}
-        placeholder="Enter email"
-        onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
-      />
-      <TextInput
-        value={password}
-        placeholder="Enter password"
-        secureTextEntry={true}
-        onChangeText={(password) => setPassword(password)}
-      />
-      <TouchableOpacity onPress={onSignInPress}>
-        <Text>Continue</Text>
-      </TouchableOpacity>
-      <View style={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
-        <Text>Don't have an account?</Text>
-        <Link href="/sign-up">
-          <Text>Sign up</Text>
-        </Link>
-      </View>
-    </View>
+    <>
+      {/* <SignIn /> */}
+
+
+      {/* <View style={styles.container}>
+        <Text style={{ color: 'red', fontWeight: 'bold' }}>DEBUG: Sign In Screen</Text>
+        <Text>Sign in</Text>
+        <TextInput
+          autoCapitalize="none"
+          value={emailAddress}
+          placeholder="Enter email"
+          onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
+        />
+        <TextInput
+          value={password}
+          placeholder="Enter password"
+          secureTextEntry={true}
+          onChangeText={(password) => setPassword(password)}
+        />
+        <TouchableOpacity onPress={onSignInPress}>
+          <Text>Continue</Text>
+        </TouchableOpacity>
+        <View style={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
+          <Text>Don't have an account?</Text>
+          <Link href="/sign-up">
+            <Text>Sign up</Text>
+          </Link>
+        </View>
+      </View> */}
+    </>
   )
 }
 
