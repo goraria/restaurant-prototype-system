@@ -28,7 +28,7 @@ export default function Notification() {
   }
   return (
     <View className='flex-1 justify-center items-center gap-5 p-6 bg-secondary/30'>
-      <Card className='w-full max-w-sm p-6 rounded-2xl'>
+      <Card className='w-full p-6 rounded-2xl m-8'>
         <CardHeader className='items-center'>
           <Avatar alt="Ichibulup de Gortheia's Avatar" className='w-24 h-24'>
             <AvatarImage source={{ uri: GITHUB_AVATAR_URI }} />
@@ -91,8 +91,6 @@ export default function Notification() {
           </Button>
         </CardFooter>
       </Card>
-
-      <ThemeToggle />
     </View>
   );
 }

@@ -8,6 +8,7 @@ import TabBarBackground from '@/components/element/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import {
+  BookText,
   LucideBell,
   LucideHome,
   LucideMessageCircle,
@@ -15,6 +16,7 @@ import {
   LucideUser,
   PaperclipIcon
 } from "lucide-react-native";
+import { ThemeToggle } from '@/components/element/ThemeToggle';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -43,23 +45,18 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="page"
+          name="order"
           options={{
-            title: 'Page',
-            tabBarIcon: ({ color }) => <PaperclipIcon color={color} size={28} />,
-          }}
-        />
-        <Tabs.Screen
-          name="explore"
-          options={{
-            title: 'Explore',
-            tabBarIcon: ({ color }) => <LucideSend color={color} size={28} />,
+            title: 'Order',
+            tabBarIcon: ({ color }) => <BookText color={color} size={28} />,
           }}
         />
         <Tabs.Screen
           name="message"
           options={{
             title: 'Message',
+            headerShown: true,
+            headerRight: () => <ThemeToggle />,
             tabBarIcon: ({ color }) => <LucideMessageCircle color={color} size={28} />,
           }}
         />
@@ -67,6 +64,9 @@ export default function TabLayout() {
           name="notification"
           options={{
             title: 'Notification',
+            headerShown: true,
+            // headerLeft: () => <CustomButton />,
+            // headerRight: () => <ThemeToggle />,
             tabBarIcon: ({ color }) => <LucideBell color={color} size={28} />,
           }}
         />
@@ -74,6 +74,10 @@ export default function TabLayout() {
           name="profile"
           options={{
             title: 'Profile',
+            headerShown: false,
+            // sceneStyle: {
+            //   backgroundColor: 'transparent',
+            // },
             tabBarIcon: ({ color }) => <LucideUser color={color} size={28} />,
             // headerRight: () => <ThemeToggle/>,
           }}

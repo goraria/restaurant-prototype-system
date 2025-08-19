@@ -6,6 +6,7 @@ import {
   SignedOut,
   UserButton,
 } from '@clerk/nextjs'
+import { viVN } from '@clerk/localizations'
 import { ClerkSignIn, ClerkSignUp } from "@/components/elements/clerk-buttons";
 import { dark, neobrutalism } from "@clerk/themes";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -53,6 +54,7 @@ export default function RootLayout({
           signIn: {},
           signUp: {},
         }}
+        localization={viVN}
       >
         <html lang="en" suppressHydrationWarning>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
