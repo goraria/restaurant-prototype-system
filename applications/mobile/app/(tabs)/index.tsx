@@ -7,6 +7,7 @@ import { ThemedView } from "@/components/element/ThemedView";
 import { ThemedText } from "@/components/element/ThemedText";
 import { HelloWave } from "@/components/element/HelloWave";
 import ParallaxScrollView from "@/components/element/ParallaxScrollView";
+import { Button } from '@/components/ui/button';
 
 export default function Page() {
   const { user } = useUser()
@@ -27,11 +28,15 @@ export default function Page() {
             <SignOutButton />
           </SignedIn>
           <SignedOut>
-            <Link href="/(auth)/sign-in">
-              <Text>Sign in</Text>
+            <Link href="/(auth)/sign-in" asChild>
+              <Button>
+                <Text className="text-background">Sign in</Text>
+              </Button>
             </Link>
-            <Link href="/(auth)/sign-up">
-              <Text>Sign up</Text>
+            <Link href="/(auth)/sign-up" asChild>
+              <Button variant="outline">
+                <Text>Sign up</Text>
+              </Button>
             </Link>
           </SignedOut>
         </View>

@@ -18,7 +18,7 @@
     "overwrite": "npx @react-native-reusables/cli@latest add accordion alert-dialog aspect-ratio avatar checkbox collapsible context-menu dialog dropdown-menu hover-card label menubar navigation-menu popover progress radio-group select separator switch table tabs toggle toggle-group tooltip --overwrite"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^2.14.18",
+    "@clerk/clerk-expo": "^2.14.21",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^7.3.10",
@@ -79,7 +79,7 @@
     "expo-symbols": "~0.4.5",
     "expo-system-ui": "~5.0.10",
     "expo-web-browser": "~14.2.0",
-    "lucide-react-native": "^0.539.0",
+    "lucide-react-native": "^0.540.0",
     "nativewind": "^4.1.23",
     "react": "19.0.0",
     "react-dom": "19.0.0",

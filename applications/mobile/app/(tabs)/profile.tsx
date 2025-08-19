@@ -27,9 +27,9 @@ export default function Profile() {
     setProgress(Math.floor(Math.random() * 100));
   }
   return (
-    <View className='flex-1 justify-center items-center gap-5 p-6 bg-secondary/30'>
-      <Card className='w-full max-w-sm p-6 rounded-2xl'>
-        <CardHeader className='items-center'>
+    <View className='flex-1 justify-center items-center gap-5 bg-secondary/30'>
+      <Card className='w-full h-screen border-none'>
+        <CardHeader className='items-center mt-6'>
           <Avatar alt="Ichibulup de Gortheia's Avatar" className='w-24 h-24'>
             <AvatarImage source={{ uri: GITHUB_AVATAR_URI }} />
             <AvatarFallback>
@@ -91,8 +91,6 @@ export default function Profile() {
           </Button>
         </CardFooter>
       </Card>
-
-      <ThemeToggle />
     </View>
   );
 }
