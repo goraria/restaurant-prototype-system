@@ -3,11 +3,6 @@ import { BaseQueryFn, FetchArgs, FetchBaseQueryError, QueryReturnValue, FetchBas
 // import { User, Course, Transaction, UserCourseProgress, SectionProgress } from "@clerk/nextjs/server";
 // import { Clerk } from "@clerk/clerk-js";
 import { toast } from "sonner";
-import { User } from "./types";
-import { RegisterInput, UpdateProfileInput } from "@schemas/authSchemas";
-/* ----------------------------------------
-   CSRF SUPPORT + TOAST HANDLING
------------------------------------------ */
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
@@ -163,7 +158,7 @@ const baseQueryWithCsrf: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQuery
 export const api = createApi({
   baseQuery: baseQueryWithCsrf,
   reducerPath: "api",
-  tagTypes: ["Courses", "Users", "UserCourseProgress"],
+  tagTypes: ["Users", "Restaurants", "Orders", "Menus"],
   endpoints: (builder) => ({
     register: builder.mutation<User, RegisterInput>({
       query: (data) => ({
@@ -383,6 +378,141 @@ export const api = createApi({
     //     }
     //   },
     // }),
+
+    // ========== CRUD API ENDPOINTS ==========
+    
+    // Users CRUD
+    getAllUsers: builder.query<any[], void>({
+      query: () => "/users",
+      providesTags: ["Users"],
+    }),
+    getUserById: builder.query<any, string>({
+      query: (id) => `/users/${id}`,
+      providesTags: (result, error, id) => [{ type: "Users", id }],
+    }),
+    createUser: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/users",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Users"],
+    }),
+    updateUser: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/users/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Users"],
+    }),
+    deleteUser: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/users/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Users"],
+    }),
+
+    // Restaurants CRUD
+    getAllRestaurants: builder.query<any[], void>({
+      query: () => "/restaurants",
+      providesTags: ["Restaurants"],
+    }),
+    getRestaurantById: builder.query<any, string>({
+      query: (id) => `/restaurants/${id}`,
+      providesTags: (result, error, id) => [{ type: "Restaurants", id }],
+    }),
+    createRestaurant: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/restaurants",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Restaurants"],
+    }),
+    updateRestaurant: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/restaurants/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Restaurants"],
+    }),
+    deleteRestaurant: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/restaurants/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Restaurants"],
+    }),
+
+    // Orders CRUD
+    getAllOrders: builder.query<any[], void>({
+      query: () => "/orders",
+      providesTags: ["Orders"],
+    }),
+    getOrderById: builder.query<any, string>({
+      query: (id) => `/orders/${id}`,
+      providesTags: (result, error, id) => [{ type: "Orders", id }],
+    }),
+    createOrder: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/orders",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Orders"],
+    }),
+    updateOrder: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/orders/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Orders"],
+    }),
+    deleteOrder: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/orders/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Orders"],
+    }),
+
+    // Menus CRUD
+    getAllMenus: builder.query<any[], void>({
+      query: () => "/menus",
+      providesTags: ["Menus"],
+    }),
+    getMenuById: builder.query<any, string>({
+      query: (id) => `/menus/${id}`,
+      providesTags: (result, error, id) => [{ type: "Menus", id }],
+    }),
+    createMenu: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/menus",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    updateMenu: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/menus/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    deleteMenu: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/menus/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+
   }),
 });
 
@@ -395,6 +525,36 @@ export const {
   useGetMeQuery,
   useCheckAccessQuery,
   useUpdateProfileMutation,
+  
+  // CRUD API Hooks
+  // Users
+  useGetAllUsersQuery,
+  useGetUserByIdQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+  
+  // Restaurants
+  useGetAllRestaurantsQuery,
+  useGetRestaurantByIdQuery,
+  useCreateRestaurantMutation,
+  useUpdateRestaurantMutation,
+  useDeleteRestaurantMutation,
+  
+  // Orders
+  useGetAllOrdersQuery,
+  useGetOrderByIdQuery,
+  useCreateOrderMutation,
+  useUpdateOrderMutation,
+  useDeleteOrderMutation,
+  
+  // Menus
+  useGetAllMenusQuery,
+  useGetMenuByIdQuery,
+  useCreateMenuMutation,
+  useUpdateMenuMutation,
+  useDeleteMenuMutation,
+  
   // useUpdateUserMutation,
   // useCreateCourseMutation,
   // useUpdateCourseMutation,

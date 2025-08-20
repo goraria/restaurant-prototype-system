@@ -6,6 +6,8 @@
 #/template/node_modules
 #/default/node_modules
 
+**/dist
+
 /.idea/
 **/.idea
 #/default/.idea

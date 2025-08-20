@@ -18,6 +18,10 @@ import authRoutes from "@/routes/authRoutes";
 import productRoutes from "@/routes/productRoutes";
 import taskRoutes from "@/routes/taskRoutes";
 import userRoutes from "@/routes/userRoutes";
+import restaurantRoutes from "@/routes/restaurantRoutes";
+import orderRoutes from "@/routes/orderRoutes";
+import menuRoutes from "@/routes/menuRoutes";
+import { errorHandler } from "@/middlewares/error.middleware";
 
 /* CONFIGURATIONS */
 dotenv.config();
@@ -122,9 +126,12 @@ const isProduction = process.env.EXPRESS_ENV === 'production';
 
 /* ROUTES */
 app.use("/auth", authRoutes)
-app.use("/products", productRoutes)
+app.use("/product", productRoutes)
 app.use("/task", taskRoutes)
-app.use("/users", userRoutes)
+app.use('/user', userRoutes);
+app.use('/restaurant', restaurantRoutes);
+app.use('/order', orderRoutes);
+app.use('/menu', menuRoutes);
 
 app.get('/', (
   req,
@@ -311,20 +318,23 @@ const typeDefs = `#graphql
 //     res.send('API is running...');
 // });
 //
-// // Gắn các routes API (ví dụ /api/v1)
-// app.use('/api/v1', apiRoutes);
-//
-// // Middleware xử lý lỗi cơ bản (Nên đặt cuối cùng)
-// // eslint-disable-next-line @typescript-eslint/no-unused-vars
-// app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-//     console.error(err.stack);
-//     res.status(500).send({ error: 'Something went wrong!', message: err.message });
-// });
-//
-// // Middleware xử lý không tìm thấy route (404)
-// app.use((req: Request, res: Response) => {
-//     res.status(404).send({ error: 'Not Found', message: `Route ${req.originalUrl} not found.` });
-// });
+// API Routes (New  endpoints)
+app.use('/users', userRoutes);
+app.use('/restaurants', restaurantRoutes);
+app.use('/orders', orderRoutes);
+app.use('/menus', menuRoutes);
+
+// 404 handler (should be after all routes but before error handler)
+app.use((req: Request, res: Response) => {
+    res.status(404).json({ 
+      success: false,
+      error: 'Not Found', 
+      message: `Route ${req.originalUrl} not found.` 
+    });
+});
+
+// Error handling middleware (should be the very last middleware)
+app.use(errorHandler);
 
 // // Khởi động server
 // app.listen(PORT, () => {

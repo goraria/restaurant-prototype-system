@@ -1,0 +1,59 @@
+{
+  "name": "@waddles/constants",
+  "version": "1.0.0",
+  "description": "Shared constants for Waddles restaurant management system",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "typescript": "^5.3.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./routes": {
+      "types": "./dist/routes.d.ts",
+      "import": "./dist/routes.js",
+      "require": "./dist/routes.js"
+    },
+    "./messages": {
+      "types": "./dist/messages.d.ts",
+      "import": "./dist/messages.js",
+      "require": "./dist/messages.js"
+    },
+    "./permissions": {
+      "types": "./dist/permissions.d.ts",
+      "import": "./dist/permissions.js",
+      "require": "./dist/permissions.js"
+    },
+    "./settings": {
+      "types": "./dist/settings.d.ts",
+      "import": "./dist/settings.js",
+      "require": "./dist/settings.js"
+    },
+    "./business-rules": {
+      "types": "./dist/business-rules.d.ts",
+      "import": "./dist/business-rules.js",
+      "require": "./dist/business-rules.js"
+    }
+  },
+  "keywords": [
+    "constants",
+    "restaurant",
+    "management",
+    "shared",
+    "typescript"
+  ],
+  "author": "Waddles Team",
+  "license": "MIT"
+}
