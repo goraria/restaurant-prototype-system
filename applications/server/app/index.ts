@@ -12,15 +12,21 @@ import http from "http";
 import { fileURLToPath } from "node:url";
 // import { connectDB } from '@config/database';
 import { Server as SocketIOServer } from 'socket.io';
-import {  } from '@clerk/express';
+import {
+  clerkMiddleware,
+  requireAuth,
+} from '@clerk/express';
 import prisma from '@/config/prisma';
 
-/* ROUTE IMPORTS */
+/* OLD ROUTE IMPORTS */
 import authRoutes from "@/routes/authRoutes";
 import productRoutes from "@/routes/productRoutes";
 import taskRoutes from "@/routes/taskRoutes";
 import userRoutes from "@/routes/userRoutes";
-import apiRoutes from '@routes/userRoutesNew';
+import restaurantRoutes from "@/routes/restaurantRoutes";
+import orderRoutes from "@/routes/orderRoutes";
+import menuRoutes from "@/routes/menuRoutes";
+import { errorHandler } from '@/middlewares/error.middleware';
 
 /* CONFIGURATIONS */
 dotenv.config();
@@ -61,6 +67,7 @@ app.use(cors({
   ],
   credentials: true,
 }));
+app.use(clerkMiddleware());
 
 /* STATIC FILES */
 /* UPLOAD MULTER CONFIG */
@@ -143,17 +150,44 @@ const isProduction = process.env.EXPRESS_ENV === 'production';
 // --------------------------------------------
 
 /* ROUTES */
+// Old routes (keep for backward compatibility)
 app.use("/auth", authRoutes)
-app.use("/products", productRoutes)
-app.use("/task", taskRoutes)
-app.use("/users", userRoutes)
+app.use("/products", requireAuth(), productRoutes)
+app.use("/task", requireAuth(), taskRoutes)
+app.use('/users', requireAuth(), userRoutes);
+app.use('/restaurants', requireAuth(), restaurantRoutes);
+app.use('/orders', requireAuth(), orderRoutes);
+app.use('/menus', requireAuth(), menuRoutes);
 
 app.get('/', (
   req,
   res
 ) => {
-  res.send('Hello World!');
+  res.json({
+    success: true,
+    message: 'Waddles Restaurant API v1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/v1/health',
+      users: '/api/v1/users',
+      restaurants: '/api/v1/restaurants',
+      orders: '/api/v1/orders',
+      menus: '/api/v1/menus'
+    }
+  });
 });
+
+// 404 handler (should be after all routes but before error handler)
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ 
+    success: false,
+    error: 'Not Found', 
+    message: `Route ${req.originalUrl} not found.` 
+  });
+});
+
+// Error handling middleware (phải đặt cuối cùng)
+app.use(errorHandler);
 
 /* MONGOOSE */
 
