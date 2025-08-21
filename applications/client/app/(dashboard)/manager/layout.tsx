@@ -1,31 +1,27 @@
 "use client"
 
-import React, { ReactNode, useEffect } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { AppSidebar } from "@/components/layout/dashboard/app-sidebar"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+import React, { ReactNode } from "react"
+import { usePathname, useRouter } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
+import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { ModeToggle } from "@/components/elements/mode-toggle"
-import { appGlobal, managerSidebar } from "@/constants/constants";
-import { useCheckAccessQuery } from "@/state/api";
-import { useRouter } from "next/navigation";
+import { appGlobal, managerSidebar } from "@/constants/constants"
+import { createBreadcrumbs } from "@/utils/breadcrumb-utils"
+import { Dashbar } from "@/components/layout/dashbar"
+import { Copyright } from "@/components/layout/copyright"
 
 export default function DashboardLayout({ children }: { children: ReactNode } ) {
+  const { user } = useUser()
   const pathname = usePathname()
-  const router = useRouter();
+  const router = useRouter()
+  
+  // Tạo breadcrumbs sử dụng utility function
+  const breadcrumbs = createBreadcrumbs(pathname, appGlobal.name)
+  
   // const { data: access, isLoading: accessLoading } = useCheckAccessQuery('/manager');
   //
   // useEffect(() => {
@@ -40,74 +36,21 @@ export default function DashboardLayout({ children }: { children: ReactNode } ) 
   //   return <div className="p-6 text-sm text-muted-foreground">Checking access...</div>;
   // }
   
-  // Tạo breadcrumb items từ URL
-  const createBreadcrumbs = () => {
-    const pathSegments = pathname.split('/').filter(segment => segment !== '')
-    const breadcrumbItems = []
-    
-    // Luôn có home/app name đầu tiên
-    breadcrumbItems.push({
-      href: '/',
-      label: appGlobal.name,
-      isLast: pathSegments.length === 0
-    })
-    
-    // Tìm kiếm thông tin từ managerSidebar để tạo breadcrumb chính xác
-    let currentPath = ''
-    const validSegments = pathSegments.filter(segment => !segment.startsWith('(') || !segment.endsWith(')'))
-    
-    validSegments.forEach((segment, index) => {
-      currentPath += `/${segment}`
-      let breadcrumbLabel = segment.charAt(0).toUpperCase() + segment.slice(1)
-      
-      // Tìm kiếm trong managerSidebar.navMain để lấy title chính xác
-      for (const navItem of managerSidebar.navMain) {
-        // Kiểm tra nếu segment này là main nav item
-        if (navItem.title.toLowerCase() === segment.toLowerCase()) {
-          breadcrumbLabel = navItem.title
-          break
-        }
-        
-        // Kiểm tra trong sub items
-        if (navItem.items) {
-          for (const subItem of navItem.items) {
-            if (subItem.url === currentPath) {
-              // Nếu đây là segment cuối và tìm thấy trong sub items
-              if (index === validSegments.length - 1) {
-                breadcrumbLabel = subItem.title
-              }
-              break
-            }
-          }
-        }
-      }
-      
-      // Xử lý các trường hợp đặc biệt
-      if (segment === 'user-management') {
-        breadcrumbLabel = 'User'
-      } else if (segment === 'product-management') {
-        breadcrumbLabel = 'Product'
-      }
-      
-      breadcrumbItems.push({
-        href: currentPath,
-        label: breadcrumbLabel,
-        isLast: index === validSegments.length - 1
-      })
-    })
-    
-    return breadcrumbItems
-  }
-  
-  const breadcrumbs = createBreadcrumbs()
-  
   return (
     <SidebarProvider>
-      <AppSidebar sidebar={managerSidebar} global={appGlobal} />
+      <AppSidebar 
+        sidebar={managerSidebar} 
+        global={appGlobal} 
+        user={{
+          name: user?.fullName,
+          email: user?.emailAddresses[0]?.emailAddress,
+          avatar: user?.imageUrl
+        }}
+      />
       <SidebarInset>
         {/* <header className="flex h-16 shrink-0 border-b items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"> */}
-        <header className="flex h-14 shrink-0 border-b items-center gap-2 ease-linear">
-          {/* <div className="flex items-center gap-2 px-4"> */}
+        {/* <div className="flex items-center gap-2 px-4"> */}
+        {/* <header className="flex h-14 shrink-0 border-b items-center gap-2 ease-linear">
           <div className="container flex h-14 items-center gap-2 md:gap-4 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator
@@ -140,15 +83,31 @@ export default function DashboardLayout({ children }: { children: ReactNode } ) 
           <ModeToggle
             className="px-4 ml-auto"
           />
-        </header>
-        {children}
-        <footer className="border-grid border-t py-0">
-          <div className="mx-auto p-4">
-            <div className="text-balance text-left text-sm leading-loose">{/* text-muted-foreground text-center */}
-              Copyright © 2020 - {new Date().getFullYear()} Gorth Inc. All rights reserved.
+        </header> */}
+        <Dashbar>
+          <SidebarTrigger className="-ml-1" />
+        </Dashbar>
+        <main className="flex flex-1 flex-col">
+          {/* <section className="border-grid border-b">
+            <div className="container-wrapper">
+
+            </div>
+          </section> */}
+          <div className="container-wrapper">
+            <div className="p-6">{/* container */}
+              {children}
             </div>
           </div>
-        </footer>
+        </main>
+        <Copyright />
+        {/* <footer className="border-grid border-t py-0">
+          <div className="mx-auto py-4 px-6">
+            <div className="text-balance text-left text-sm leading-loose">
+              text-muted-foreground text-center
+              appGlobal.copyright
+            </div>
+          </div>
+        </footer> */}
       </SidebarInset>
     </SidebarProvider>
   )

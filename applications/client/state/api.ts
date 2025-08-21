@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { BaseQueryFn, FetchArgs, FetchBaseQueryError, QueryReturnValue, FetchBaseQueryMeta } from "@reduxjs/toolkit/query";
-// import { User, Course, Transaction, UserCourseProgress, SectionProgress } from "@clerk/nextjs/server";
-// import { Clerk } from "@clerk/clerk-js";
+import { BaseQueryFn, FetchArgs, FetchBaseQueryError, QueryReturnValue, FetchBaseQueryMeta, BaseQueryApi } from "@reduxjs/toolkit/query";
+import { User } from "@clerk/nextjs/server";
+import { Clerk } from "@clerk/clerk-js";
 import { toast } from "sonner";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -54,331 +54,66 @@ const rawBaseQuery = fetchBaseQuery({
   prepareHeaders: (headers) => headers,
 });
 
-const baseQueryWithCsrf: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, object, FetchBaseQueryMeta> = async (args, api, extra) => {
-  const req: FetchArgs = typeof args === 'string' ? { url: args } : { ...args };
-  const method = (req.method || 'GET').toUpperCase();
-  if (isMutationMethod(method)) {
-    try {
-      const token = await fetchCsrf();
-  const currentHeaders = (req.headers || {}) as Record<string, string>;
-  req.headers = { ...currentHeaders, 'x-csrf-token': token };
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'CSRF error';
-  toast.error(`CSRF lỗi: ${msg}`);
-  return { error: { status: 'CUSTOM_ERROR', data: { message: msg } } } as QueryReturnValue<unknown, FetchBaseQueryError, FetchBaseQueryMeta>;
-    }
-  }
-  let result = await rawBaseQuery(req, api, extra);
-  if (result.error?.status === 403) {
-    const dataObj = result.error.data as { code?: string } | undefined;
-    if (dataObj?.code === 'CSRF_INVALID') {
-      invalidateCsrf();
-      if (isMutationMethod(method)) {
-        try {
-          const token = await fetchCsrf();
-          const currentHeaders2 = (req.headers || {}) as Record<string, string>;
-          req.headers = { ...currentHeaders2, 'x-csrf-token': token };
-        } catch {
-          toast.error('Làm mới CSRF thất bại');
-          return result;
-        }
+const baseQueryWithClerk = async (
+  args: string | FetchArgs,
+  api: BaseQueryApi,
+  extraOptions: any
+) => {
+  const baseQuery = fetchBaseQuery({
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    prepareHeaders: async (headers) => {
+      const token = await window.Clerk?.session?.getToken();
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
       }
-      result = await rawBaseQuery(req, api, extra);
+      return headers;
+    },
+  });
+
+  try {
+    const result: any = await baseQuery(args, api, extraOptions);
+
+    if (result.error) {
+      const errorData = result.error.data;
+      const errorMessage =
+        errorData?.message ||
+        result.error.status.toString() ||
+        "An error occurred";
+      toast.error(`Error: ${errorMessage}`);
     }
-  }
-  // Handle expired access token -> attempt silent refresh once then retry
-  if (result.error?.status === 401) {
-    const errUnknown = result.error.data as unknown;
-    let code: string | undefined;
-    if (errUnknown && typeof errUnknown === 'object') {
-      const maybeObj = errUnknown as { error?: { code?: string }; code?: string };
-      code = maybeObj.error?.code || maybeObj.code;
+
+    const isMutationRequest =
+      (args as FetchArgs).method && (args as FetchArgs).method !== "GET";
+
+    if (isMutationRequest) {
+      const successMessage = result.data?.message;
+      if (successMessage) toast.success(successMessage);
     }
-    if (code === 'TOKEN_EXPIRED') {
-      const refreshed = await attemptRefresh();
-      if (refreshed) {
-        // Reattach CSRF header for retry if mutation
-        if (isMutationMethod(method)) {
-          try {
-            const token = await fetchCsrf();
-            const currentHeaders3 = (req.headers || {}) as Record<string, string>;
-            req.headers = { ...currentHeaders3, 'x-csrf-token': token };
-          } catch {/* ignore */}
-        }
-        const retry = await rawBaseQuery(req, api, extra);
-        if (!retry.error) {
-          const rawRetry = retry.data as unknown;
-          if (rawRetry && typeof rawRetry === 'object' && 'data' in (rawRetry as Record<string, unknown>)) {
-            const obj = rawRetry as { data?: unknown; message?: string };
-            if (method !== 'GET' && obj.message) toast.success(obj.message);
-            return { data: obj.data } as QueryReturnValue<unknown, FetchBaseQueryError, FetchBaseQueryMeta>;
-          }
-          return retry as QueryReturnValue<unknown, FetchBaseQueryError, FetchBaseQueryMeta>;
-        }
-        // fall through to normal error handling if retry still fails
-        result = retry;
-      }
+
+    if (result.data) {
+      result.data = result.data.data;
+    } else if (
+      result.error?.status === 204 ||
+      result.meta?.response?.status === 24
+    ) {
+      return { data: null };
     }
-  }
-  if (result.error) {
-  const d = result.error.data as { message?: string; error?: string } | undefined;
-  const msg = d?.message || d?.error || result.error.status?.toString() || 'Unknown error';
-    toast.error(msg);
+
     return result;
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
+    return { error: { status: "FETCH_ERROR", error: errorMessage } };
   }
-  const raw = result.data as unknown;
-  // Special handling: auto refresh once if /auth/me says unauthenticated (access expired) but refresh cookie may still be valid
-  if (!result.error && req.url === '/auth/me' && raw && typeof raw === 'object') {
-    const r = raw as { authenticated?: unknown; data?: unknown };
-    const unauth = r.authenticated === false && r.data === null;
-    if (unauth) {
-    // attempt silent refresh then retry once
-      const refreshed = await attemptRefresh();
-      if (refreshed) {
-        const retry = await rawBaseQuery(req, api, extra);
-        if (!retry.error) return retry as QueryReturnValue<unknown, FetchBaseQueryError, FetchBaseQueryMeta>;
-      }
-    }
-  }
-  if (raw && typeof raw === 'object') {
-    const record = raw as Record<string, unknown>;
-    if ('data' in record) {
-      // Chỉ unwrap đối với mutation (POST/PUT/PATCH/DELETE) để giữ nguyên envelope GET như /auth/me
-      if (method !== 'GET') {
-        const obj = raw as { data?: unknown; message?: string };
-        if (obj.message) toast.success(obj.message);
-        return { data: obj.data };
-      }
-    }
-  }
-  return result as QueryReturnValue<unknown, FetchBaseQueryError, FetchBaseQueryMeta>;
 };
 
 
 export const api = createApi({
-  baseQuery: baseQueryWithCsrf,
+  baseQuery: baseQueryWithClerk,
   reducerPath: "api",
   tagTypes: ["Users", "Restaurants", "Orders", "Menus"],
   endpoints: (builder) => ({
-    register: builder.mutation<User, RegisterInput>({
-      query: (data) => ({
-        url: "/auth/register",
-        method: "POST",
-        body: data,
-      }),
-    }),
-    login: builder.mutation({
-      query: (credentials) => ({
-        url: '/auth/login',
-        method: 'POST',
-        body: credentials,
-      }),
-    }),
-    refreshToken: builder.mutation({
-      query: () => ({
-        url: '/auth/refresh-token',
-        method: 'POST',
-      }),
-    }),
-    logout: builder.mutation({
-      query: () => ({
-        url: '/auth/logout',
-        method: 'POST',
-      }),
-    }),
-    updateProfile: builder.mutation<
-      { id: string; email: string; username: string; first_name: string; last_name: string; full_name: string; phone_number?: string|null; phone_code?: string|null; avatar_url?: string|null; cover_url?: string|null; bio?: string|null },
-      Partial<UpdateProfileInput>
-    >({
-      query: (body) => ({
-        url: '/users/me',
-        method: 'PATCH',
-        body,
-      }),
-      invalidatesTags: ['Users']
-    }),
-    getMe: builder.query<{ success: boolean; authenticated: boolean; data: User | null }, void>({
-      query: () => ({
-        url: '/auth/me',
-        method: 'GET',
-      }),
-    }),
-  // removed duplicate updateProfile pointing to /auth/profile
-
-    getUsers: builder.query<User[], { category?: string }>({
-      query: () => "/manage/users",
-      providesTags: ["Users"],
-    }),
-
-    // Generic access check (role + auth) for a frontend path
-    checkAccess: builder.query<{
-      success: boolean; path: string; allowed: boolean; public?: boolean; authenticated?: boolean; requiredRoles?: string[]; userRole?: string; reason?: string;
-    }, string>({
-      query: (path) => ({
-        url: `/auth/check-access`,
-        method: 'GET',
-        params: { path },
-      }),
-    }),
-
-    // getUsers: build.query<User[], { category?: string }>({
-    //   query: () => ({
-    //     url: "/manage/users",
-    //     method: "GET"
-    //   }),
-    //   providesTags: ["Users"],
-    // }),
-
-    // getUsersNew: build.query<User[], { category?: string }>({
-    //   query: ({ category }) => ({
-    //     url: "/manage/users",
-    //     params: { category },
-    //     method: "GET"
-    //   }),
-    //   providesTags: ["Users"],
-    // }),
-
-    // getCourse: build.query<Course, string>({
-    //   query: (id) => `courses/${id}`,
-    //   providesTags: (result, error, id) => [{ type: "Courses", id }],
-    // }),
-    //
-    // createCourse: build.mutation<
-    //   Course,
-    //   { teacherId: string; teacherName: string }
-    // >({
-    //   query: (body) => ({
-    //     url: `courses`,
-    //     method: "POST",
-    //     body,
-    //   }),
-    //   invalidatesTags: ["Courses"],
-    // }),
-    //
-    // updateCourse: build.mutation<
-    //   Course,
-    //   { courseId: string; formData: FormData }
-    // >({
-    //   query: ({ courseId, formData }) => ({
-    //     url: `courses/${courseId}`,
-    //     method: "PUT",
-  // baseQuery removed (already defined at root createApi)
-    //   }),
-    //   invalidatesTags: (result, error, { courseId }) => [
-    //     { type: "Courses", id: courseId },
-    //   ],
-    // }),
-    //
-    // deleteCourse: build.mutation<{ message: string }, string>({
-    //   query: (courseId) => ({
-    //     url: `courses/${courseId}`,
-    //     method: "DELETE",
-    //   }),
-    //   invalidatesTags: ["Courses"],
-    // }),
-    //
-    // getUploadVideoUrl: build.mutation<
-    //   { uploadUrl: string; videoUrl: string },
-    //   {
-    //     courseId: string;
-    //     chapterId: string;
-    //     sectionId: string;
-    //     fileName: string;
-    //     fileType: string;
-    //   }
-    // >({
-    //   query: ({ courseId, sectionId, chapterId, fileName, fileType }) => ({
-    //     url: `courses/${courseId}/sections/${sectionId}/chapters/${chapterId}/get-upload-url`,
-    //     method: "POST",
-    //     body: { fileName, fileType },
-    //   }),
-    // }),
-
-    /*
-    ===============
-    TRANSACTIONS
-    ===============
-    */
-    // getTransactions: build.query<Transaction[], string>({
-    //   query: (userId) => `transactions?userId=${userId}`,
-    // }),
-    // createStripePaymentIntent: build.mutation<
-    //   { clientSecret: string },
-    //   { amount: number }
-    // >({
-    //   query: ({ amount }) => ({
-    //     url: `/transactions/stripe/payment-intent`,
-    //     method: "POST",
-    //     body: { amount },
-    //   }),
-    // }),
-    // createTransaction: build.mutation<Transaction, Partial<Transaction>>({
-    //   query: (transaction) => ({
-    //     url: "transactions",
-    //     method: "POST",
-    //     body: transaction,
-    //   }),
-    // }),
-
-    /*
-    ===============
-    USER COURSE PROGRESS
-    ===============
-    */
-    // getUserEnrolledCourses: build.query<Course[], string>({
-    //   query: (userId) => `users/course-progress/${userId}/enrolled-courses`,
-    //   providesTags: ["Courses", "UserCourseProgress"],
-    // }),
-    //
-    // getUserCourseProgress: build.query<
-    //   UserCourseProgress,
-    //   { userId: string; courseId: string }
-    // >({
-    //   query: ({ userId, courseId }) =>
-    //     `users/course-progress/${userId}/courses/${courseId}`,
-    //   providesTags: ["UserCourseProgress"],
-    // }),
-    //
-    // updateUserCourseProgress: build.mutation<
-    //   UserCourseProgress,
-    //   {
-    //     userId: string;
-    //     courseId: string;
-    //     progressData: {
-    //       sections: SectionProgress[];
-    //     };
-    //   }
-    // >({
-    //   query: ({ userId, courseId, progressData }) => ({
-    //     url: `users/course-progress/${userId}/courses/${courseId}`,
-    //     method: "PUT",
-    //     body: progressData,
-    //   }),
-    //   invalidatesTags: ["UserCourseProgress"],
-    //   async onQueryStarted(
-    //     { userId, courseId, progressData },
-    //     { dispatch, queryFulfilled }
-    //   ) {
-    //     const patchResult = dispatch(
-    //       api.util.updateQueryData(
-    //         "getUserCourseProgress",
-    //         { userId, courseId },
-    //         (draft) => {
-    //           Object.assign(draft, {
-    //             ...draft,
-    //             sections: progressData.sections,
-    //           });
-    //         }
-    //       )
-    //     );
-    //     try {
-    //       await queryFulfilled;
-    //     } catch {
-    //       patchResult.undo();
-    //     }
-    //   },
-    // }),
-
     // ========== CRUD API ENDPOINTS ==========
     
     // Users CRUD
@@ -513,19 +248,178 @@ export const api = createApi({
       invalidatesTags: ["Menus"],
     }),
 
+    /* 
+    ===============
+    USER CLERK
+    =============== 
+    */
+    updateUserClerk: builder.mutation<User, Partial<User> & { id: string }>({
+      query: ({ id, ...updatedUser }) => ({
+        url: `users/clerk/${id}`,
+        method: "PUT",
+        body: updatedUser,
+      }),
+      invalidatesTags: ["Users"],
+    }),
+
+    /* 
+    ===============
+    COURSES
+    =============== 
+    */
+    // getCourses: build.query<Course[], { category?: string }>({
+    //   query: ({ category }) => ({
+    //     url: "courses",
+    //     params: { category },
+    //   }),
+    //   providesTags: ["Courses"],
+    // }),
+
+    // getCourse: build.query<Course, string>({
+    //   query: (id) => `courses/${id}`,
+    //   providesTags: (result, error, id) => [{ type: "Courses", id }],
+    // }),
+
+    // createCourse: build.mutation<
+    //   Course,
+    //   { teacherId: string; teacherName: string }
+    // >({
+    //   query: (body) => ({
+    //     url: `courses`,
+    //     method: "POST",
+    //     body,
+    //   }),
+    //   invalidatesTags: ["Courses"],
+    // }),
+
+    // updateCourse: build.mutation<
+    //   Course,
+    //   { courseId: string; formData: FormData }
+    // >({
+    //   query: ({ courseId, formData }) => ({
+    //     url: `courses/${courseId}`,
+    //     method: "PUT",
+    //     body: formData,
+    //   }),
+    //   invalidatesTags: (result, error, { courseId }) => [
+    //     { type: "Courses", id: courseId },
+    //   ],
+    // }),
+
+    // deleteCourse: build.mutation<{ message: string }, string>({
+    //   query: (courseId) => ({
+    //     url: `courses/${courseId}`,
+    //     method: "DELETE",
+    //   }),
+    //   invalidatesTags: ["Courses"],
+    // }),
+
+    // getUploadVideoUrl: build.mutation<
+    //   { uploadUrl: string; videoUrl: string },
+    //   {
+    //     courseId: string;
+    //     chapterId: string;
+    //     sectionId: string;
+    //     fileName: string;
+    //     fileType: string;
+    //   }
+    // >({
+    //   query: ({ courseId, sectionId, chapterId, fileName, fileType }) => ({
+    //     url: `courses/${courseId}/sections/${sectionId}/chapters/${chapterId}/get-upload-url`,
+    //     method: "POST",
+    //     body: { fileName, fileType },
+    //   }),
+    // }),
+
+    /* 
+    ===============
+    TRANSACTIONS
+    =============== 
+    */
+    // getTransactions: build.query<Transaction[], string>({
+    //   query: (userId) => `transactions?userId=${userId}`,
+    // }),
+    // createStripePaymentIntent: build.mutation<
+    //   { clientSecret: string },
+    //   { amount: number }
+    // >({
+    //   query: ({ amount }) => ({
+    //     url: `/transactions/stripe/payment-intent`,
+    //     method: "POST",
+    //     body: { amount },
+    //   }),
+    // }),
+    // createTransaction: build.mutation<Transaction, Partial<Transaction>>({
+    //   query: (transaction) => ({
+    //     url: "transactions",
+    //     method: "POST",
+    //     body: transaction,
+    //   }),
+    // }),
+
+    /* 
+    ===============
+    USER COURSE PROGRESS
+    =============== 
+    */
+    // getUserEnrolledCourses: build.query<Course[], string>({
+    //   query: (userId) => `users/course-progress/${userId}/enrolled-courses`,
+    //   providesTags: ["Courses", "UserCourseProgress"],
+    // }),
+
+    // getUserCourseProgress: build.query<
+    //   UserCourseProgress,
+    //   { userId: string; courseId: string }
+    // >({
+    //   query: ({ userId, courseId }) =>
+    //     `users/course-progress/${userId}/courses/${courseId}`,
+    //   providesTags: ["UserCourseProgress"],
+    // }),
+
+    // updateUserCourseProgress: build.mutation<
+    //   UserCourseProgress,
+    //   {
+    //     userId: string;
+    //     courseId: string;
+    //     progressData: {
+    //       sections: SectionProgress[];
+    //     };
+    //   }
+    // >({
+    //   query: ({ userId, courseId, progressData }) => ({
+    //     url: `users/course-progress/${userId}/courses/${courseId}`,
+    //     method: "PUT",
+    //     body: progressData,
+    //   }),
+    //   invalidatesTags: ["UserCourseProgress"],
+    //   async onQueryStarted(
+    //     { userId, courseId, progressData },
+    //     { dispatch, queryFulfilled }
+    //   ) {
+    //     const patchResult = dispatch(
+    //       api.util.updateQueryData(
+    //         "getUserCourseProgress",
+    //         { userId, courseId },
+    //         (draft) => {
+    //           Object.assign(draft, {
+    //             ...draft,
+    //             sections: progressData.sections,
+    //           });
+    //         }
+    //       )
+    //     );
+    //     try {
+    //       await queryFulfilled;
+    //     } catch {
+    //       patchResult.undo();
+    //     }
+    //   },
+    // }),
+
   }),
 });
 
 export const {
-  useRegisterMutation,
-  useLoginMutation,
-  useRefreshTokenMutation,
-  useLogoutMutation,
-  useGetUsersQuery,
-  useGetMeQuery,
-  useCheckAccessQuery,
-  useUpdateProfileMutation,
-  
   // CRUD API Hooks
   // Users
   useGetAllUsersQuery,

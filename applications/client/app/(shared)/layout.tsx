@@ -30,7 +30,7 @@ export default function SharedLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
         </section>
-        <div className="container-wrapper h-[100vh]">
+        <div className="container-wrapper">{/** h-[100vh] */}
           <div className="container p-6">
             {children}
           </div>

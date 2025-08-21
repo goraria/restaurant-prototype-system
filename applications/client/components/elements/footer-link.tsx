@@ -19,7 +19,7 @@ interface FooterLinkProps extends Omit<ComponentProps<typeof Link>, 'href'> {
 export function FooterLink({ item, ...props }: FooterLinkProps) {
 	return (
 		<Link href={item.link} {...props}>
-			<Button variant="ghost" className="flex items-center justify-start text-start w-full h-auto p-2 cursor-pointer transition-colors">
+			<Button variant="link" className="flex items-center justify-start text-start w-full h-auto p-2 cursor-pointer transition-colors">
 				{item.box && !item.icon && (
 					<BoxIcon 
 						className="me-2 text-foreground"

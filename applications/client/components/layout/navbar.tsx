@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   BadgeCheck,
   CreditCard,
@@ -41,46 +42,28 @@ import { Separator } from "@/components/ui/separator";
 // import { useDispatch } from "react-redux";
 // import { logout as logoutAction } from "@/store/slices/userSlice";
 // import { useLogoutMutation } from "@/state/api";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { ClerkSignIn, ClerkSignUp } from "@/components/elements/clerk-buttons";
 import { dark } from "@clerk/themes";
+import { navigation } from "@/constants/constants";
 
-const user = {
-  name: "japtor",
-  email: "japtor@gorth.org",
-  avatar: "/avatars/waddles.jpeg",
-}
-
-const navigation = [
-  { name: "Contact", href: "/contact" },
-  { name: "About Us", href: "/about" },
-  { name: "Pages", href: "/pages" },
-  { name: "Components", href: "/manager" },
-]
-
-export const Navbar = () => {
+export function Navbar() {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false)
-  // const [logoutApi, { isLoading: isLoggingOut }] = useLogoutMutation();
-  // const router = useRouter();
-  // const dispatch = useDispatch();
 
   const handleLogout = async () => {
-    // try {
-    //   await logoutApi(undefined).unwrap();
-    //   toast.success("Logged out successfully");
-    // } catch (e) {
-    //   // Even if API fails, continue clearing client state
-    //   let msg = 'Logout failed';
-    //   if (e && typeof e === 'object') {
-    //     const data = (e as { data?: { message?: string; error?: string }; message?: string }).data;
-    //     msg = data?.message || data?.error || (e as { message?: string }).message || msg;
-    //   }
-    //   toast.error(msg);
-    // } finally {
-    //   dispatch(logoutAction());
-    //   router.push('/sign-in');
-    // }
+    try {
+      await signOut(() => router.push('/'));
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: redirect to home page anyway
+      router.push('/');
+    }
   };
+
+  console.log("Navbar rendered", user?.emailAddresses?.[0]?.emailAddress);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -175,7 +158,7 @@ export const Navbar = () => {
             </div>
 
             {/* Language */}
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="hidden sm:flex">
                   <Globe className="h-5 w-5" />
@@ -189,7 +172,7 @@ export const Navbar = () => {
                 <DropdownMenuItem>Italian</DropdownMenuItem>
                 <DropdownMenuItem>Vietnamese</DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
 
             {/* Theme Toggle */}
             <ModeToggle />
@@ -234,16 +217,16 @@ export const Navbar = () => {
                 <Button
                   variant="ghost"
                   size="lg"
-                  className="md:h-8 md:p-0 cursor-pointer"
+                  className="h-8 p-0 cursor-pointer"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
                     <AvatarFallback className="rounded-lg">JG</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
 
-              <div className="flex justify-end items-center">
+              {/* <div className="flex justify-end items-center">
                 <SignedOut>
                   <ClerkSignIn
                     label="Sign in"
@@ -271,7 +254,7 @@ export const Navbar = () => {
                     }}
                   />
                 </SignedIn>
-              </div>
+              </div> */}
               <DropdownMenuContent
                 className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
                 // side={isMobile ? "bottom" : "right"}
@@ -281,23 +264,23 @@ export const Navbar = () => {
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                      <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
+                      <AvatarFallback className="rounded-lg">JG</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">{user.name}</span>
-                      <span className="truncate text-xs">{user.email}</span>
+                      <span className="truncate font-medium">{user?.username || user?.fullName}</span>
+                      <span className="truncate text-xs">{user?.emailAddresses?.[0]?.emailAddress}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuGroup>
+                {/* <DropdownMenuGroup>
                   <DropdownMenuItem>
                     <Sparkles className="mr-2 h-4 w-4" />
                     Upgrade to Pro
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator /> */}
                 <DropdownMenuGroup>
                   <DropdownMenuItem>
                     <BadgeCheck className="mr-2 h-4 w-4" />

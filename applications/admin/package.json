@@ -11,9 +11,9 @@
     "shadcn": "npx shadcn@latest add -a -o"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.42.2",
-    "@clerk/localizations": "^3.21.3",
-    "@clerk/themes": "^2.4.11",
+    "@clerk/clerk-react": "^5.43.0",
+    "@clerk/localizations": "^3.22.0",
+    "@clerk/themes": "^2.4.12",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -59,7 +59,7 @@
     "react-hook-form": "^7.62.0",
     "react-redux": "^9.2.0",
     "react-resizable-panels": "^3.0.4",
-    "recharts": "3.1.2",
+    "recharts": "2.15.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.12",
@@ -72,7 +72,7 @@
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
-    "@vitejs/plugin-react-swc": "^4.0.0",
+    "@vitejs/plugin-react-swc": "^4.0.1",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -80,6 +80,6 @@
     "tw-animate-css": "^1.3.7",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.40.0",
-    "vite": "^7.1.2"
+    "vite": "^7.1.3"
   }
 }
