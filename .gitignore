@@ -1,47 +1,27 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
 **/node_modules
-#/default/node_modules
-#/mobile/node_modules
-#/server/node_modules
-#/process/node_modules
-#/template/node_modules
-#/default/node_modules
 
-**/dist
+node_modules
+.pnp
+.pnp.js
 
+# IDE
 /.idea/
 **/.idea
-#/default/.idea
-#/mobile/.idea
-#/server/.idea
-#/process/.idea
-#/template/.idea
-#/default/.idea
-
 **/.vscode
-#/default/.vscode
-#/mobile/.vscode
-#/server/.vscode
-#/process/.vscode
-#/template/.vscode
-#/default/.vscode
 
-**/.env**
-/applications/admin/.env.local
-/applications/client/.env.local
-/applications/cross/.env.local
-/applications/desktop/.env.local
-/applications/server/.env.local
-/applications/admin/.env.production
-/applications/client/.env.production
-/applications/cross/.env.production
-/applications/desktop/.env.production
-/applications/server/.env.production
-#/applications/admin/.env
-#/applications/client/.env
-#/applications/mobile/.env
-#/applications/desktop/.env
-#/applications/server/.env
-
+# Build Outputs
+.next/
+out/
+build
+dist
+**/out
+**/build
+**/dist
+**/.next
+**/.expo
 /applications/server/dist
 /applications/client/.next
 /applications/cross/.expo
@@ -51,15 +31,49 @@
 **/**-env.d.ts
 **/**.d.ts
 
+# Local env files
+**/.env**
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# /applications/admin/.env.local
+# /applications/client/.env.local
+# /applications/cross/.env.local
+# /applications/desktop/.env.local
+# /applications/server/.env.local
+# /applications/admin/.env.production
+# /applications/client/.env.production
+# /applications/cross/.env.production
+# /applications/desktop/.env.production
+# /applications/server/.env.production
+
+
+# Misc
 Thumbs.db
 .DS_Store
 **/.DS_Store
 **/package-lock.json
 **/yarn.lock
 **/pnpm-lock.yaml
+*.pem
+
+# Debug
+npm-debug.log*
 
 #/applications/admin/.DS_Store
 #/applications/client/.DS_Store
 #/applications/mobile/.DS_Store
 #/applications/desktop/.DS_Store
 #/applications/server/.DS_Store
+
+# Testing
+coverage
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel

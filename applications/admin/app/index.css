@@ -1,5 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "../assets/fonts/boxicons/css/boxicons.css";
+@import "../assets/fonts/boxicons/css/animations.css";
+@import "../assets/fonts/boxicons/css/transformations.css";
+@import "../assets/fonts/packicons/fonts/basic/boxicons.css";
+@import "../assets/fonts/packicons/fonts/brands/boxicons-brands.css";
+@import "../assets/fonts/packicons/css/animations.css";
+@import "../assets/fonts/packicons/css/transformations.css";
+@import '../styles/container.css';
+@import '../styles/personal.css';
 
 @custom-variant dark (&:is(.dark *));
 

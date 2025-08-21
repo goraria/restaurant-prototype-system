@@ -2,7 +2,19 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)', 
-  '/sign-up(.*)'
+  '/sign-up(.*)',
+  '/',                      // Trang chủ
+  '/about',                 // Trang giới thiệu  
+  '/contact',               // Trang liên hệ
+  '/pages',                 // Trang pages
+  '/public(.*)',           // Tất cả trang trong thư mục public
+  '/help',                 // Trang trợ giúp
+  '/privacy',              // Trang chính sách bảo mật
+  '/terms',                // Trang điều khoản sử dụng
+  '/pricing',              // Trang bảng giá (nếu có)
+  '/features',             // Trang tính năng
+  '/blog(.*)',             // Blog posts
+  '/news(.*)',             // Tin tức
 ])
 
 export default clerkMiddleware(async (auth, req) => {

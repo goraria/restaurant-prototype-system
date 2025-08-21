@@ -57,7 +57,28 @@ import {
 export const appGlobal = {
   name: "Waddles",
   description: "Design by Japtor Gorthenburg",
-  title: "Comprehensive Restaurant Management System"
+  title: "Comprehensive Restaurant Management System",
+  address: "123 Main St, Hai Bà Trưng, Hà Nội, Việt Nam",
+  phone: "+84 123 456 789",
+  email: "info@gorth.org",
+  website: "www.gorth.org",
+  copyright: "Bản quyền © Gorth Inc. 2020 - " + (new Date().getFullYear()) + " Bảo lưu mọi quyền.",
+  pro: "Copyright © &copy; 2020 - " + new Date().getFullYear() + " Gorth Inc. All rights reserved.",
+  copyleft: "Bản quyền © Waddles Corp. 2020 - " + new Date().getFullYear() + " Cung cấp bởi Gorth Inc.",
+  noob: "Copyright © 2020 - " + new Date().getFullYear() + " Waddles Corp. Powered by Gorth Inc.",
+}
+
+export const navigation = [
+  { name: "Contact", href: "/contact" },
+  { name: "About Us", href: "/about" },
+  { name: "Pages", href: "/pages" },
+  { name: "Components", href: "/manager" },
+]
+
+export const userDefault = {
+  name: "japtor",
+  email: "japtor@gorth.org",
+  avatar: "/avatars/waddles.jpeg",
 }
 
 export const demoSidebar = {
@@ -643,6 +664,274 @@ export const settingsSidebar = {
   ],
 }
 
+// Staff/Employee Sidebar Configuration
+export const staffSidebar = {
+  user: {
+    name: "Nhân viên",
+    email: "staff@waddles.com",
+    avatar: "/avatars/staff.jpeg",
+  },
+  route: "/staff",
+  navMain: [
+    {
+      title: "Tổng quan",
+      describe: "Dashboard for staff overview",
+      url: "/staff",
+      icon: BarChart3,
+      items: [],
+    },
+    {
+      title: "Đơn hàng",
+      describe: "Order management and processing",
+      url: "#",
+      icon: ClipboardList,
+      items: [
+        {
+          title: "Đơn hàng hiện tại",
+          describe: "Current active orders",
+          url: "/staff/orders",
+        },
+        {
+          title: "Nhận đơn mới",
+          describe: "Take new orders",
+          url: "/staff/orders/new",
+        },
+        {
+          title: "Theo dõi bếp",
+          describe: "Kitchen order tracking",
+          url: "/staff/orders/kitchen",
+        },
+      ],
+    },
+    {
+      title: "Quản lý bàn",
+      describe: "Table service and management",
+      url: "#",
+      icon: QrCode,
+      items: [
+        {
+          title: "Sơ đồ bàn",
+          describe: "Table layout and status",
+          url: "/staff/tables",
+        },
+        {
+          title: "Đặt bàn",
+          describe: "Table reservations",
+          url: "/staff/tables/reservations",
+        },
+        {
+          title: "Dọn bàn",
+          describe: "Table cleaning status",
+          url: "/staff/tables/cleaning",
+        },
+      ],
+    },
+    {
+      title: "Thanh toán",
+      describe: "Point of Sale system",
+      url: "#",
+      icon: CreditCard,
+      items: [
+        {
+          title: "Thu ngân",
+          describe: "Cashier interface",
+          url: "/staff/pos",
+        },
+        {
+          title: "Hóa đơn",
+          describe: "Invoice management",
+          url: "/staff/pos/invoices",
+        },
+      ],
+    },
+    {
+      title: "Cá nhân",
+      describe: "Personal information and schedule",
+      url: "#",
+      icon: User,
+      items: [
+        {
+          title: "Hồ sơ",
+          describe: "Personal profile",
+          url: "/staff/profile",
+        },
+        {
+          title: "Lịch làm việc",
+          describe: "Work schedule",
+          url: "/staff/schedule",
+        },
+        {
+          title: "Công việc",
+          describe: "Assigned tasks",
+          url: "/staff/tasks",
+        },
+      ],
+    },
+  ],
+  projects: [
+    {
+      name: "Quản lý thực đơn",
+      url: "/manager/menus",
+      icon: MenuSquare,
+    },
+    {
+      name: "Phân tích doanh thu",
+      url: "/manager/analytics/revenue",
+      icon: TrendingUp,
+    },
+    {
+      name: "Hỗ trợ khách hàng",
+      url: "/manager/support/chat",
+      icon: MessageSquare,
+    },
+  ],
+}
+
+// Customer Sidebar Configuration
+export const customerSidebar = {
+  user: {
+    name: "Khách hàng",
+    email: "customer@example.com",
+    avatar: "/avatars/customer.jpeg",
+  },
+  route: "/customer",
+  teams: [],
+  navMain: [
+    {
+      title: "Trang chủ",
+      describe: "Customer dashboard",
+      url: "/customer",
+      icon: Home,
+      items: [],
+    },
+    {
+      title: "Đặt bàn",
+      describe: "Table reservation system",
+      url: "#",
+      icon: QrCode,
+      items: [
+        {
+          title: "Đặt bàn mới",
+          describe: "Make new reservation",
+          url: "/customer/reservations",
+        },
+        {
+          title: "Lịch sử đặt bàn",
+          describe: "Reservation history",
+          url: "/customer/reservations/history",
+        },
+        {
+          title: "Hủy/Sửa đặt bàn",
+          describe: "Modify reservations",
+          url: "/customer/reservations/manage",
+        },
+      ],
+    },
+    {
+      title: "Đơn hàng",
+      describe: "Order history and tracking",
+      url: "#",
+      icon: ClipboardList,
+      items: [
+        {
+          title: "Lịch sử đơn hàng",
+          describe: "Order history",
+          url: "/customer/orders",
+        },
+        {
+          title: "Đặt lại",
+          describe: "Reorder previous items",
+          url: "/customer/orders/reorder",
+        },
+        {
+          title: "Theo dõi đơn hàng",
+          describe: "Track current orders",
+          url: "/customer/orders/tracking",
+        },
+      ],
+    },
+    {
+      title: "Thành viên",
+      describe: "Loyalty program and rewards",
+      url: "#",
+      icon: CircleDollarSign,
+      items: [
+        {
+          title: "Điểm tích lũy",
+          describe: "Loyalty points",
+          url: "/customer/loyalty",
+        },
+        {
+          title: "Ưu đãi",
+          describe: "Available offers",
+          url: "/customer/loyalty/offers",
+        },
+        {
+          title: "Ví điện tử",
+          describe: "Digital wallet",
+          url: "/customer/wallet",
+        },
+      ],
+    },
+    {
+      title: "Cá nhân",
+      describe: "Personal preferences and settings",
+      url: "#",
+      icon: User,
+      items: [
+        {
+          title: "Hồ sơ",
+          describe: "Personal profile",
+          url: "/customer/profile",
+        },
+        {
+          title: "Món yêu thích",
+          describe: "Favorite dishes",
+          url: "/customer/favorites",
+        },
+        {
+          title: "Đánh giá",
+          describe: "My reviews",
+          url: "/customer/reviews",
+        },
+      ],
+    },
+  ],
+  projects: [
+    {
+      name: "Quản lý thực đơn",
+      url: "/manager/menus",
+      icon: MenuSquare,
+    },
+    {
+      name: "Phân tích doanh thu",
+      url: "/manager/analytics/revenue",
+      icon: TrendingUp,
+    },
+    {
+      name: "Hỗ trợ khách hàng",
+      url: "/manager/support/chat",
+      icon: MessageSquare,
+    },
+  ],
+}
+
+// Shared/Public Routes Configuration
+export const sharedRoutes = {
+  public: [
+    { path: "/", title: "Trang chủ" },
+    { path: "/about", title: "Giới thiệu" },
+    { path: "/contact", title: "Liên hệ" },
+    { path: "/pages", title: "Tất cả trang" },
+    { path: "/privacy-policy", title: "Chính sách bảo mật" },
+    { path: "/terms-of-service", title: "Điều khoản sử dụng" },
+  ],
+  auth: [
+    { path: "/sign-in", title: "Đăng nhập" },
+    { path: "/sign-up", title: "Đăng ký" },
+  ],
+}
+
 export const footerLinks = {
   paymentIcons: [
     { id: 1, name: "Banking", icon: CircleDollarSign, link: "#" },
@@ -790,4 +1079,22 @@ export const testUsers = {
     },
   },
   managerRole: "manager",
+  staff: {
+    username: "Alice Johnson",
+    userId: "us-east-2:11111111-2222-3333-4444-555555555555",
+    signInDetails: {
+      loginId: "alice.staff@waddles.com",
+      authFlowType: "USER_SRP_AUTH",
+    },
+  },
+  staffRole: "staff",
+  customer: {
+    username: "Bob Customer",
+    userId: "us-east-2:99999999-8888-7777-6666-555555555555",
+    signInDetails: {
+      loginId: "bob.customer@example.com",
+      authFlowType: "USER_SRP_AUTH",
+    },
+  },
+  customerRole: "customer",
 };

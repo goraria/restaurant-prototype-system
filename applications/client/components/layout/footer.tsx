@@ -1,8 +1,9 @@
 import React from "react";
 import { FooterLink } from "@/components/elements/footer-link";
 import { footerLinks, appGlobal } from "@/constants/constants";
+import { Mail, MapPin, Phone } from "lucide-react";
 
-export const Footer = () => {
+export function Footer() {
 
   return (
     <footer className="bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -17,9 +18,18 @@ export const Footer = () => {
             <div className="space-y-2">
               <h5 className="text-lg font-semibold text-foreground">Liên hệ</h5>
               <div className="text-sm text-foreground space-y-1">
-                <p>📍 La Gorta, San Siro, Milano, Italia</p>
-                <p>📞 Hotline: 999-9999999</p>
-                <p>✉️ Email: info@gorth.org</p>
+                <span className="flex items-center mt-4">
+                  <MapPin size={20} className="h-5 w-5 me-2" />
+                  <p>{appGlobal.address}</p>
+                </span>
+                <span className="flex items-center mt-4">
+                  <Phone size={20} className="h-5 w-5 me-2" />
+                  <p>Hotline: {appGlobal.phone}</p>
+                </span>
+                <span className="flex items-center mt-4">
+                  <Mail size={20} className="h-5 w-5 me-2" />
+                  <p>Email: {appGlobal.email}</p>
+                </span>
               </div>
             </div>
           </div>
@@ -69,10 +79,15 @@ export const Footer = () => {
             {/* <ResponseButton /> */}
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t border-gray-200">
+        <div className="mt-8 pt-8">
           <div className="text-center space-y-2">
             <h5 className="text-base font-medium text-foreground">
-              Copyright &copy; 2020 - {(new Date().getFullYear())} Gorth Inc. All rights reserved.
+              {appGlobal.copyleft}
+            </h5>
+            <h5 className="text-base font-medium text-foreground">
+              {appGlobal.copyright}
+              {/* Copyright &copy; 2020 - {(new Date().getFullYear())} Gorth Inc. All rights reserved. */}
+              {/* Bản quyền &copy; Gorth Inc. 2020 - {(new Date().getFullYear())} Bảo lưu mọi quyền. */}
             </h5>
           </div>
         </div>

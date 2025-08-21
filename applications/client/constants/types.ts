@@ -18,6 +18,16 @@ export interface NavMainItem {
   items?: { title: string; url: string }[];
 }
 
+export interface AppSidebarUser {
+  name?: string | null;
+  email?: string | null;
+  avatar?: string | null;
+}
+
+export interface AppSidebarUserProps {
+  user: AppSidebarUser;
+}
+
 export interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
   sidebar: {
     navMain: NavMainItem[];
@@ -28,4 +38,5 @@ export interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
     name: string;
     description: string;
   };
+  user: AppSidebarUser;
 }

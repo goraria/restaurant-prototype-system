@@ -7,7 +7,7 @@ import { UserProfile } from "@clerk/nextjs";
 export default function InformationPage() {
   const { theme } = useTheme();
   return (
-    <div className="w-full p-4">
+    <div className="w-full">
       <UserProfile
         path="/settings/information"
         routing="path"
