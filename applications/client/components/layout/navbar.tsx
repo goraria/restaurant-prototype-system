@@ -13,7 +13,10 @@ import {
   Globe,
   LogOut,
   Bolt,
-  Menu
+  Menu,
+  User,
+  LogIn,
+  KeySquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,7 +66,7 @@ export function Navbar() {
     }
   };
 
-  console.log("Navbar rendered", user?.emailAddresses?.[0]?.emailAddress);
+  console.log("Navbar rendered", user);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -125,9 +128,9 @@ export function Navbar() {
               <Separator />
               <nav className="flex flex-col space-y-0 p-4 pt-0">
                 {navigation.map((item, index) => (
-                  <Button 
-                    key={index} 
-                    variant="ghost" 
+                  <Button
+                    key={index}
+                    variant="ghost"
                     className="justify-start w-full"
                   >
                     <Link
@@ -176,7 +179,7 @@ export function Navbar() {
 
             {/* Theme Toggle */}
             <ModeToggle />
-            <QuickSetting/>
+            <QuickSetting />
 
             {/* Notifications */}
             <DropdownMenu>
@@ -211,101 +214,142 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  className="h-8 p-0 cursor-pointer"
-                >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
-                    <AvatarFallback className="rounded-lg">JG</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
+            {user ? (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      className="h-8 p-0 cursor-pointer"
+                    >
+                      <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
+                        <AvatarFallback className="rounded-lg">JG</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
 
-              {/* <div className="flex justify-end items-center">
-                <SignedOut>
-                  <ClerkSignIn
-                    label="Sign in"
-                    buttonProps={{
-                      variant: "ghost",
-                      size: "sm",
-                      className: "mr-2",
-                    }}
-                  />
-                  <ClerkSignUp
-                    label="Sign Up"
-                    buttonProps={{
-                      size: "sm",
-                      className:
-                        "bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5",
-                    }}
-                  />
-                </SignedOut>
-                <SignedIn>
-                  <UserButton 
-                    userProfileMode="navigation" 
-                    userProfileUrl="/settings/information"
-                    appearance={{
-                      baseTheme: dark
-                    }}
-                  />
-                </SignedIn>
-              </div> */}
-              <DropdownMenuContent
-                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                // side={isMobile ? "bottom" : "right"}
-                align="end"
-                sideOffset={4}
-              >
-                <DropdownMenuLabel className="p-0 font-normal">
-                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
-                      <AvatarFallback className="rounded-lg">JG</AvatarFallback>
-                    </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">{user?.username || user?.fullName}</span>
-                      <span className="truncate text-xs">{user?.emailAddresses?.[0]?.emailAddress}</span>
-                    </div>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {/* <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Upgrade to Pro
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator /> */}
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <BadgeCheck className="mr-2 h-4 w-4" />
-                    <Link href="/settings/information">Account</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bell className="mr-2 h-4 w-4" />
-                    Notifications
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bolt className="mr-2 h-4 w-4" />
-                    <Link href="/settings">Settings</Link>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>{/*   disabled={isLoggingOut} */}
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {/*{isLoggingOut ? 'Logging out...' : 'Log out'}*/}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {/* <div className="flex justify-end items-center">
+                    <SignedOut>
+                      <ClerkSignIn
+                        label="Sign in"
+                        buttonProps={{
+                          variant: "ghost",
+                          size: "sm",
+                          className: "mr-2",
+                        }}
+                      />
+                      <ClerkSignUp
+                        label="Sign Up"
+                        buttonProps={{
+                          size: "sm",
+                          className:
+                            "bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5",
+                        }}
+                      />
+                    </SignedOut>
+                    <SignedIn>
+                      <UserButton 
+                        userProfileMode="navigation" 
+                        userProfileUrl="/settings/information"
+                        appearance={{
+                          baseTheme: dark
+                        }}
+                      />
+                    </SignedIn>
+                  </div> */}
+                  <DropdownMenuContent
+                    className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                    // side={isMobile ? "bottom" : "right"}
+                    align="end"
+                    sideOffset={4}
+                  >
+                    <DropdownMenuLabel className="p-0 font-normal">
+                      <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <Avatar className="h-8 w-8 rounded-lg">
+                          <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
+                          <AvatarFallback className="rounded-lg">JG</AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                          <span className="truncate font-medium">{user?.username || user?.fullName}</span>
+                          <span className="truncate text-xs">{user?.emailAddresses?.[0]?.emailAddress}</span>
+                        </div>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem>
+                        <BadgeCheck className="mr-2 h-4 w-4" />
+                        <Link href="/settings/information">Tài khoản</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Thanh toán
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Bell className="mr-2 h-4 w-4" />
+                        Thông báo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Bolt className="mr-2 h-4 w-4" />
+                        <Link href="/settings">Cài đặt</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>{/*   disabled={isLoggingOut} */}
+                      <LogOut className="mr-2 h-4 w-4" />
+                      {/*{isLoggingOut ? 'Logging out...' : 'Log out'}*/}
+                      Đăng xuất
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <User className="h-6 w-6" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                    // side={isMobile ? "bottom" : "right"}
+                    align="end"
+                    sideOffset={4}
+                  >
+                    <DropdownMenuLabel className="p-0 font-normal">
+                      <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <Avatar className="h-8 w-8 rounded-lg">
+                          {/* <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} /> */}
+                          <AvatarFallback className="rounded-lg">VT</AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                          <span className="truncate font-medium">user</span>
+                          <span className="truncate text-xs">Visitor</span>
+                        </div>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        <Link href="/sign-in">Đăng nhập</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <KeySquare className="mr-2 h-4 w-4" />
+                        <Link href="/sign-up">Đăng ký</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+
+            {/* User Menu */}
+
+
             {/*<NavUser user={data.user}/>*/}
           </div>
         </div>

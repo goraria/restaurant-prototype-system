@@ -21,7 +21,7 @@ export default function InformationPage() {
             cardBox: {
               display: "flex",
               width: "100%",
-              height: "calc(100vh - 116px - 32px - 1px)", // 56px (navbar) + 60px (footer) + 32px (padding`) + 1px (border)
+              height: "calc(100vh - 116px - 48px - 1px)", // 56px (navbar) + 60px (footer) + 32px (padding`) + 1px (border)
               background: "transparent",
               border: "0",
               padding: "0",

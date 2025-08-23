@@ -1,13 +1,43 @@
 import { Pressable, View } from 'react-native';
 import { setAndroidNavigationBar } from '@/lib/android-navigation-bar';
 import { useTheme } from '@react-navigation/native';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 // import { MoonStar } from '@/lib/icons/MoonStar';
 // import { Sun } from '@/lib/icons/Sun';
-import { Moon, MoonStar, Sun } from 'lucide-react-native';
+import {
+  Moon,
+  MoonStar,
+  Sun,
+  MoonStarIcon,
+  XIcon,
+  SunIcon
+} from 'lucide-react-native';
 
 import { useColorScheme } from '@/lib/useColorScheme';
 
 export function ThemeToggle() {
+  const { colorScheme, toggleColorScheme } = useColorScheme();
+
+  return (
+    <Button
+      onPress={toggleColorScheme}
+      size="icon"
+      variant="ghost"
+      className="rounded-full"
+    >
+      <Icon
+        as={{
+          light: SunIcon,
+          dark: MoonStarIcon,
+        }[colorScheme ?? 'light']}
+        className="size-6"
+      />
+    </Button>
+  );
+}
+
+export function ThemeToggleOld() {
   const { isDarkColorScheme, setColorScheme } = useColorScheme();
   const { colors } = useTheme();
 
