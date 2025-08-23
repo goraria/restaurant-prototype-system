@@ -1,78 +1,84 @@
 import '@/global.css';
 
-import { DarkTheme, DefaultTheme, Theme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as React from 'react';
-import { Appearance, Platform, View } from 'react-native';
-import { NAV_THEME } from '@/lib/constants';
-import { useColorScheme } from '@/lib/useColorScheme';
+import { NAV_THEME } from '@/lib/theme';
+import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
+import { tokenCache } from '@clerk/clerk-expo/token-cache';
+import { ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
-import { ThemeToggle } from '@/components/element/ThemeToggle';
-import { setAndroidNavigationBar } from '@/lib/android-navigation-bar';
-
-import { ClerkProvider } from "@clerk/clerk-expo";
-import { tokenCache } from '@clerk/clerk-expo/token-cache'
-
-const LIGHT_THEME: Theme = {
-  ...DefaultTheme,
-  colors: NAV_THEME.light,
-};
-const DARK_THEME: Theme = {
-  ...DarkTheme,
-  colors: NAV_THEME.dark,
-};
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useColorScheme } from 'nativewind';
+import * as React from 'react';
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
-const usePlatformSpecificSetup = Platform.select({
-  web: useSetWebBackgroundClassName,
-  android: useSetAndroidNavigationBar,
-  default: noop,
-});
-
 export default function RootLayout() {
-  usePlatformSpecificSetup();
-  const { isDarkColorScheme } = useColorScheme();
+  const { colorScheme } = useColorScheme();
 
   return (
-    <>
-      <ClerkProvider tokenCache={tokenCache}>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen
-              name='index'
-              options={{
-                title: 'Starter Base',
-                // headerRight: () => <ThemeToggle />, // header tắt global nên option này không cần
-              }}
-            />
-          </Stack>
-          <PortalHost />
-        </ThemeProvider>
-      </ClerkProvider>
-    </>
+    <ClerkProvider tokenCache={tokenCache}>
+      <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <Routes />
+        <PortalHost />
+      </ThemeProvider>
+    </ClerkProvider>
   );
 }
 
-const useIsomorphicLayoutEffect =
-  Platform.OS === 'web' && typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
+SplashScreen.preventAutoHideAsync();
 
-function useSetWebBackgroundClassName() {
-  useIsomorphicLayoutEffect(() => {
-    // Adds the background color to the html element to prevent white background on overscroll.
-    document.documentElement.classList.add('bg-background');
-  }, []);
+function Routes() {
+  const { isSignedIn, isLoaded } = useAuth();
+
+  React.useEffect(() => {
+    if (isLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoaded]);
+
+  if (!isLoaded) {
+    return null;
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      {/* Screens only shown when the user is NOT signed in */}
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="(auth)/sign-in" options={SIGN_IN_SCREEN_OPTIONS} />
+        <Stack.Screen name="(auth)/sign-up" options={SIGN_UP_SCREEN_OPTIONS} />
+        <Stack.Screen name="(auth)/reset-password" options={DEFAULT_AUTH_SCREEN_OPTIONS} />
+        <Stack.Screen name="(auth)/forgot-password" options={DEFAULT_AUTH_SCREEN_OPTIONS} />
+      </Stack.Protected>
+
+      {/* Screens only shown when the user IS signed in */}
+      <Stack.Protected guard={isSignedIn}>
+        <Stack.Screen name="index" />
+      </Stack.Protected>
+
+      {/* Screens outside the guards are accessible to everyone (e.g. not found) */}
+    </Stack>
+  );
 }
 
-function useSetAndroidNavigationBar() {
-  React.useLayoutEffect(() => {
-    setAndroidNavigationBar(Appearance.getColorScheme() ?? 'light');
-  }, []);
-}
+const SIGN_IN_SCREEN_OPTIONS = {
+  headerShown: false,
+  title: 'Sign in',
+};
 
-function noop() {}
+const SIGN_UP_SCREEN_OPTIONS = {
+  presentation: 'modal',
+  title: '',
+  headerTransparent: true,
+  gestureEnabled: false,
+} as const;
+
+const DEFAULT_AUTH_SCREEN_OPTIONS = {
+  title: '',
+  headerShadowVisible: false,
+  headerTransparent: true,
+};

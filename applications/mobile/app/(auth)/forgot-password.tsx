@@ -1,12 +1,16 @@
+import { ForgotPasswordForm } from '@/components/forgot-password-form';
+import * as React from 'react';
+import { ScrollView, View } from 'react-native';
 
-import React from "react";
-import { View, Text } from "react-native";
-
-export default function ForgotPassword() {
-	return (
-		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-			<Text style={{ fontSize: 20, fontWeight: "bold" }}>Forgot Password</Text>
-			<Text style={{ marginTop: 8 }}>This is a placeholder screen.</Text>
-		</View>
-	);
+export default function ForgotPasswordScreen() {
+  return (
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      contentContainerClassName="sm:flex-1 items-center justify-center p-4 py-8 sm:py-4 sm:p-6 mt-safe"
+      keyboardDismissMode="interactive">
+      <View className="w-full max-w-sm">
+        <ForgotPasswordForm />
+      </View>
+    </ScrollView>
+  );
 }
