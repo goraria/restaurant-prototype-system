@@ -54,10 +54,10 @@ export function ThemeToggleOld() {
     >
       <View className='flex-1 aspect-square pt-0.5 justify-center items-start web:px-5'>
         {isDarkColorScheme ? (
-          <Moon className='text-foreground' color={colors.text} size={22} />
+          <Moon className='text-foreground' color={colors.text} size={22}/>
           // <Moon className='text-foreground' size={23} strokeWidth={1.25} />
         ) : (
-          <Sun className='text-foreground' color={colors.text} size={22} />
+          <Sun className='text-foreground' color={colors.text} size={22}/>
           // <Sun className='text-foreground' size={24} strokeWidth={1.25} />
         )}
       </View>

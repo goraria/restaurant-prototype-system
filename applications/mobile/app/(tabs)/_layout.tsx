@@ -10,8 +10,8 @@ import {
   Home,
   UtensilsCrossed,
   Bell,
-  MessageSquare,
-  User
+  MessageCircle,
+  User,
 } from "lucide-react-native";
 
 export default function TabLayout() {
@@ -28,7 +28,7 @@ export default function TabLayout() {
           tabBarStyle: Platform.select({
             ios: {
               // Use a transparent background on iOS to show the blur effect
-              position: 'absolute',
+              // position: 'absolute',
               paddingBottom: 34, // Add padding for iPhone home indicator
             },
             default: {
@@ -40,28 +40,28 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Trang chủ',
-            tabBarIcon: ({ color }) => <Home color={color} size={28} />,
+            tabBarIcon: ({ color }) => <Home color={color} size={24} />,
           }}
         />
         <Tabs.Screen
           name="menu"
           options={{
             title: 'Thực đơn',
-            tabBarIcon: ({ color }) => <UtensilsCrossed color={color} size={28} />,
-          }}
-        />
-        <Tabs.Screen
-          name="notifications"
-          options={{
-            title: 'Thông báo',
-            tabBarIcon: ({ color }) => <Bell color={color} size={28} />,
+            tabBarIcon: ({ color }) => <UtensilsCrossed color={color} size={24} />,
           }}
         />
         <Tabs.Screen
           name="messages"
           options={{
             title: 'Tin nhắn',
-            tabBarIcon: ({ color }) => <MessageSquare color={color} size={28} />,
+            tabBarIcon: ({ color }) => <MessageCircle color={color} size={24} />,
+          }}
+        />
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            title: 'Thông báo',
+            tabBarIcon: ({ color }) => <Bell color={color} size={24} />,
           }}
         />
         <Tabs.Screen
@@ -69,7 +69,7 @@ export default function TabLayout() {
           options={{
             title: 'Cá nhân',
             headerShown: false,
-            tabBarIcon: ({ color }) => <User color={color} size={28} />,
+            tabBarIcon: ({ color }) => <User color={color} size={24} />,
           }}
         />
       </Tabs>

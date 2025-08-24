@@ -859,6 +859,7 @@ enum payment_method_enum {
   viettelpay
   vnpay
   shopeepay
+  paypal
 }
 
 enum payment_status_enum {

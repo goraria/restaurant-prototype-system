@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCartButton } from '@/components/ui/shopping-cart';
+import { ShoppingCartButton } from '@/components/element/shopping-cart';
 import { Stack } from 'expo-router';
 import { 
   Search, 

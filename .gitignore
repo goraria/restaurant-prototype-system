@@ -24,8 +24,8 @@ dist
 **/.expo
 /applications/server/dist
 /applications/client/.next
-/applications/cross/.expo
-/applications/cross/expo-env.d.ts
+/applications/mobile/.expo
+/applications/mobile/expo-env.d.ts
 /applications/admin/vite-env.d.ts
 /applications/client/next-env.d.ts
 **/**-env.d.ts

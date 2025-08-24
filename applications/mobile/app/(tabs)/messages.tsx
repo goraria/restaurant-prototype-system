@@ -1,12 +1,12 @@
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { UserMenu } from '@/components/user-menu';
 import { useUser } from '@clerk/clerk-expo';
 import { Link, Stack } from 'expo-router';
-import { XIcon } from 'lucide-react-native';
+import { SquarePen, XIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
-import * as React from 'react';
 import { Image, type ImageStyle, View } from 'react-native';
 import { ThemeToggle } from '@/components/element/ThemeToggle';
 
@@ -18,13 +18,26 @@ export default function Screen() {
     <>
       <Stack.Screen
         options={{
+          headerShown: true,
           header: () => (
-            <View className="top-safe absolute left-0 right-0 flex-row justify-between px-4 py-2 web:mx-2">
-              <ThemeToggle />
-              <UserMenu />
+            <View className="bg-background pt-16 pb-4 px-4 border-b border-border">
+              <View className="flex-row items-center justify-between gap-3">
+                <UserMenu />
+                <Button
+                  onPress={() => {
+                  }}
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full p-4"
+                >
+                  <Icon
+                    as={SquarePen}
+                    className="size-6"
+                  />
+                </Button>
+              </View>
             </View>
           ),
-          headerShown: true,
         }}
       />
       <View className="flex-1 items-center justify-center gap-8 p-4">
