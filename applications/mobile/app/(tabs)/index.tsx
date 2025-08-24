@@ -3,25 +3,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCartButton } from '@/components/ui/shopping-cart';
+import { ShoppingCartButton } from '@/components/element/shopping-cart';
+import { SearchBar, SearchBarHolder } from '@/components/element/search-bar';
 import { useUser } from '@clerk/clerk-expo';
-import { Link, Stack } from 'expo-router';
-import { 
-  Search, 
-  MapPin, 
-  Star, 
-  Clock, 
-  Users, 
+import { Link, Stack, router } from 'expo-router';
+import {
+  Search,
+  MapPin,
+  Star,
+  Clock,
+  Users,
   UtensilsCrossed,
   Calendar,
   Heart,
   TrendingUp,
   Award,
-  Utensils
+  Utensils,
+  ShoppingCart,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { Image, ScrollView, TouchableOpacity, View, FlatList } from 'react-native';
+
+import { ThemeToggle } from '@/components/element/ThemeToggle';
+import { UserMenu } from '@/components/user-menu';
+import { Icon } from "@/components/ui/icon";
+import { HeaderStack } from '@/components/layout/header';
 
 // Mock data cho nhà hàng
 const featuredRestaurants = [
@@ -39,7 +46,7 @@ const featuredRestaurants = [
     specialOffer: 'Giảm 20% cho đơn đầu tiên'
   },
   {
-    id: '2', 
+    id: '2',
     name: 'Sushi Tokyo',
     cuisine: 'Nhật Bản',
     rating: 4.6,
@@ -70,7 +77,7 @@ const promotions = [
     color: 'bg-red-500',
   },
   {
-    id: '2', 
+    id: '2',
     title: 'Miễn phí ship',
     subtitle: 'Đơn từ 200k',
     color: 'bg-blue-500',
@@ -150,43 +157,44 @@ export default function HomeScreen() {
 
   return (
     <>
-      <Stack.Screen
+      {/* <Stack.Screen
         options={{
-          headerShown: false,
-        }}
-      />
-      <ScrollView className="flex-1 bg-background">
-        {/* Simple Header với Search Bar và Cart */}
-        <View className="bg-background pt-12 pb-4 px-4 border-b border-border">
-          <View className="flex-row items-center gap-3">
-            {/* Search Bar */}
-            {/* <View className="flex-1 flex-row items-center bg-muted rounded-lg px-3 py-3">
-              <Search size={20} color="#71717a" />
-              <Input
-                placeholder="Tìm nhà hàng, món ăn..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                className="flex-1 ml-3 border-0 bg-transparent p-0 text-foreground"
-              />
-            </View> */}
-            <View className="flex-1 flex-row items-center bg-muted rounded-lg p-3">
-              <View className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm món ăn..."
-                  className="w-[200px] pl-8"
+          headerShown: true,
+          header: () => (
+            <View className="bg-background pt-16 pb-4 px-4 border-b border-border">
+              <View className="flex-row items-center gap-3">
+                <SearchBarHolder
+                  placeholder="Tìm nhà hàng, món ăn..."
+                  onPress={() => router.push('/search')}
                 />
+                <Button
+                  onPress={() => {
+                  }}
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full p-4"
+                >
+                  <Icon
+                    as={ShoppingCart}
+                    className="size-6"
+                  />
+                </Button>
               </View>
             </View>
-            
-            {/* Shopping Cart */}
-            <ShoppingCartButton 
-              itemCount={cartItemCount}
-              onPress={handleCartPress}
-              color="#71717a"
-            />
-          </View>
-        </View>
+          ),
+        }}
+      /> */}
+      <HeaderStack
+        position="right"
+        iconRight={ShoppingCart}
+        iconRightAction={() => router.push('/cart')}
+      >
+        <SearchBarHolder
+          placeholder="Tìm nhà hàng, món ăn..."
+          onPress={() => router.push('/search')}
+        />
+      </HeaderStack>
+      <ScrollView className="flex-1 bg-background">
 
         {/* Promotions Banner */}
         <View className="px-4 py-4">
@@ -247,21 +255,21 @@ export default function HomeScreen() {
               </View>
               <Text className="text-sm font-medium text-center">Đặt bàn</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity className="items-center flex-1">
               <View className="w-16 h-16 rounded-xl bg-green-100 items-center justify-center mb-2">
                 <UtensilsCrossed size={24} color="#10B981" />
               </View>
               <Text className="text-sm font-medium text-center">Gọi món</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity className="items-center flex-1">
               <View className="w-16 h-16 rounded-xl bg-purple-100 items-center justify-center mb-2">
                 <Award size={24} color="#8B5CF6" />
               </View>
               <Text className="text-sm font-medium text-center">Ưu đãi</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity className="items-center flex-1">
               <View className="w-16 h-16 rounded-xl bg-yellow-100 items-center justify-center mb-2">
                 <TrendingUp size={24} color="#F59E0B" />
