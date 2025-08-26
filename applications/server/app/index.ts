@@ -20,6 +20,7 @@ import prisma from '@/config/prisma';
 
 /* OLD ROUTE IMPORTS */
 import authRoutes from "@/routes/authRoutes";
+import paymentRoutes from "@routes/paymentRoutes";
 import productRoutes from "@/routes/productRoutes";
 import taskRoutes from "@/routes/taskRoutes";
 import userRoutes from "@/routes/userRoutes";
@@ -67,7 +68,12 @@ app.use(cors({
   ],
   credentials: true,
 }));
-app.use(clerkMiddleware());
+
+// Cấu hình Clerk middleware với ignoredRoutes để bỏ qua payment routes
+app.use(clerkMiddleware({
+  publishableKey: process.env.EXPRESS_PUBLIC_CLERK_PUBLISHABLE_KEY,
+  secretKey: process.env.EXPRESS_CLERK_SECRET_KEY,
+}));
 
 /* STATIC FILES */
 /* UPLOAD MULTER CONFIG */
@@ -152,6 +158,8 @@ const isProduction = process.env.EXPRESS_ENV === 'production';
 /* ROUTES */
 // Old routes (keep for backward compatibility)
 app.use("/auth", authRoutes)
+// app.use("/payment", requireAuth(), paymentRoutes)
+app.use("/payment", paymentRoutes)
 app.use("/products", requireAuth(), productRoutes)
 app.use("/task", requireAuth(), taskRoutes)
 app.use('/users', requireAuth(), userRoutes);
