@@ -649,24 +649,24 @@ export async function verifySocketAuth(token) {
 ```javascript
 // Kiểm tra quyền trước khi emit events
 socket.on('update_order_status', async (data) => {
-  // Chỉ staff và admin mới được cập nhật
-  if (!['staff', 'admin'].includes(socket.userRole)) {
-    socket.emit('error', { message: 'Không có quyền thực hiện' });
-    return;
-  }
-  
-  // Chỉ được cập nhật order trong restaurant của mình
-  const order = await prisma.order.findUnique({
-    where: { id: data.orderId }
-  });
-  
-  if (order.restaurantId !== socket.restaurantId) {
-    socket.emit('error', { message: 'Không có quyền truy cập' });
-    return;
-  }
-  
-  // Proceed with update
-  await orderService.updateOrderStatus(data.orderId, data.status, socket.userId);
+    // Chỉ staff và admin mới được cập nhật
+    if (!['staff', 'admin'].includes(socket.userRole)) {
+        socket.emit('error', { message: 'Không có quyền thực hiện' });
+        return;
+    }
+
+    // Chỉ được cập nhật order trong restaurant của mình
+    const order = await prisma.order.findUnique({
+        where: { id: data.orderId }
+    });
+
+    if (order.restaurantId !== socket.restaurantId) {
+        socket.emit('error', { message: 'Không có quyền truy cập' });
+        return;
+    }
+
+    // Proceed with update
+    await orderServices.updateOrderStatus(data.orderId, data.status, socket.userId);
 });
 ```
 

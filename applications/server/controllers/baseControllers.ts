@@ -16,7 +16,7 @@ export interface ApiResponse<T = any> {
   };
 }
 
-export abstract class BaseController {
+export abstract class BaseControllers {
   /**
    * Send success response
    */

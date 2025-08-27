@@ -22,6 +22,8 @@ import prisma from '@/config/prisma';
 import authRoutes from "@/routes/authRoutes";
 import paymentRoutes from "@routes/paymentRoutes";
 import productRoutes from "@/routes/productRoutes";
+import voucherRoutes from '@/routes/voucherRoutes';
+import categoryRoutes from '@/routes/categoryRoutes';
 import taskRoutes from "@/routes/taskRoutes";
 import userRoutes from "@/routes/userRoutes";
 import restaurantRoutes from "@/routes/restaurantRoutes";
@@ -161,11 +163,26 @@ app.use("/auth", authRoutes)
 // app.use("/payment", requireAuth(), paymentRoutes)
 app.use("/payment", paymentRoutes)
 app.use("/products", requireAuth(), productRoutes)
+app.use("/voucher", voucherRoutes) // Removed requireAuth() for testing
+app.use("/category", categoryRoutes) // Category routes
 app.use("/task", requireAuth(), taskRoutes)
 app.use('/users', requireAuth(), userRoutes);
 app.use('/restaurants', requireAuth(), restaurantRoutes);
 app.use('/orders', requireAuth(), orderRoutes);
 app.use('/menus', requireAuth(), menuRoutes);
+
+// Debug route to test voucher endpoints
+// app.get('/debug/voucher', (req, res) => {
+//   res.json({
+//     success: true,
+//     message: 'Voucher debug endpoint working',
+//     availableRoutes: [
+//       'GET /voucher - Get all vouchers',
+//       'POST /voucher - Create voucher',
+//       'GET /voucher/:id - Get voucher by ID'
+//     ]
+//   });
+// });
 
 app.get('/', (
   req,
@@ -180,7 +197,19 @@ app.get('/', (
       users: '/api/v1/users',
       restaurants: '/api/v1/restaurants',
       orders: '/api/v1/orders',
-      menus: '/api/v1/menus'
+      menus: '/api/v1/menus',
+      vouchers: '/voucher',
+      categories: '/category'
+    },
+    voucherEndpoints: {
+      'GET /voucher': 'Get all vouchers',
+      'POST /voucher': 'Create voucher',
+      'GET /voucher/:id': 'Get voucher by ID',
+      'GET /voucher/code/:code': 'Get voucher by code',
+      'PUT /voucher/:id': 'Update voucher',
+      'DELETE /voucher/:id': 'Delete voucher',
+      'POST /voucher/validate': 'Validate voucher',
+      'POST /voucher/use': 'Use voucher'
     }
   });
 });
