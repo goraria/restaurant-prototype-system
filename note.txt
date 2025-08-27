@@ -1,28 +1,108 @@
 Initialize {
-
+    application: [
+        admin: [],
+        client: [
+            app,
+            assets,
+            components,
+            config,
+            constants,
+            hooks,
+            lib,
+            public,
+            scripts,
+            services,
+            state,
+            styles,
+            utils,
+        ],
+        desktop: [],
+        mobile: [
+            app,
+            assets,
+            components,
+            constants,
+            hooks,
+            lib,
+            public,
+            state,
+        ],
+        server: [
+            app,
+            assets,
+            config,
+            controllers,
+            middlewares,
+            models,
+            prisma,
+            public,
+            routes,
+            schemas,
+            services,
+            utils,
+        ],
+    ],
+    packages: [
+        assets,
+        config,
+        constants,
+        schemas,
+        services,
+        state,
+        utils,
+    ]
 }
 
 Base {
-    language: JavaScript,
-    database: MongoDB,
+    language: TypeScript,
+    database: Postgres,
     environment: Node.js,
 }
 
 Technologies {
-    client: [React, Redux, Material-UI, Axios]
-    mobile: [React Native, Redux, Axios]
-    server: [Node.js, Express, MongoDB, Mongoose, JWT, Nodemailer]
+    client: [Next.js, React, Shadcn, Clerk, Redux, Axios]
+    mobile: [Expo.js, React Native, Reusables, Primitives, Clerk, Redux, Axios]
+    server: [Express.js, Clerk, Prisma, Supabase, Nodemailer, Axios]
 }
 
 Features {
-    client: [Login, Register, Profile, Home, Product, Cart, Order, Payment, Rating, Toast]
-    mobile: [Login, Register, Profile, Home, Product, Cart, Order, Payment, Rating, Toast]
-    server: [Login, Register, Profile, Home, Product, Cart, Order, Payment, Rating, Toast]
+    auth: [
+        Sign In,
+        Sign Up,
+        Sign Out,
+        Forgot Password,
+        Change Password,
+        ...
+    ],
+    management: [
+        user,
+        menu,
+        recipe,
+        ingredient,
+        table,
+        voucher,
+    ],
+    reservation: [
+
+    ],
+    order: [
+
+    ],
+    payment: [
+        momo,
+        zalopay
+    ]
 }
 
 Routes {
-    client: [Authentication, Home, User, Account]
-    mobile: [Authentication, Home, User, Account]
-    server: [Authentication, Home, User, Account]
+    client: [
+
+    ],
+    mobile: [
+
+    ],
+    server: [
+
+    ],
 }
 
