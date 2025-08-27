@@ -24,3 +24,7 @@ export const updateUser = async (
     res.status(500).json({ error: "Failed to update user" });
   }
 }
+
+export function webhookHandler() {
+  
+}

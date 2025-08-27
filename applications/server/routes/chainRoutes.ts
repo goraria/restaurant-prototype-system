@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { restaurantController } from '@/controllers/restaurantController';
+import { restaurantControllers } from '@controllers/restaurantControllers';
 
 const router = Router();
-const restaurantControllerInstance = new restaurantController();
+const restaurantControllerInstance = new restaurantControllers();
 
 // Chain routes
 router.get('/:chainId/restaurants', restaurantControllerInstance.getRestaurantsByChain);

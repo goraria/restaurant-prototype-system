@@ -1,40 +1,64 @@
 import { Router } from 'express';
-import { menuController } from '@/controllers/menuController';
+import {
+  createMenu,
+  getMenuById,
+  getMenus,
+  getMenusByRestaurantId,
+  updateMenu,
+  deleteMenu,
+  createMenuItem,
+  getMenuItemById,
+  getMenuItems,
+  getFeaturedMenuItems,
+  updateMenuItem,
+  deleteMenuItem,
+  bulkUpdateMenuItems,
+  bulkToggleAvailability,
+  getMenuStats
+} from '../controllers/menuControllers';
+
 // Import middleware (tạm thời comment để không lỗi)
-// import { authMiddleware, managerMiddleware } from '../middlewares/auth.middleware';
+// import { authMiddleware, restaurantManagerMiddleware } from '../middlewares/authMiddleware';
 
 const router = Router();
-const menuControllerInstance = new menuController();
 
-// Public routes
-router.get('/menu-items/featured', menuControllerInstance.getFeaturedMenuItems);
-router.get('/menu-items/search', menuControllerInstance.searchMenuItems);
-router.get('/menu-items/stats', menuControllerInstance.getMenuItemStats);
-router.get('/menu-items', menuControllerInstance.getMenuItems);
-router.get('/menu-items/:id', menuControllerInstance.getMenuItemById);
+// ================================
+// 🍽️ MENU ROUTES
+// ================================
 
-// Menu routes
-router.get('/:id', menuControllerInstance.getMenuById);
-router.get('/', menuControllerInstance.getMenus);
+// Public routes - Không cần authentication
+router.get('/restaurant/:restaurantId', getMenusByRestaurantId); // Lấy menu của nhà hàng
+router.get('/restaurant/:restaurantId/stats', getMenuStats); // Thống kê menu của nhà hàng
 
-// Protected routes (cần auth)
+// Protected routes - Cần authentication
 // router.use(authMiddleware); // Uncomment khi có auth middleware
 
-// Menu CRUD
-router.post('/', menuControllerInstance.createMenu);
-router.put('/:id', menuControllerInstance.updateMenu);
-router.delete('/:id', menuControllerInstance.deleteMenu);
+// Menu CRUD operations
+router.get('/', getMenus); // Lấy danh sách menu với filter
+router.post('/', createMenu); // Tạo menu mới
+router.get('/:id', getMenuById); // Lấy menu theo ID
+router.put('/:id', updateMenu); // Cập nhật menu
+router.delete('/:id', deleteMenu); // Xóa menu
 
-// Menu items CRUD
-router.post('/menu-items', menuControllerInstance.createMenuItem);
-router.put('/menu-items/:id', menuControllerInstance.updateMenuItem);
-router.delete('/menu-items/:id', menuControllerInstance.deleteMenuItem);
+// ================================
+// 🍽️ MENU ITEM ROUTES
+// ================================
 
-// Menu items relations
-router.get('/:menuId/items', menuControllerInstance.getMenuItemsByMenu);
+// Public routes cho menu items
+router.get('/items/featured', getFeaturedMenuItems); // Lấy món ăn nổi bật
 
-// Bulk operations
-// router.use(managerMiddleware); // Uncomment khi có manager middleware
-router.put('/menu-items/bulk/availability', menuControllerInstance.updateItemsAvailability);
+// Protected routes cho menu items
+router.get('/items', getMenuItems); // Lấy danh sách món ăn với filter
+router.post('/items', createMenuItem); // Tạo món ăn mới
+router.get('/items/:id', getMenuItemById); // Lấy món ăn theo ID
+router.put('/items/:id', updateMenuItem); // Cập nhật món ăn
+router.delete('/items/:id', deleteMenuItem); // Xóa món ăn
+
+// Bulk operations cho menu items
+router.put('/items/bulk/update', bulkUpdateMenuItems); // Cập nhật hàng loạt món ăn
+router.put('/items/bulk/availability', bulkToggleAvailability); // Bật/tắt trạng thái hàng loạt
+
+// Restaurant manager only routes
+// router.use(restaurantManagerMiddleware); // Uncomment khi có restaurant manager middleware
 
 export default router;

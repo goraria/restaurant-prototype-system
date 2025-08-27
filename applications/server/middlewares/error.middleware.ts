@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ValidationError, AuthError, NotFoundError, ForbiddenError } from '../controllers/baseController';
+import { ValidationError, AuthError, NotFoundError, ForbiddenError } from '@controllers/baseControllers';
 
 export interface ErrorResponse {
   success: false;
