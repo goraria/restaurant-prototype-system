@@ -49,6 +49,145 @@ export async function createPayment(data: {
 }
 
 /**
+ * Danh sách payments (lọc + phân trang)
+ */
+export async function getPayments(query: {
+  page?: number;
+  limit?: number;
+  order_id?: string;
+  method?: string;
+  status?: string;
+  provider?: string;
+  transaction_id?: string;
+  start_date?: string;
+  end_date?: string;
+  sort_by?: 'created_at' | 'amount' | 'status';
+  sort_order?: 'asc' | 'desc';
+}) {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      order_id,
+      method,
+      status,
+      provider,
+      transaction_id,
+      start_date,
+      end_date,
+      sort_by = 'created_at',
+      sort_order = 'desc',
+    } = query;
+
+    const where: any = {};
+    if (order_id) where.order_id = order_id;
+    if (method) where.method = method;
+    if (status) where.status = status;
+    if (provider) where.provider = provider;
+    if (transaction_id) where.transaction_id = transaction_id;
+    if (start_date || end_date) {
+      where.created_at = {};
+      if (start_date) where.created_at.gte = new Date(start_date);
+      if (end_date) where.created_at.lte = new Date(end_date);
+    }
+
+    const total = await prisma.payments.count({ where });
+    const payments = await prisma.payments.findMany({
+      where,
+      include: {
+        orders: {
+          select: {
+            id: true,
+            order_code: true,
+            final_amount: true,
+          }
+        }
+      },
+      orderBy: { [sort_by]: sort_order },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      success: true,
+      data: payments,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi lấy danh sách payments'
+    };
+  }
+}
+
+/**
+ * Lấy chi tiết payment theo ID
+ */
+export async function getPaymentById(id: string) {
+  try {
+    const payment = await prisma.payments.findUnique({
+      where: { id },
+      include: {
+        orders: {
+          include: {
+            customers: true,
+            restaurants: true,
+          }
+        }
+      }
+    });
+
+    if (!payment) {
+      return { success: false, error: 'Payment không tồn tại' };
+    }
+
+    return { success: true, data: payment };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi lấy payment theo ID'
+    };
+  }
+}
+
+/**
+ * Cập nhật payment (ngoài việc cập nhật status)
+ */
+export async function updatePaymentData(
+  id: string,
+  data: Partial<{
+    amount: number;
+    method: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'refunded';
+    provider: string | null;
+    transaction_id: string | null;
+    gateway_response: any;
+  }>
+) {
+  try {
+    const updated = await prisma.payments.update({
+      where: { id },
+      data: {
+        ...data,
+        updated_at: new Date(),
+      } as any,
+    });
+    return { success: true, data: updated };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi cập nhật payment'
+    };
+  }
+}
+
+/**
  * Cập nhật trạng thái payment
  */
 export async function updatePaymentStatus(

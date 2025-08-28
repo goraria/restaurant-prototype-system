@@ -90,11 +90,14 @@ const baseQueryWithClerk = async (
       if (successMessage) toast.success(successMessage);
     }
 
-    if (result.data) {
-      result.data = result.data.data;
+    if (result.data !== undefined) {
+      const payload = result.data as any;
+      if (payload && typeof payload === 'object' && 'data' in payload) {
+        result.data = payload.data;
+      }
     } else if (
       result.error?.status === 204 ||
-      result.meta?.response?.status === 24
+      result.meta?.response?.status === 204
     ) {
       return { data: null };
     }
@@ -246,6 +249,356 @@ export const api = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["Menus"],
+    }),
+
+    // Menu extras
+    getMenusByRestaurant: builder.query<any, string>({
+      query: (restaurantId) => `/menus/restaurant/${restaurantId}`,
+      providesTags: ["Menus"],
+    }),
+    getMenuStatsByRestaurant: builder.query<any, string>({
+      query: (restaurantId) => `/menus/restaurant/${restaurantId}/stats`,
+      providesTags: ["Menus"],
+    }),
+    getFeaturedMenuItems: builder.query<any[], void>({
+      query: () => `/menus/items/featured`,
+      providesTags: ["Menus"],
+    }),
+    getMenuItems: builder.query<any[], Record<string, any> | void>({
+      query: (params) => ({ url: `/menus/items`, params: params ?? {} }),
+      providesTags: ["Menus"],
+    }),
+    createMenuItem: builder.mutation<any, any>({
+      query: (data) => ({ url: `/menus/items`, method: "POST", body: data }),
+      invalidatesTags: ["Menus"],
+    }),
+    getMenuItemById: builder.query<any, string>({
+      query: (id) => `/menus/items/${id}`,
+      providesTags: ["Menus"],
+    }),
+    updateMenuItem: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/menus/items/${id}`, method: "PUT", body: data }),
+      invalidatesTags: ["Menus"],
+    }),
+    deleteMenuItem: builder.mutation<any, string>({
+      query: (id) => ({ url: `/menus/items/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Menus"],
+    }),
+    bulkUpdateMenuItems: builder.mutation<any, any>({
+      query: (data) => ({ url: `/menus/items/bulk/update`, method: "PUT", body: data }),
+      invalidatesTags: ["Menus"],
+    }),
+    bulkToggleMenuItemsAvailability: builder.mutation<any, any>({
+      query: (data) => ({ url: `/menus/items/bulk/availability`, method: "PUT", body: data }),
+      invalidatesTags: ["Menus"],
+    }),
+
+    // Orders extras
+    getOrderStats: builder.query<any, void>({
+      query: () => `/orders/stats`,
+      providesTags: ["Orders"],
+    }),
+    getOrderAnalytics: builder.query<any, void>({
+      query: () => `/orders/analytics`,
+      providesTags: ["Orders"],
+    }),
+    getMyOrders: builder.query<any[], void>({
+      query: () => `/orders/my-orders`,
+      providesTags: ["Orders"],
+    }),
+    getCurrentOrder: builder.query<any, void>({
+      query: () => `/orders/current`,
+      providesTags: ["Orders"],
+    }),
+    getRestaurantOrders: builder.query<any[], void>({
+      query: () => `/orders/restaurant`,
+      providesTags: ["Orders"],
+    }),
+    getPendingOrders: builder.query<any[], void>({
+      query: () => `/orders/restaurant/pending`,
+      providesTags: ["Orders"],
+    }),
+    getRestaurantDashboard: builder.query<any, void>({
+      query: () => `/orders/restaurant/dashboard`,
+      providesTags: ["Orders"],
+    }),
+    getOrderByCode: builder.query<any, string>({
+      query: (orderCode) => `/orders/code/${orderCode}`,
+      providesTags: ["Orders"],
+    }),
+    cancelOrder: builder.mutation<any, string>({
+      query: (id) => ({ url: `/orders/${id}/cancel`, method: "POST" }),
+      invalidatesTags: ["Orders"],
+    }),
+    bulkOrderActions: builder.mutation<any, any>({
+      query: (data) => ({ url: `/orders/bulk-actions`, method: "POST", body: data }),
+      invalidatesTags: ["Orders"],
+    }),
+    getKitchenOrders: builder.query<any[], void>({
+      query: () => `/orders/kitchen/orders`,
+      providesTags: ["Orders"],
+    }),
+    updateCookingStatus: builder.mutation<any, any>({
+      query: (data) => ({ url: `/orders/kitchen/cooking-status`, method: "PUT", body: data }),
+      invalidatesTags: ["Orders"],
+    }),
+
+    // Voucher
+    createVoucher: builder.mutation<any, any>({
+      query: (data) => ({ url: `/voucher`, method: "POST", body: data }),
+      invalidatesTags: ["Menus"],
+    }),
+    getVouchers: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/voucher`, params: params ?? {} }),
+    }),
+    getVoucherById: builder.query<any, string>({ query: (id) => `/voucher/${id}` }),
+    getVoucherByCode: builder.query<any, string>({ query: (code) => `/voucher/code/${code}` }),
+    updateVoucher: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/voucher/${id}`, method: "PUT", body: data }),
+    }),
+    deleteVoucher: builder.mutation<any, string>({
+      query: (id) => ({ url: `/voucher/${id}`, method: "DELETE" }),
+    }),
+    hardDeleteVoucher: builder.mutation<any, string>({
+      query: (id) => ({ url: `/voucher/${id}/hard`, method: "DELETE" }),
+    }),
+    validateVoucher: builder.mutation<any, any>({
+      query: (data) => ({ url: `/voucher/validate`, method: "POST", body: data }),
+    }),
+    useVoucher: builder.mutation<any, any>({
+      query: (data) => ({ url: `/voucher/use`, method: "POST", body: data }),
+    }),
+    getVoucherUsageHistory: builder.query<any, string>({
+      query: (id) => `/voucher/${id}/usage`,
+    }),
+    getActiveVouchersForRestaurant: builder.query<any, string>({
+      query: (restaurantId) => `/voucher/restaurant/${restaurantId}/active`,
+    }),
+
+    // Promotions bundle (mounted under /payment)
+    promotionCreateVoucher: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/vouchers`, method: "POST", body: data }),
+    }),
+    promotionGetVouchers: builder.query<any, void>({ query: () => `/payment/vouchers` }),
+    promotionUpdateVoucher: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/payment/vouchers/${id}`, method: "PUT", body: data }),
+    }),
+    promotionDeleteVoucher: builder.mutation<any, string>({
+      query: (id) => ({ url: `/payment/vouchers/${id}`, method: "DELETE" }),
+    }),
+    promotionApplyVoucher: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/vouchers/apply`, method: "POST", body: data }),
+    }),
+    promotionGetMyVouchers: builder.query<any, void>({ query: () => `/payment/my-vouchers` }),
+    promotionCreatePromotion: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/promotions`, method: "POST", body: data }),
+    }),
+    promotionGetPromotions: builder.query<any, void>({ query: () => `/payment/promotions` }),
+    promotionUpdatePromotion: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/payment/promotions/${id}`, method: "PUT", body: data }),
+    }),
+    promotionDeletePromotion: builder.mutation<any, string>({
+      query: (id) => ({ url: `/payment/promotions/${id}`, method: "DELETE" }),
+    }),
+    promotionCheckPromotions: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/promotions/check`, method: "POST", body: data }),
+    }),
+    promotionGetMyPromotions: builder.query<any, void>({ query: () => `/payment/my-promotions` }),
+    promotionCalculateBestDiscount: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/calculate-discount`, method: "POST", body: data }),
+    }),
+    promotionGetAnalytics: builder.query<any, void>({ query: () => `/payment/analytics` }),
+    promotionGetRestaurantVouchers: builder.query<any, string>({
+      query: (restaurantId) => `/payment/restaurants/${restaurantId}/vouchers`,
+    }),
+    promotionGetRestaurantPromotions: builder.query<any, string>({
+      query: (restaurantId) => `/payment/restaurants/${restaurantId}/promotions`,
+    }),
+
+    // Payments (list, detail, update, refund) under /payment
+    listPayments: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/payment`, params: params ?? {} }),
+    }),
+    createPaymentRecord: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment`, method: "POST", body: data }),
+    }),
+    paymentAnalytics: builder.query<any, void>({ query: () => `/payment/analytics` }),
+    getPaymentDetail: builder.query<any, string>({ query: (id) => `/payment/${id}` }),
+    updatePaymentRecord: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/payment/${id}`, method: "PUT", body: data }),
+    }),
+    refundPayment: builder.mutation<any, string>({
+      query: (id) => ({ url: `/payment/${id}/refund`, method: "POST" }),
+    }),
+
+    // Purchases (momo/zalopay/vnpay) under /payment
+    momoPayment: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/momo`, method: "POST", body: data }),
+    }),
+    momoCallback: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/momo/callback`, method: "POST", body: data }),
+    }),
+    momoTransactionStatus: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/momo/transaction-status`, method: "POST", body: data }),
+    }),
+    zalopayPayment: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/zalopay`, method: "POST", body: data }),
+    }),
+    zalopayCallback: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/zalopay/callback`, method: "POST", body: data }),
+    }),
+    zalopayCheckStatus: builder.mutation<any, string>({
+      query: (id) => ({ url: `/payment/zalopay/check-status/${id}`, method: "POST" }),
+    }),
+    vnpayPayment: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/vnpay`, method: "POST", body: data }),
+    }),
+    vnpayCallback: builder.mutation<any, any>({
+      query: (data) => ({ url: `/payment/vnpay/callback`, method: "POST", body: data }),
+    }),
+
+    // Inventory
+    createInventoryItem: builder.mutation<any, any>({
+      query: (data) => ({ url: `/inventory-items`, method: "POST", body: data }),
+    }),
+    getInventoryItems: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/inventory-items`, params: params ?? {} }),
+    }),
+    bulkUpdateInventory: builder.mutation<any, any>({
+      query: (data) => ({ url: `/inventory-items/bulk-update`, method: "PATCH", body: data }),
+    }),
+    getLowStockAlert: builder.query<any, void>({ query: () => `/inventory-items/low-stock-alert` }),
+    getInventoryItemById: builder.query<any, string>({ query: (id) => `/inventory-items/${id}` }),
+    updateInventoryItem: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/inventory-items/${id}`, method: "PUT", body: data }),
+    }),
+    deleteInventoryItem: builder.mutation<any, string>({
+      query: (id) => ({ url: `/inventory-items/${id}`, method: "DELETE" }),
+    }),
+    getInventoryItemsByRestaurantId: builder.query<any, string>({
+      query: (restaurantId) => `/restaurants/${restaurantId}/inventory-items`,
+    }),
+    createInventoryTransaction: builder.mutation<any, any>({
+      query: (data) => ({ url: `/inventory-transactions`, method: "POST", body: data }),
+    }),
+    getInventoryTransactions: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/inventory-transactions`, params: params ?? {} }),
+    }),
+    createRecipe: builder.mutation<any, any>({
+      query: (data) => ({ url: `/recipes`, method: "POST", body: data }),
+    }),
+    getRecipes: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/recipes`, params: params ?? {} }),
+    }),
+    calculateRecipeCost: builder.mutation<any, any>({
+      query: (data) => ({ url: `/recipes/calculate-cost`, method: "POST", body: data }),
+    }),
+    getRecipeById: builder.query<any, string>({ query: (id) => `/recipes/${id}` }),
+    updateRecipe: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/recipes/${id}`, method: "PUT", body: data }),
+    }),
+    getInventoryStats: builder.query<any, void>({ query: () => `/stats/inventory` }),
+    checkQRInventory: builder.mutation<any, any>({
+      query: (data) => ({ url: `/inventory/qr-check`, method: "POST", body: data }),
+    }),
+    quickStockUpdate: builder.mutation<any, any>({
+      query: (data) => ({ url: `/inventory/quick-update`, method: "POST", body: data }),
+    }),
+
+    // Reservations
+    createReservation: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reservations`, method: "POST", body: data }),
+    }),
+    getReservations: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/reservations`, params: params ?? {} }),
+    }),
+    getTodayReservations: builder.query<any, void>({ query: () => `/reservations/today` }),
+    getUpcomingReservations: builder.query<any, void>({ query: () => `/reservations/upcoming` }),
+    checkAvailability: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reservations/check-availability`, method: "POST", body: data }),
+    }),
+    createWalkIn: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reservations/walk-in`, method: "POST", body: data }),
+    }),
+    bulkUpdateReservations: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reservations/bulk-update`, method: "PATCH", body: data }),
+    }),
+    reservationAnalytics: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reservations/analytics`, method: "POST", body: data }),
+    }),
+    getReservationById: builder.query<any, string>({ query: (id) => `/reservations/${id}` }),
+    updateReservation: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/reservations/${id}`, method: "PUT", body: data }),
+    }),
+    updateReservationStatus: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/reservations/${id}/status`, method: "PATCH", body: data }),
+    }),
+    deleteReservation: builder.mutation<any, string>({
+      query: (id) => ({ url: `/reservations/${id}`, method: "DELETE" }),
+    }),
+
+    // Reviews
+    createRestaurantReview: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reviews/restaurant`, method: "POST", body: data }),
+    }),
+    createMenuItemReview: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reviews/menu-item`, method: "POST", body: data }),
+    }),
+    createOrderReview: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reviews/order`, method: "POST", body: data }),
+    }),
+    getReviews: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/reviews`, params: params ?? {} }),
+    }),
+    getReviewStats: builder.query<any, void>({ query: () => `/reviews/stats` }),
+    getMyReviews: builder.query<any, void>({ query: () => `/reviews/my-reviews` }),
+    getReviewById: builder.query<any, string>({ query: (id) => `/reviews/${id}` }),
+    updateReview: builder.mutation<any, { reviewId: string; data: any }>({
+      query: ({ reviewId, data }) => ({ url: `/reviews/${reviewId}`, method: "PUT", body: data }),
+    }),
+    deleteReview: builder.mutation<any, string>({
+      query: (reviewId) => ({ url: `/reviews/${reviewId}`, method: "DELETE" }),
+    }),
+    addReviewResponse: builder.mutation<any, { reviewId: string; data: any }>({
+      query: ({ reviewId, data }) => ({ url: `/reviews/${reviewId}/response`, method: "POST", body: data }),
+    }),
+    bulkReviewAction: builder.mutation<any, any>({
+      query: (data) => ({ url: `/reviews/bulk-action`, method: "POST", body: data }),
+    }),
+    getRestaurantReviews: builder.query<any, string>({
+      query: (restaurantId) => `/reviews/restaurant/${restaurantId}`,
+    }),
+    getRestaurantReviewStats: builder.query<any, string>({
+      query: (restaurantId) => `/reviews/restaurant/${restaurantId}/stats`,
+    }),
+    getMenuItemReviews: builder.query<any, string>({
+      query: (menuItemId) => `/reviews/menu-item/${menuItemId}`,
+    }),
+    getMenuItemReviewStats: builder.query<any, string>({
+      query: (menuItemId) => `/reviews/menu-item/${menuItemId}/stats`,
+    }),
+
+    // Uploads
+    uploadAvatar: builder.mutation<any, FormData>({
+      query: (formData) => ({ url: `/upload/avatar`, method: "POST", body: formData }),
+    }),
+    uploadFile: builder.mutation<any, FormData>({
+      query: (formData) => ({ url: `/upload/file`, method: "POST", body: formData }),
+    }),
+    uploadCategoryImage: builder.mutation<any, FormData>({
+      query: (formData) => ({ url: `/upload/images/categories`, method: "POST", body: formData }),
+    }),
+    uploadMenuImage: builder.mutation<any, FormData>({
+      query: (formData) => ({ url: `/upload/images/menus`, method: "POST", body: formData }),
+    }),
+    uploadMenuItemImage: builder.mutation<any, FormData>({
+      query: (formData) => ({ url: `/upload/images/menu-items`, method: "POST", body: formData }),
+    }),
+    uploadRestaurantLogo: builder.mutation<any, FormData>({
+      query: (formData) => ({ url: `/upload/images/restaurants/logo`, method: "POST", body: formData }),
+    }),
+    uploadRestaurantCover: builder.mutation<any, FormData>({
+      query: (formData) => ({ url: `/upload/images/restaurants/cover`, method: "POST", body: formData }),
     }),
 
     /* 
@@ -448,6 +801,7 @@ export const {
   useCreateMenuMutation,
   useUpdateMenuMutation,
   useDeleteMenuMutation,
+  useGetMenuItemsQuery,
   
   // useUpdateUserMutation,
   // useCreateCourseMutation,

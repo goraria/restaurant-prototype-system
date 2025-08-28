@@ -52,14 +52,29 @@ import {
   MessageSquare,
   TrendingUp,
   QrCode,
-} from "lucide-react"; 
+  Menu,
+  Search,
+  Clock,
+  MapPin,
+  ShoppingCart,
+  Heart,
+  Utensils,
+  Calendar,
+  MessageCircle,
+  Camera,
+  Star,
+  Mail
+} from "lucide-react";
 
 export const appGlobal = {
   name: "Waddles",
   description: "Design by Japtor Gorthenburg",
   title: "Comprehensive Restaurant Management System",
   address: "123 Main St, Hai Bà Trưng, Hà Nội, Việt Nam",
-  phone: "+84 123 456 789",
+  times: "06:00 - 22:00 (Hằng ngày)",
+  opening: "06:00 - 22:00 (GMT+7) (Thứ Hai - Chủ Nhật)",
+  phone: "(+84) 123 456 789",
+  hotline: "(028) 1876 5439",
   email: "info@gorth.org",
   website: "www.gorth.org",
   copyright: "Bản quyền © Gorth Inc. 2020 - " + (new Date().getFullYear()) + " Bảo lưu mọi quyền.",
@@ -69,10 +84,55 @@ export const appGlobal = {
 }
 
 export const navigation = [
-  { name: "Contact", href: "/contact" },
-  { name: "About Us", href: "/about" },
-  { name: "Pages", href: "/pages" },
-  { name: "Components", href: "/manager" },
+  {
+    title: "Trang chủ",
+    href: "/customer",
+    icon: Utensils
+  },
+  {
+    title: "Thực đơn",
+    href: "/customer/menu",
+    icon: Utensils,
+    description: "Khám phá các món ăn ngon"
+  },
+  {
+    title: "Đặt bàn",
+    href: "/customer/booking",
+    icon: Calendar,
+    description: "Đặt bàn trước để có chỗ ngồi tốt nhất"
+  },
+  {
+    title: "Khám phá",
+    href: "#",
+    icon: Camera,
+    children: [
+      {
+        title: "Thư viện ảnh",
+        href: "/customer/gallery",
+        description: "Những khoảnh khắc đẹp tại nhà hàng"
+      },
+      {
+        title: "Blog ẩm thực",
+        href: "/customer/blog",
+        description: "Câu chuyện và kinh nghiệm ẩm thực"
+      },
+      {
+        title: "Đánh giá",
+        href: "/customer/reviews",
+        description: "Đánh giá từ khách hàng"
+      }
+    ]
+  },
+  {
+    title: "Liên hệ",
+    href: "/customer/contact",
+    icon: Mail,
+    description: "Thông tin liên hệ và hỗ trợ"
+  }
+  // { name: "Contact", href: "/contact" },
+  // { name: "About Us", href: "/about" },
+  // { name: "Pages", href: "/pages" },
+  // { name: "Components", href: "/manager" },
 ]
 
 export const userDefault = {

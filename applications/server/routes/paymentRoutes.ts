@@ -1,26 +1,33 @@
-import Router from "express";
+import { Router } from 'express';
 import {
-  momoPayment,
-  momoCallback,
-  momoTransactionStatus,
-  zalopayPayment,
-  zalopayCallback,
-  zalopayCheckStatus,
-  vnpayPayment,
-  vnpayCallback,
-} from "@/controllers/paymentControllers";
+  listPayments,
+  getPaymentDetail,
+  createPaymentRecord,
+  updatePaymentRecord,
+  refundPayment,
+  paymentAnalytics,
+} from '@/controllers/paymentControllers';
 
 const router = Router();
 
-router.post("/momo", momoPayment);
-router.post("/momo/callback", momoCallback);
-router.post("/momo/transaction-status", momoTransactionStatus);
+// List + query payments
+router.get('/', listPayments);
 
-router.post("/zalopay", zalopayPayment);
-router.post("/zalopay/callback", zalopayCallback);
-router.post("/zalopay/check-status/:id", zalopayCheckStatus);
+// Create a manual payment record (admin)
+router.post('/', createPaymentRecord);
 
-router.post("/vnpay", vnpayPayment);
-router.post("/vnpay/callback", vnpayCallback);
+// Payment analytics
+router.get('/analytics', paymentAnalytics);
+
+// Payment detail
+router.get('/:id', getPaymentDetail);
+
+// Update payment
+router.put('/:id', updatePaymentRecord);
+
+// Refund
+router.post('/:id/refund', refundPayment);
 
 export default router;
+
+

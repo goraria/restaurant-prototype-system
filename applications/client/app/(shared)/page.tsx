@@ -40,7 +40,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
+      <section className="px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-center mb-8">
             <Image

@@ -21,6 +21,7 @@ import userRoutes from "@/routes/userRoutes";
 import restaurantRoutes from "@/routes/restaurantRoutes";
 import orderRoutes from "@/routes/orderRoutes";
 import menuRoutes from "@/routes/menuRoutes";
+import paymentRoutes from "@/routes/paymentRoutes";
 import { errorHandler } from "@/middlewares/error.middleware";
 
 /* CONFIGURATIONS */
@@ -132,6 +133,7 @@ app.use('/user', userRoutes);
 app.use('/restaurant', restaurantRoutes);
 app.use('/order', orderRoutes);
 app.use('/menu', menuRoutes);
+app.use('/payment', paymentRoutes);
 
 app.get('/', (
   req,

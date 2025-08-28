@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,48 +15,46 @@ import {
   UtensilsCrossed
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useGetMenuItemsQuery } from "@/state/api"
 
 export default function MenuItemsPage() {
-  const menuItems = [
-    {
-      id: 1,
-      name: "Phở bò đặc biệt",
-      category: "Món chính",
-      price: 85000,
-      status: "available",
-      description: "Phở bò truyền thống với thịt bò tái, chín và gầu bò"
-    },
-    {
-      id: 2,
-      name: "Bánh mì thịt nướng",
-      category: "Bánh mì",
-      price: 25000,
-      status: "available",
-      description: "Bánh mì giòn với thịt nướng thơm ngon"
-    },
-    {
-      id: 3,
-      name: "Cà phê sữa đá",
-      category: "Đồ uống",
-      price: 20000,
-      status: "out_of_stock",
-      description: "Cà phê sữa đá truyền thống Việt Nam"
-    },
-    {
-      id: 4,
-      name: "Chả cá Lã Vọng",
-      category: "Món chính",
-      price: 120000,
-      status: "available",
-      description: "Chả cá truyền thống Hà Nội với bún và rau thơm"
-    }
-  ]
+  const [menuItems, setMenuItems] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState<string>("");
+  const [availability, setAvailability] = useState<string>("all");
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(20);
+
+  const params = useMemo(() => {
+    const p: Record<string, any> = { page, limit };
+    if (search.trim()) p.search = search.trim();
+    if (availability !== "all") p.is_available = availability === "available";
+    return p;
+  }, [page, limit, search, availability]);
+
+  const { data, isFetching, isError, error: rqError } = useGetMenuItemsQuery(params as any);
+
+  useEffect(() => {
+    const normalized = Array.isArray(data)
+      ? data
+      : Array.isArray((data as any)?.items)
+        ? (data as any).items
+        : Array.isArray((data as any)?.data)
+          ? (data as any).data
+          : [];
+    setMenuItems(normalized);
+  }, [data]);
+
+  useEffect(() => {
+    setError(isError ? (rqError as any)?.error || "Không thể tải danh sách món ăn" : null);
+  }, [isError, rqError]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -94,11 +92,40 @@ export default function MenuItemsPage() {
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Tìm kiếm món ăn..." className="pl-8" />
+          <Input
+            placeholder="Tìm kiếm món ăn..."
+            className="pl-8"
+            value={search}
+            onChange={(e) => { setPage(1); setSearch(e.target.value); }}
+          />
         </div>
-        <Button variant="outline">
+        <div className="w-48">
+          <Select value={availability} onValueChange={(v) => { setPage(1); setAvailability(v); }}>
+            <SelectTrigger>
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="available">Có sẵn</SelectItem>
+              <SelectItem value="out_of_stock">Hết hàng</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-28">
+          <Select value={String(limit)} onValueChange={(v) => { setPage(1); setLimit(Number(v)); }}>
+            <SelectTrigger>
+              <SelectValue placeholder="Số dòng" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 / trang</SelectItem>
+              <SelectItem value="20">20 / trang</SelectItem>
+              <SelectItem value="50">50 / trang</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button variant="outline" onClick={() => { setPage(1); setSearch(""); setAvailability("all"); }}>
           <Filter className="mr-2 h-4 w-4" />
-          Lọc
+          Xóa lọc
         </Button>
       </div>
 
@@ -160,24 +187,33 @@ export default function MenuItemsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {menuItems.map((item) => (
+            {isFetching && (
+              <div className="text-sm text-muted-foreground">Đang tải dữ liệu...</div>
+            )}
+            {error && !isFetching && (
+              <div className="text-sm text-red-600">{error}</div>
+            )}
+            {!isFetching && !error && (!Array.isArray(menuItems) || menuItems.length === 0) && (
+              <div className="text-sm text-muted-foreground">Chưa có món ăn nào.</div>
+            )}
+            {!isFetching && !error && Array.isArray(menuItems) && menuItems.map((item: any) => (
               <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
                     <UtensilsCrossed className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <h3 className="font-medium">{item.name || item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.description || ""}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline">{item.category}</Badge>
-                      {getStatusBadge(item.status)}
+                      {item.category && <Badge variant="outline">{item.category}</Badge>}
+                      {getStatusBadge(item.status || (item.is_available ? "available" : "out_of_stock"))}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="font-medium">{item.price.toLocaleString('vi-VN')}đ</p>
+                    <p className="font-medium">{(item.price ?? 0).toLocaleString('vi-VN')}đ</p>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -206,6 +242,13 @@ export default function MenuItemsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-end gap-2">
+        <Button variant="outline" disabled={page <= 1 || isFetching} onClick={() => setPage((p) => Math.max(1, p - 1))}>Trước</Button>
+        <div className="text-sm text-muted-foreground">Trang {page}</div>
+        <Button variant="outline" disabled={isFetching || !Array.isArray(menuItems) || menuItems.length < limit} onClick={() => setPage((p) => p + 1)}>Sau</Button>
+      </div>
     </div>
   )
 }
