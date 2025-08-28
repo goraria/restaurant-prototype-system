@@ -15,7 +15,7 @@ import {
   bulkUpdateMenuItems as bulkUpdateMenuItemsService,
   bulkToggleAvailability as bulkToggleAvailabilityService,
   getMenuStats as getMenuStatsService
-} from '../services/menuServices';
+} from '@/services/menuServices';
 import { 
   CreateMenuSchema, 
   UpdateMenuSchema, 
@@ -26,7 +26,7 @@ import {
   BulkUpdateMenuItemsSchema,
   BulkToggleAvailabilitySchema,
   FeaturedItemsQuerySchema
-} from '../schemas/menuSchemas';
+} from '@/schemas/menuSchemas';
 
 // ================================
 // 🍽️ MENU CONTROLLERS

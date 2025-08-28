@@ -16,7 +16,7 @@ import {
   TableCheckIn,
   TableStatsQuery,
   ReservationStatsQuery
-} from '../schemas/tableSchemas';
+} from '@/schemas/tableSchemas';
 
 const prisma = new PrismaClient();
 

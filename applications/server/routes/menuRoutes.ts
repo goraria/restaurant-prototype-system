@@ -15,10 +15,10 @@ import {
   bulkUpdateMenuItems,
   bulkToggleAvailability,
   getMenuStats
-} from '../controllers/menuControllers';
+} from '@/controllers/menuControllers';
 
 // Import middleware (tạm thời comment để không lỗi)
-// import { authMiddleware, restaurantManagerMiddleware } from '../middlewares/authMiddleware';
+// import { authMiddleware, restaurantManagerMiddleware } from '@/middlewares/authMiddleware';
 
 const router = Router();
 

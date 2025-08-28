@@ -8,8 +8,8 @@ import {
   ReviewQuerySchema,
   ReviewStatsQuerySchema,
   BulkReviewActionSchema
-} from '../schemas/reviewSchemas';
-import reviewServices from '../services/reviewServices';
+} from '@/schemas/reviewSchemas';
+import reviewServices from '@/services/reviewServices';
 
 // Extend Request interface
 interface AuthenticatedRequest extends Request {

@@ -12,7 +12,7 @@ import type {
   BulkVoucherActionRequest,
   BulkPromotionActionRequest,
   DiscountAnalyticsRequest
-} from '../schemas/promotionSchemas';
+} from '@/schemas/promotionSchemas';
 
 const prisma = new PrismaClient();
 

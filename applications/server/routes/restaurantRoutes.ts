@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // import { restaurantControllers } from '@controllers/restaurantControllers';
 // Import middleware (tạm thời comment để không lỗi)
-// import { authMiddleware, managerMiddleware } from '../middlewares/auth.middleware';
+// import { authMiddleware, managerMiddleware } from '@/middlewares/auth.middleware';
 
 const router = Router();
 // const restaurantControllerInstance = new restaurantControllers();

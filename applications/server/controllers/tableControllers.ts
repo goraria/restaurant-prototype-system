@@ -15,8 +15,8 @@ import {
   TableCheckInSchema,
   TableStatsQuerySchema,
   ReservationStatsQuerySchema
-} from '../schemas/tableSchemas';
-import * as tableServices from '../services/tableServices';
+} from '@/schemas/tableSchemas';
+import * as tableServices from '@/services/tableServices';
 
 // ================================
 // 🪑 TABLE CONTROLLERS

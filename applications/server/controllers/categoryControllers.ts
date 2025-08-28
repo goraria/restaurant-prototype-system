@@ -11,12 +11,12 @@ import {
   reorderCategories as reorderCategoriesService,
   moveCategory as moveCategoryService,
   getCategoryBreadcrumbs as getCategoryBreadcrumbsService
-} from '../services/categoryServices';
+} from '@/services/categoryServices';
 import { 
   CreateCategorySchema, 
   UpdateCategorySchema, 
   CategoryQuerySchema 
-} from '../schemas/categorySchemas';
+} from '@/schemas/categorySchemas';
 
 /**
  * Create a new category

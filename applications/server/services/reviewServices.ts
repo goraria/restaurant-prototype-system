@@ -10,7 +10,7 @@ import type {
   BulkReviewActionRequest,
   ReviewModerationRequest,
   ReviewExportRequest
-} from '../schemas/reviewSchemas';
+} from '@/schemas/reviewSchemas';
 
 const prisma = new PrismaClient();
 

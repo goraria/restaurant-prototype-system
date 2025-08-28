@@ -11,7 +11,7 @@ import {
   reorderCategories,
   moveCategory,
   getCategoryBreadcrumbs
-} from '../controllers/categoryControllers';
+} from '@/controllers/categoryControllers';
 
 const router = Router();
 

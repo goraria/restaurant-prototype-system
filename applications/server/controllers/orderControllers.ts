@@ -11,7 +11,7 @@ import {
   UpdateCookingStatusSchema,
   BulkOrderActionSchema,
   OrderAnalyticsSchema
-} from '../schemas/orderSchemas';
+} from '@/schemas/orderSchemas';
 import {
   createOrder,
   getOrderById,
@@ -24,7 +24,7 @@ import {
   updateCookingOrderStatus,
   bulkUpdateOrders,
   getOrderAnalyticsData
-} from '../services/orderServices';
+} from '@/services/orderServices';
 
 // AuthenticatedRequest interface
 interface AuthenticatedRequest extends Request {

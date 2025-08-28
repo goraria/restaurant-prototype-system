@@ -20,8 +20,8 @@ import {
   ImportInventoryDataSchema,
   QRInventoryCheckSchema,
   QuickStockUpdateSchema
-} from '../schemas/inventorySchemas';
-import * as inventoryServices from '../services/inventoryServices';
+} from '@/schemas/inventorySchemas';
+import * as inventoryServices from '@/services/inventoryServices';
 
 // ================================
 // 🏪 INVENTORY ITEM CONTROLLERS
