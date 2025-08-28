@@ -11,7 +11,7 @@ import {
   useVoucher,
   getVoucherUsageHistory,
   getActiveVouchersForRestaurant
-} from '../controllers/voucherControllers';
+} from '@/controllers/voucherControllers';
 
 const router = Router();
 

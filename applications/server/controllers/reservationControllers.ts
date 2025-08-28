@@ -8,7 +8,7 @@ import {
   BulkUpdateReservationSchema,
   ReservationAnalyticsSchema,
   CreateWalkInSchema
-} from '../schemas/reservationSchemas';
+} from '@/schemas/reservationSchemas';
 import {
   createReservation,
   getReservations,
@@ -20,7 +20,7 @@ import {
   bulkUpdateReservations,
   createWalkIn,
   getReservationAnalytics
-} from '../services/reservationServices';
+} from '@/services/reservationServices';
 
 // Interface for authenticated requests
 interface AuthenticatedRequest extends Request {

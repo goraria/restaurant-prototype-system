@@ -10,7 +10,7 @@ import type {
   UpdateCookingStatusInput,
   BulkOrderActionInput,
   OrderAnalyticsInput
-} from '../schemas/orderSchemas';
+} from '@/schemas/orderSchemas';
 
 const prisma = new PrismaClient();
 

@@ -6,7 +6,7 @@ import {
   ApplyVoucher,
   VoucherValidationResult,
   Voucher
-} from '../schemas/voucherSchemas';
+} from '@/schemas/voucherSchemas';
 
 const prisma = new PrismaClient();
 

@@ -9,13 +9,13 @@ import {
   validateVoucher as validateVoucherService,
   applyVoucher as applyVoucherService,
   getVoucherStats as getVoucherStatsService
-} from '../services/voucherServices';
+} from '@/services/voucherServices';
 import { 
   CreateVoucherSchema, 
   UpdateVoucherSchema, 
   VoucherQuerySchema, 
   ApplyVoucherSchema 
-} from '../schemas/voucherSchemas';
+} from '@/schemas/voucherSchemas';
 import { z } from 'zod';
 
 /**

@@ -12,7 +12,7 @@ import {
   getReservationAnalyticsController,
   getTodayReservationsController,
   getUpcomingReservationsController
-} from '../controllers/reservationControllers';
+} from '@/controllers/reservationControllers';
 
 const router = Router();
 

@@ -20,7 +20,7 @@ import {
   ImportInventoryData,
   QRInventoryCheck,
   QuickStockUpdate
-} from '../schemas/inventorySchemas';
+} from '@/schemas/inventorySchemas';
 
 const prisma = new PrismaClient();
 

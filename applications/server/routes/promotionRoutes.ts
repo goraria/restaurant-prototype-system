@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import promotionControllers from '../controllers/promotionControllers';
+import promotionControllers from '@/controllers/promotionControllers';
 
 const router = Router();
 

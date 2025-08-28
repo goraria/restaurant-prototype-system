@@ -4,7 +4,7 @@ import {
   UpdateCategory, 
   CategoryQuery, 
   CategoryTreeNode
-} from '../schemas/categorySchemas';
+} from '@/schemas/categorySchemas';
 
 const prisma = new PrismaClient();
 

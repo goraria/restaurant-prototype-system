@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // import { userController } from '@/controllers/userController';
 // Import middleware (tạm thời comment để không lỗi)
-// import { authMiddleware, adminMiddleware } from '../middlewares/auth.middleware';
+// import { authMiddleware, adminMiddleware } from '@/middlewares/auth.middleware';
 
 const router = Router();
 // const userControllerInstance = new userController();

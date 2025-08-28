@@ -9,7 +9,7 @@ import {
   ReservationAnalyticsType,
   CreateWalkInType,
   CreateWaitlistType
-} from '../schemas/reservationSchemas';
+} from '@/schemas/reservationSchemas';
 
 const prisma = new PrismaClient();
 

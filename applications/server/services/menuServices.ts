@@ -9,7 +9,7 @@ import {
   BulkUpdateMenuItems,
   BulkToggleAvailability,
   FeaturedItemsQuery 
-} from '../schemas/menuSchemas';
+} from '@/schemas/menuSchemas';
 
 const prisma = new PrismaClient();
 

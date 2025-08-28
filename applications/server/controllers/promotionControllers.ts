@@ -10,8 +10,8 @@ import {
   CheckPromotionsSchema,
   CalculateDiscountSchema,
   DiscountAnalyticsSchema
-} from '../schemas/promotionSchemas';
-import promotionServices from '../services/promotionServices';
+} from '@/schemas/promotionSchemas';
+import promotionServices from '@/services/promotionServices';
 
 // Extend Request interface to include user information
 interface AuthenticatedRequest extends Request {
