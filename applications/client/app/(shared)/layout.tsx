@@ -7,7 +7,7 @@ export default function SharedLayout({ children }: { children: ReactNode }) {
     <>
       <Navbar />
       <main className="flex flex-1 flex-col">
-        <section className="border-grid border-b">{/**/}
+        {/* <section className="border-grid border-b">
           <div className="container-wrapper">
             <div className="container flex flex-col items-start gap-1 px-6 py-8 md:py-10 lg:py-12"><a
               className="group mb-2 inline-flex items-center gap-2 px-0.5 text-sm font-medium" href="/docs/tailwind-v4">
@@ -29,10 +29,17 @@ export default function SharedLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
           </div>
-        </section>
-        <div className="container-wrapper">{/** h-[100vh] */}
+        </section> */}
+        {/* <div className="container-wrapper flex-1">
           <div className="container p-6">
             {children}
+          </div>
+        </div> */}
+        <div className="flex flex-1 flex-col">
+          <div className="container-wrapper">
+            <div className="p-6">
+              {children}
+            </div>
           </div>
         </div>
       </main>

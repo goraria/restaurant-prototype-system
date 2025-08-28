@@ -4,22 +4,16 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-  BadgeCheck,
-  CreditCard,
-  Search,
-  Sparkles,
-  Bell,
-  Globe,
-  LogOut,
-  Bolt,
-  Menu,
-  User,
-  LogIn,
-  KeySquare
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
+import { 
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu"
 import {
   Sheet,
   SheetContent,
@@ -45,6 +39,24 @@ import { Separator } from "@/components/ui/separator";
 // import { useDispatch } from "react-redux";
 // import { logout as logoutAction } from "@/store/slices/userSlice";
 // import { useLogoutMutation } from "@/state/api";
+import {
+  BadgeCheck,
+  CreditCard,
+  Search,
+  Sparkles,
+  Bell,
+  Globe,
+  LogOut,
+  Bolt,
+  Menu,
+  User,
+  LogIn,
+  KeySquare,
+  Phone,
+  Clock,
+  MapPin,
+  ShoppingCart
+} from "lucide-react";
 import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { ClerkSignIn, ClerkSignUp } from "@/components/elements/clerk-buttons";
 import { dark } from "@clerk/themes";
@@ -70,24 +82,49 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container-wrapper">
+      <div className="bg-[#EC6683] text-white py-2">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <span>Hotline: {appGlobal.hotline}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>{appGlobal.times}</span>
+              </div>
+              <div className="hidden md:flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>{appGlobal.address}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/customer/booking" className="hover:underline">
+                Đặt bàn ngay
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="container mx-auto">
         <div className="flex h-16 items-center px-6">
           {/* Logo */}
           <div className="mr-4 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <Image
-                className="w-12 h-12"
-                src="/logos/logo.png"
+                className="w-9 h-9"
+                src="/logos/icon.png"
                 alt={appGlobal.name}
-                width={48}
-                height={48}
+                width={36}
+                height={36}
               />
               <span className="text-lg font-bold hidden md:inline-block">{appGlobal.name}</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
+          {/* <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -97,7 +134,52 @@ export function Navbar() {
                 {item.name}
               </Link>
             ))}
-          </nav>
+          </nav> */}
+          <NavigationMenu className="hidden lg:flex">
+            <NavigationMenuList>
+              {navigation.map((item) => (
+                <NavigationMenuItem key={item.title}>
+                  {item.children ? (
+                    <>
+                      <NavigationMenuTrigger className="text-base">
+                        {item.title}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
+                          {item.children.map((child) => (
+                            <li key={child.title}>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href={child.href}
+                                  className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                                >
+                                  <div className="text-sm font-medium leading-none">
+                                    {child.title}
+                                  </div>
+                                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                    {child.description}
+                                  </p>
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </>
+                  ) : (
+                    <NavigationMenuLink asChild className="rounded-md">
+                      <Link
+                        href={item.href}
+                        className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                      >
+                        {item.title}
+                      </Link>
+                    </NavigationMenuLink>
+                  )}
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
 
           {/* Mobile Menu Button */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -192,9 +274,42 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="max-h-[300px] overflow-auto">
+                <div className="max-h-[320px] overflow-auto">
+                  <DropdownMenuItem className="flex flex-col items-start gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Tin nhắn mới</span>
+                      <span className="text-xs text-muted-foreground">1h ago</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Bạn có tin nhắn mới từ Natalie</p>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex flex-col items-start gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Tin nhắn mới</span>
+                      <span className="text-xs text-muted-foreground">1h ago</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Bạn có tin nhắn mới từ Natalie</p>
+                  </DropdownMenuItem>
+                  {/* Add more notification items */}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Carts */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingCart className="h-6 w-6" />
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-white">
+                    {99}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>Giỏ hàng</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="max-h-[360px] overflow-auto">
                   <DropdownMenuItem className="flex flex-col items-start gap-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">New Message</span>
@@ -220,10 +335,10 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      size="lg"
-                      className="h-8 p-0 cursor-pointer"
+                      size="icon"
+                      className="h-9 p-0 cursor-pointer"
                     >
-                      <Avatar className="h-8 w-8 rounded-lg">
+                      <Avatar className="h-9 w-9 rounded-lg">
                         <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
                         <AvatarFallback className="rounded-lg">JG</AvatarFallback>
                       </Avatar>

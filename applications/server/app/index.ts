@@ -9,6 +9,7 @@ import bodyParser from 'body-parser';
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import http from "http";
+import fs from 'fs';
 import { fileURLToPath } from "node:url";
 // import { connectDB } from '@config/database';
 import { Server as SocketIOServer } from 'socket.io';
@@ -20,7 +21,7 @@ import prisma from '@/config/prisma';
 
 /* OLD ROUTE IMPORTS */
 import authRoutes from "@/routes/authRoutes";
-import paymentRoutes from "@routes/paymentRoutes";
+import paymentRoutes from "@/routes/purchaseRoutes";
 import productRoutes from "@/routes/productRoutes";
 import voucherRoutes from '@/routes/voucherRoutes';
 import categoryRoutes from '@/routes/categoryRoutes';
@@ -29,6 +30,7 @@ import userRoutes from "@/routes/userRoutes";
 import restaurantRoutes from "@/routes/restaurantRoutes";
 import orderRoutes from "@/routes/orderRoutes";
 import menuRoutes from "@/routes/menuRoutes";
+import uploadRoutes from "@/routes/uploadRoutes";
 import { errorHandler } from '@/middlewares/error.middleware';
 
 /* CONFIGURATIONS */
@@ -82,27 +84,58 @@ app.use(clerkMiddleware({
 // const __filename = fileURLToPath(process.env.url!);
 // // const __dirname = path.resolve();
 // const __dirname = path.dirname(__filename);
-app.use("/assets", express.static(path.join(__dirname, "assets")));
+// app.use("/assets", express.static(path.join(__dirname, "assets")));
+const directory = path.resolve(__dirname, "public");
+if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
+app.use("/public", express.static(directory));
 
 const storage = multer.diskStorage({
-  destination: (
-    req,
-    file,
-    cb
-  ): void => {
-    cb(null, "assets");
+  destination: (req, file, cb) => {
+    cb(null, directory);
   },
-  filename: (
-    req,
-    file,
-    cb
-  ): void => {
-    // cb(null, req.body.name);
-    cb(null, file.originalname);
+  filename: (req, file, cb) => {
+    const safeBase = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, "_");
+    const ext = path.extname(safeBase);
+    const name = path.basename(safeBase, ext);
+    cb(null, `${name}_${Date.now()}_${Math.random().toString(36).slice(2,8)}${ext}`);
   },
 });
 
-const upload = multer({ storage: storage });
+export const imageUpload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype || !file.mimetype.startsWith('image/')) {
+      return cb(new Error('Chỉ hỗ trợ file ảnh (image/*)'));
+    }
+    cb(null, true);
+  },
+});
+
+export const fileUpload = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
+
+// const storage = multer.diskStorage({
+//   destination: (
+//     req,
+//     file,
+//     cb
+//   ): void => {
+//     cb(null, "assets");
+//   },
+//   filename: (
+//     req,
+//     file,
+//     cb
+//   ): void => {
+//     // cb(null, req.body.name);
+//     cb(null, file.originalname);
+//   },
+// });
+
+// const upload = multer({ storage: storage });
 
 const isProduction = process.env.EXPRESS_ENV === 'production';
 
@@ -169,7 +202,8 @@ app.use("/task", requireAuth(), taskRoutes)
 app.use('/users', requireAuth(), userRoutes);
 app.use('/restaurants', requireAuth(), restaurantRoutes);
 app.use('/orders', requireAuth(), orderRoutes);
-app.use('/menus', requireAuth(), menuRoutes);
+app.use('/menus', menuRoutes); //, requireAuth()
+app.use('/upload', uploadRoutes);
 
 // Debug route to test voucher endpoints
 // app.get('/debug/voucher', (req, res) => {
