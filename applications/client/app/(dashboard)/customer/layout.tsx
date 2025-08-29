@@ -37,10 +37,8 @@ export default function CustomerLayout({ children }: { children: ReactNode } ) {
           <SidebarTrigger className="-ml-1" />
         </Dashbar>
         <main className="flex flex-1 flex-col">
-          <div className="container-wrapper">
-            <div className="p-6">
-              {children}
-            </div>
+          <div className="container mx-auto p-6">
+            {children}
           </div>
         </main>
         <Copyright />

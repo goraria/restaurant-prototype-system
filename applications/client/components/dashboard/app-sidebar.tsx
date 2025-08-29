@@ -36,7 +36,7 @@ export function AppSidebar({ sidebar, global, user, ...props }: AppSidebarProps)
                 <Image src="/logos/logo.png" alt={global.name} width={40} height={40} />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{global.name}</span>
-                  <span className="truncate text-xs">Settings</span>
+                  <span className="truncate text-xs">{sidebar.role}</span>
                 </div>
               </Link>
             </SidebarMenuButton>

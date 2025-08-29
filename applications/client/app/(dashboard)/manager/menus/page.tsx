@@ -1,237 +1,392 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { 
   Plus,
   Search,
-  Filter,
   MoreHorizontal,
   Edit,
   Trash2,
   Eye,
-  MenuSquare,
-  Clock,
-  Users
+  Menu as MenuIcon,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  Download
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { toast } from 'sonner'
+
+// Import form components and services
+import { MenuForm } from '@/components/forms';
+import { DeleteConfirmDialog } from '@/components/forms';
+import { useAppDispatch } from '@/state/redux';
+import { fetchMenus, createMenu, updateMenu, deleteMenu } from '@/services/menuServices';
+
+interface Menu {
+  id: string
+  restaurant_id: string
+  name: string
+  description?: string
+  is_active: boolean
+  display_order: number
+  created_at: string
+  updated_at: string
+  _count?: {
+    menu_items: number
+  }
+}
 
 export default function MenusPage() {
-  const menus = [
-    {
-      id: 1,
-      name: "Thực đơn chính",
-      type: "main",
-      status: "active",
-      itemCount: 45,
-      description: "Thực đơn chính của nhà hàng với các món ăn truyền thống",
-      lastUpdated: "2024-12-20"
-    },
-    {
-      id: 2,
-      name: "Thực đơn bữa sáng",
-      type: "breakfast",
-      status: "active",
-      itemCount: 15,
-      description: "Thực đơn dành cho bữa sáng từ 6:00 - 10:00",
-      lastUpdated: "2024-12-18"
-    },
-    {
-      id: 3,
-      name: "Thực đơn cuối tuần",
-      type: "weekend",
-      status: "scheduled",
-      itemCount: 25,
-      description: "Thực đơn đặc biệt cho cuối tuần với các món ăn cao cấp",
-      lastUpdated: "2024-12-15"
-    },
-    {
-      id: 4,
-      name: "Thực đơn khuyến mãi",
-      type: "promotion",
-      status: "inactive",
-      itemCount: 8,
-      description: "Thực đơn khuyến mãi cho dịp lễ tết",
-      lastUpdated: "2024-12-10"
-    }
-  ]
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [editingMenu, setEditingMenu] = useState<Menu | null>(null)
+  const [deletingMenu, setDeletingMenu] = useState<Menu | null>(null)
+  const [menus, setMenus] = useState<Menu[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Đang hoạt động</Badge>
-      case "inactive":
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-800">Tạm dừng</Badge>
-      case "scheduled":
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Đã lên lịch</Badge>
-      default:
-        return <Badge variant="secondary">Không xác định</Badge>
+  const dispatch = useAppDispatch();
+
+  const loadMenus = async () => {
+    try {
+      setIsLoading(true)
+      const data = await fetchMenus(dispatch, {})
+      setMenus(data || [])
+    } catch (error) {
+      console.error('Error loading menus:', error)
+      toast.error('Có lỗi xảy ra khi tải danh sách menu!')
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "main":
-        return <MenuSquare className="h-4 w-4" />
-      case "breakfast":
-        return <Clock className="h-4 w-4" />
-      case "weekend":
-        return <Users className="h-4 w-4" />
-      case "promotion":
-        return <Badge className="h-4 w-4" />
-      default:
-        return <MenuSquare className="h-4 w-4" />
-    }
+  useEffect(() => {
+    loadMenus()
+  }, [])
+
+  const filteredMenus = menus.filter((menu: Menu) => {
+    return menu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (menu.description && menu.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  })
+
+  const getMenuStats = () => {
+    const totalMenus = menus.length
+    const activeMenus = menus.filter((m: Menu) => m.is_active).length
+    const inactiveMenus = menus.filter((m: Menu) => !m.is_active).length
+    const totalMenuItems = menus.reduce((sum: number, menu: Menu) => sum + (menu._count?.menu_items || 0), 0)
+
+    return { totalMenus, activeMenus, inactiveMenus, totalMenuItems }
+  }
+
+  const handleCreateSuccess = () => {
+    setIsCreateDialogOpen(false)
+    loadMenus()
+    toast.success('Menu đã được tạo thành công!')
+  }
+
+  const handleUpdateSuccess = () => {
+    setIsEditDialogOpen(false)
+    setEditingMenu(null)
+    loadMenus()
+    toast.success('Thông tin menu đã được cập nhật!')
+  }
+
+  const handleDeleteSuccess = () => {
+    setIsDeleteDialogOpen(false)
+    setDeletingMenu(null)
+    loadMenus()
+    toast.success('Menu đã được xóa!')
+  }
+
+  const openCreateDialog = () => {
+    setIsCreateDialogOpen(true)
+  }
+
+  const openEditDialog = (menu: Menu) => {
+    setEditingMenu(menu)
+    setIsEditDialogOpen(true)
+  }
+
+  const openDeleteDialog = (menu: Menu) => {
+    setDeletingMenu(menu)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const stats = getMenuStats()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <MenuSquare className="h-8 w-8" />
-            Quản lý thực đơn
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Quản lý menu</h1>
           <p className="text-muted-foreground">
-            Tạo và quản lý các thực đơn khác nhau cho nhà hàng
+            Quản lý các menu và danh mục món ăn trong nhà hàng
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Tạo thực đơn mới
-        </Button>
-      </div>
-
-      {/* Filters and Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Tìm kiếm thực đơn..." className="pl-8" />
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" />
+            Xuất báo cáo
+          </Button>
+          <Button onClick={openCreateDialog}>
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm menu
+          </Button>
         </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Lọc theo loại
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng thực đơn</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tổng số menu
+            </CardTitle>
+            <MenuIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">{stats.totalMenus}</div>
             <p className="text-xs text-muted-foreground">
-              +2 thực đơn mới tháng này
+              Tất cả menu trong nhà hàng
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đang hoạt động</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Menu đang hoạt động
+            </CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
+            <div className="text-2xl font-bold text-green-600">{stats.activeMenus}</div>
             <p className="text-xs text-muted-foreground">
-              67% tổng số thực đơn
+              Hiển thị cho khách hàng
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng món ăn</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Menu tạm dừng
+            </CardTitle>
+            <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">245</div>
+            <div className="text-2xl font-bold text-red-600">{stats.inactiveMenus}</div>
             <p className="text-xs text-muted-foreground">
-              Trên tất cả thực đơn
+              Không hiển thị cho khách
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cập nhật gần đây</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tổng số món ăn
+            </CardTitle>
+            <MenuIcon className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.totalMenuItems}</div>
             <p className="text-xs text-muted-foreground">
-              Trong tuần này
+              Tất cả món trong các menu
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Menus List */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách thực đơn</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <MenuIcon className="h-5 w-5" />
+            Danh sách menu
+          </CardTitle>
           <CardDescription>
-            Quản lý và tổ chức các thực đơn của nhà hàng
+            Quản lý và cấu hình các menu của nhà hàng
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {menus.map((menu) => (
-              <div key={menu.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                    {getTypeIcon(menu.type)}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Tìm kiếm theo tên menu hoặc mô tả..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Button variant="outline" size="sm" onClick={loadMenus}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Làm mới
+            </Button>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredMenus.map((menu: Menu) => (
+              <Card key={menu.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-lg">{menu.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {menu.description || 'Không có mô tả'}
+                      </p>
+                    </div>
+                    <Badge variant={menu.is_active ? "default" : "secondary"}>
+                      {menu.is_active ? (
+                        <>
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Hoạt động
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Tạm dừng
+                        </>
+                      )}
+                    </Badge>
                   </div>
-                  <div>
-                    <h3 className="font-medium">{menu.name}</h3>
-                    <p className="text-sm text-muted-foreground">{menu.description}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {getStatusBadge(menu.status)}
-                      <Badge variant="outline">{menu.itemCount} món</Badge>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Số món:</span>
+                      <span className="font-medium">{menu._count?.menu_items || 0} món</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Thứ tự:</span>
+                      <span className="font-medium">{menu.display_order}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ngày tạo:</span>
+                      <span className="text-xs">{new Date(menu.created_at).toLocaleDateString('vi-VN')}</span>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Cập nhật lần cuối</p>
-                    <p className="font-medium">{menu.lastUpdated}</p>
+
+                  <div className="flex items-center gap-2 mt-4">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Xem món
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditDialog(menu)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Chỉnh sửa
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <MenuIcon className="mr-2 h-4 w-4" />
+                          Quản lý món
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Calendar className="mr-2 h-4 w-4" />
+                          Lịch sử thay đổi
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => openDeleteDialog(menu)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Xóa
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Xem thực đơn
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Chỉnh sửa
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <MenuSquare className="mr-2 h-4 w-4" />
-                        Thiết kế thực đơn
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Xóa
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Menu Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Thêm menu mới</DialogTitle>
+            <DialogDescription>
+              Tạo mới menu cho nhà hàng
+            </DialogDescription>
+          </DialogHeader>
+          <MenuForm
+            mode="create"
+            restaurantId="5dc89877-8c0b-482d-a71d-609d6e14cb9e"
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Menu Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa menu</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin menu
+            </DialogDescription>
+          </DialogHeader>
+          {editingMenu && (
+            <MenuForm
+              mode="update"
+              initialValues={editingMenu}
+              onSuccess={handleUpdateSuccess}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        trigger={<div style={{ display: 'none' }} />}
+        title="Xóa menu"
+        description={`Bạn có chắc chắn muốn xóa "${deletingMenu?.name}"?`}
+        onConfirm={async () => {
+          if (deletingMenu) {
+            try {
+              await deleteMenu(dispatch, deletingMenu.id)
+              handleDeleteSuccess()
+            } catch (error) {
+              toast.error('Có lỗi xảy ra khi xóa menu!')
+            }
+          }
+        }}
+      />
     </div>
   )
 }

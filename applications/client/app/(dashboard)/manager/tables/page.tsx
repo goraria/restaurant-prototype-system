@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,323 +17,420 @@ import {
   Calendar,
   CheckCircle,
   MapPin,
-  Clock
+  Clock,
+  AlertTriangle,
+  RefreshCw,
+  Download
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { toast } from 'sonner'
+
+// Import form components and services
+import { TableForm } from '@/components/forms';
+import { DeleteConfirmDialog } from '@/components/forms';
+import { useAppDispatch } from '@/state/redux';
+import { fetchTables, createTable, updateTable, deleteTable } from '@/services/tableServices';
 
 interface Table {
-  id: number
-  number: string
+  id: string
+  table_number: string
   capacity: number
-  status: string
-  currentOrder?: string
-  qrCode: string
-  location: string
-  lastCleaned: string
-  reservedBy?: string
-  reservedTime?: string
+  status: 'available' | 'occupied' | 'reserved' | 'maintenance' | 'out_of_order'
+  location?: string | null
+  qr_code?: string | null
+  restaurant_id: string
+  created_at: string
+  updated_at: string
 }
 
 export default function TablesPage() {
-  const tables: Table[] = [
-    {
-      id: 1,
-      number: "Bàn 01",
-      capacity: 4,
-      status: "occupied",
-      currentOrder: "ORD-2024-001",
-      qrCode: "QR001",
-      location: "Tầng 1 - Khu A",
-      lastCleaned: "14:30",
-      reservedBy: "Nguyễn Văn A",
-      reservedTime: "15:00"
-    },
-    {
-      id: 2,
-      number: "Bàn 02",
-      capacity: 2,
-      status: "available",
-      qrCode: "QR002",
-      location: "Tầng 1 - Khu A",
-      lastCleaned: "14:00"
-    },
-    {
-      id: 3,
-      number: "Bàn 03",
-      capacity: 6,
-      status: "reserved",
-      qrCode: "QR003",
-      location: "Tầng 1 - Khu B",
-      lastCleaned: "13:45",
-      reservedBy: "Trần Thị B",
-      reservedTime: "16:00"
-    },
-    {
-      id: 4,
-      number: "Bàn 04",
-      capacity: 4,
-      status: "cleaning",
-      qrCode: "QR004",
-      location: "Tầng 2 - Khu A",
-      lastCleaned: "14:45"
-    },
-    {
-      id: 5,
-      number: "Bàn 05",
-      capacity: 8,
-      status: "occupied",
-      currentOrder: "ORD-2024-003",
-      qrCode: "QR005",
-      location: "Tầng 2 - VIP",
-      lastCleaned: "13:30"
-    },
-    {
-      id: 6,
-      number: "Bàn 06",
-      capacity: 2,
-      status: "maintenance",
-      qrCode: "QR006",
-      location: "Tầng 1 - Khu B",
-      lastCleaned: "12:00"
-    }
-  ]
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedStatus, setSelectedStatus] = useState<string>("all")
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [editingTable, setEditingTable] = useState<Table | null>(null)
+  const [deletingTable, setDeletingTable] = useState<Table | null>(null)
+  const [tables, setTables] = useState<Table[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "available":
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Có sẵn</Badge>
-      case "occupied":
-        return <Badge variant="secondary" className="bg-red-100 text-red-800">Có khách</Badge>
-      case "reserved":
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Đã đặt</Badge>
-      case "cleaning":
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Đang dọn</Badge>
-      case "maintenance":
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-800">Bảo trì</Badge>
-      default:
-        return <Badge variant="secondary">Không xác định</Badge>
+  const dispatch = useAppDispatch();
+
+  const loadTables = async () => {
+    try {
+      setIsLoading(true)
+      const data = await fetchTables(dispatch, {})
+      setTables(data || [])
+    } catch (error) {
+      console.error('Error loading tables:', error)
+      toast.error('Có lỗi xảy ra khi tải danh sách bàn!')
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const getStatusColor = (status: string) => {
+  useEffect(() => {
+    loadTables()
+  }, [])
+
+  const filteredTables = tables.filter((table: Table) => {
+    const matchesSearch = table.table_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (table.location && table.location.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesStatus = selectedStatus === "all" || table.status === selectedStatus
+    return matchesSearch && matchesStatus
+  })
+
+  const getTableStats = () => {
+    const totalTables = tables.length
+    const availableTables = tables.filter((t: Table) => t.status === 'available').length
+    const occupiedTables = tables.filter((t: Table) => t.status === 'occupied').length
+    const reservedTables = tables.filter((t: Table) => t.status === 'reserved').length
+    const maintenanceTables = tables.filter((t: Table) => t.status === 'maintenance').length
+    const outOfOrderTables = tables.filter((t: Table) => t.status === 'out_of_order').length
+
+    return { totalTables, availableTables, occupiedTables, reservedTables, maintenanceTables, outOfOrderTables }
+  }
+
+  const getStatusBadge = (status: Table['status']) => {
     switch (status) {
-      case "available":
-        return "bg-green-500"
-      case "occupied":
-        return "bg-red-500"
-      case "reserved":
-        return "bg-blue-500"
-      case "cleaning":
-        return "bg-yellow-500"
-      case "maintenance":
-        return "bg-gray-500"
+      case 'available':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Trống</Badge>
+      case 'occupied':
+        return <Badge className="bg-red-100 text-red-800"><Users className="w-3 h-3 mr-1" />Có khách</Badge>
+      case 'reserved':
+        return <Badge className="bg-blue-100 text-blue-800"><Calendar className="w-3 h-3 mr-1" />Đã đặt</Badge>
+      case 'maintenance':
+        return <Badge className="bg-gray-100 text-gray-800"><AlertTriangle className="w-3 h-3 mr-1" />Bảo trì</Badge>
+      case 'out_of_order':
+        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="w-3 h-3 mr-1" />Hỏng</Badge>
       default:
-        return "bg-gray-300"
+        return <Badge variant="outline">Không xác định</Badge>
     }
+  }
+
+  const handleCreateSuccess = () => {
+    setIsCreateDialogOpen(false)
+    loadTables()
+    toast.success('Bàn đã được tạo thành công!')
+  }
+
+  const handleUpdateSuccess = () => {
+    setIsEditDialogOpen(false)
+    setEditingTable(null)
+    loadTables()
+    toast.success('Thông tin bàn đã được cập nhật!')
+  }
+
+  const handleDeleteSuccess = () => {
+    setIsDeleteDialogOpen(false)
+    setDeletingTable(null)
+    loadTables()
+    toast.success('Bàn đã được xóa!')
+  }
+
+  const openCreateDialog = () => {
+    setIsCreateDialogOpen(true)
+  }
+
+  const openEditDialog = (table: Table) => {
+    setEditingTable(table)
+    setIsEditDialogOpen(true)
+  }
+
+  const openDeleteDialog = (table: Table) => {
+    setDeletingTable(table)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const stats = getTableStats()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <QrCode className="h-8 w-8" />
-            Quản lý bàn ăn
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Quản lý bàn</h1>
           <p className="text-muted-foreground">
-            Theo dõi trạng thái bàn và quản lý QR code đặt món
+            Quản lý và theo dõi trạng thái các bàn trong nhà hàng
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">
-            <Calendar className="mr-2 h-4 w-4" />
-            Xem đặt bàn
+            <QrCode className="mr-2 h-4 w-4" />
+            Tạo QR Code
           </Button>
-          <Button>
+          <Button onClick={openCreateDialog}>
             <Plus className="mr-2 h-4 w-4" />
-            Thêm bàn mới
+            Thêm bàn
           </Button>
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Tìm kiếm bàn..." className="pl-8" />
-        </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Lọc theo trạng thái
-        </Button>
-        <Button variant="outline">
-          <MapPin className="mr-2 h-4 w-4" />
-          Sơ đồ bàn
-        </Button>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Tổng số bàn
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalTables}</div>
+            <p className="text-xs text-muted-foreground">
+              Tất cả bàn trong nhà hàng
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Bàn trống
+            </CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.availableTables}</div>
+            <p className="text-xs text-muted-foreground">
+              Sẵn sàng phục vụ
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Có khách
+            </CardTitle>
+            <Users className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.occupiedTables}</div>
+            <p className="text-xs text-muted-foreground">
+              Đang phục vụ
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Đã đặt
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.reservedTables}</div>
+            <p className="text-xs text-muted-foreground">
+              Có đặt trước
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Hỏng
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.outOfOrderTables}</div>
+            <p className="text-xs text-muted-foreground">
+              Không sử dụng được
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Bảo trì
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-gray-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-600">{stats.maintenanceTables}</div>
+            <p className="text-xs text-muted-foreground">
+              Đang bảo trì
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng số bàn</CardTitle>
-            <QrCode className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">
-              Tổng cộng trong nhà hàng
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bàn có khách</CardTitle>
-            <Users className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">
-              33% đang phục vụ
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bàn trống</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              50% sẵn sàng
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Đã đặt trước</CardTitle>
-            <Calendar className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4</div>
-            <p className="text-xs text-muted-foreground">
-              Hôm nay
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Danh sách bàn
+          </CardTitle>
+          <CardDescription>
+            Quản lý và theo dõi trạng thái tất cả các bàn
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Tìm kiếm theo số bàn hoặc vị trí..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Button variant="outline" size="sm" onClick={loadTables}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Làm mới
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Xuất báo cáo
+            </Button>
+          </div>
 
-      {/* Tables Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {tables.map((table) => (
-          <Card key={table.id} className="relative">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{table.number}</CardTitle>
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${getStatusColor(table.status)}`} />
-                  {getStatusBadge(table.status)}
-                </div>
-              </div>
-              <CardDescription className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {table.location}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Sức chứa:</span>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    <span className="font-medium">{table.capacity} người</span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">QR Code:</span>
-                  <div className="flex items-center gap-1">
-                    <QrCode className="h-3 w-3" />
-                    <span className="font-medium">{table.qrCode}</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Dọn lần cuối:</span>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    <span className="font-medium">{table.lastCleaned}</span>
-                  </div>
-                </div>
-
-                {table.currentOrder && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Đơn hàng:</span>
-                    <Badge variant="outline">{table.currentOrder}</Badge>
-                  </div>
-                )}
-
-                {table.reservedBy && (
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Đặt bởi:</span>
-                      <span className="font-medium text-sm">{table.reservedBy}</span>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredTables.map((table: Table) => (
+              <Card key={table.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-lg">{table.table_number}</h3>
+                      <p className="text-sm text-muted-foreground">{table.location || 'Chưa có vị trí'}</p>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Thời gian:</span>
-                      <span className="font-medium text-sm">{table.reservedTime}</span>
+                    {getStatusBadge(table.status)}
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Sức chứa:</span>
+                      <span className="font-medium">{table.capacity} người</span>
+                    </div>
+                    {table.qr_code && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">QR Code:</span>
+                        <span className="font-mono text-xs">{table.qr_code}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ngày tạo:</span>
+                      <span className="text-xs">{new Date(table.created_at).toLocaleDateString('vi-VN')}</span>
                     </div>
                   </div>
-                )}
 
-                <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <QrCode className="h-3 w-3 mr-1" />
-                    QR
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Edit className="h-3 w-3 mr-1" />
-                    Sửa
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <MoreHorizontal className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Xem chi tiết
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Calendar className="mr-2 h-4 w-4" />
-                        Đặt bàn
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Đánh dấu dọn xong
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Xóa bàn
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  <div className="flex items-center gap-2 mt-4">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Chi tiết
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditDialog(table)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Chỉnh sửa
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <QrCode className="mr-2 h-4 w-4" />
+                          Xem QR Code
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Calendar className="mr-2 h-4 w-4" />
+                          Lịch đặt bàn
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => openDeleteDialog(table)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Xóa
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Create Table Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Thêm bàn mới</DialogTitle>
+            <DialogDescription>
+              Thêm mới bàn vào nhà hàng
+            </DialogDescription>
+          </DialogHeader>
+          <TableForm
+            mode="create"
+            restaurantId="5dc89877-8c0b-482d-a71d-609d6e14cb9e"
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Table Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa bàn</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin bàn
+            </DialogDescription>
+          </DialogHeader>
+          {editingTable && (
+            <TableForm
+              mode="update"
+              initialValues={editingTable}
+              onSuccess={handleUpdateSuccess}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        trigger={<div style={{ display: 'none' }} />}
+        title="Xóa bàn"
+        description={`Bạn có chắc chắn muốn xóa "${deletingTable?.table_number}"?`}
+        onConfirm={async () => {
+          if (deletingTable) {
+            try {
+              await deleteTable(dispatch, deletingTable.id)
+              handleDeleteSuccess()
+            } catch (error) {
+              toast.error('Có lỗi xảy ra khi xóa bàn!')
+            }
+          }
+        }}
+      />
     </div>
   )
 }

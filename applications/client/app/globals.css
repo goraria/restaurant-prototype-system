@@ -8,8 +8,8 @@
 @import "../assets/fonts/packicons/fonts/brands/boxicons-brands.css";
 @import "../assets/fonts/packicons/css/animations.css";
 @import "../assets/fonts/packicons/css/transformations.css";
-@import '../styles/container.css';
-@import '../styles/personal.css';
+@import "../styles/container.css";
+@import "../styles/personal.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -31,6 +31,47 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+
+  --color-professional-main: var(--professional-main);
+  --color-professional-sub: var(--professional-sub);
+
+  --color-professional-primary-1: var(--professional-primary-1);
+  --color-professional-primary-2: var(--professional-primary-2);
+  --color-professional-primary-3: var(--professional-primary-3);
+  --color-professional-primary-4: var(--professional-primary-4);
+  --color-professional-primary-5: var(--professional-primary-5);
+
+  --color-professional-primary-alt-1: var(--professional-primary-alt-1);
+  --color-professional-primary-alt-2: var(--professional-primary-alt-2);
+  --color-professional-primary-alt-3: var(--professional-primary-alt-3);
+  --color-professional-primary-alt-4: var(--professional-primary-alt-4);
+  --color-professional-primary-alt-5: var(--professional-primary-alt-5);
+
+  --color-professional-secondary: var(--professional-secondary);
+  --color-professional-success: var(--professional-success);
+  --color-professional-info: var(--professional-info);
+  --color-professional-warning: var(--professional-warning);
+  --color-professional-danger: var(--professional-danger);
+
+  --color-professional-light: var(--professional-light);
+  --color-professional-dark: var(--professional-dark);
+  --color-professional-gray: var(--professional-gray);
+
+  --color-professional-blue: var(--professional-blue);
+  --color-professional-indigo: var(--professional-indigo);
+  --color-professional-purple: var(--professional-purple);
+  --color-professional-pink: var(--professional-pink);
+  --color-professional-red: var(--professional-red);
+  --color-professional-orange: var(--professional-orange);
+  --color-professional-yellow: var(--professional-yellow);
+  --color-professional-green: var(--professional-green);
+  --color-professional-teal: var(--professional-teal);
+  --color-professional-cyan: var(--professional-cyan);
+  --color-professional-black: var(--professional-black);
+  --color-professional-white: var(--professional-white);
+  --color-professional-gray: var(--professional-gray);
+  --color-professional-gray-dark: var(--professional-gray-dark);
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -78,6 +119,57 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+
+  --professional-main: #EC6683;
+  --professional-sub: #E091A0;
+
+  --professional-primary-1: #696cff;
+  --professional-primary-2: #0d9394;
+  --professional-primary-3: #ffab1d;
+  --professional-primary-4: #eb3d63;
+  --professional-primary-5: #2092ec;
+
+  --professional-primary-alt-1: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-primary-1));
+  --professional-primary-alt-2: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-primary-2));
+  --professional-primary-alt-3: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-primary-3));
+  --professional-primary-alt-4: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-primary-4));
+  --professional-primary-alt-5: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-primary-5));
+
+  --professional-secondary: #8592a3;
+  --professional-success: #71dd37;
+  --professional-info: #03c3ec;
+  --professional-warning: #ffab00;
+  --professional-danger: #ff3e1d;
+  
+  --professional-light: #dbdee0;
+  --professional-dark: #2b2c40;
+  --professional-gray: #91979f;
+  --professional-paper: #ffffff;
+
+  --professional-secondary-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-success-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-info-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-warning-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-danger-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-light-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-dark-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-gray-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+
+  --professional-blue: #007bff;
+  --professional-indigo: #6610f2;
+  --professional-purple: #696cff;
+  --professional-pink: #e83e8c;
+  --professional-red: #ff3e1d;
+  --professional-orange: #fd7e14;
+  --professional-yellow: #ffab00;
+  --professional-green: #71dd37;
+  --professional-teal: #20c997;
+  --professional-cyan: #03c3ec;
+  --professional-black: #22303e;
+  --professional-white: #ffffff;
+  --professional-gray: #7a838b;
+  --professional-gray-dark: #4e5965;
+
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -112,6 +204,57 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+
+  --professional-main: #EC6683;
+  --professional-sub: #F4B2BD;
+
+  --professional-primary-1: #696cff;
+  --professional-primary-2: #0d9394;
+  --professional-primary-3: #ffab1d;
+  --professional-primary-4: #eb3d63;
+  --professional-primary-5: #2092ec;
+
+  --professional-primary-alt-1: color-mix(in sRGB, var(--professional-dark) 84%, var(--professional-primary-1));
+  --professional-primary-alt-2: color-mix(in sRGB, var(--professional-dark) 84%, var(--professional-primary-2));
+  --professional-primary-alt-3: color-mix(in sRGB, var(--professional-dark) 84%, var(--professional-primary-3));
+  --professional-primary-alt-4: color-mix(in sRGB, var(--professional-dark) 84%, var(--professional-primary-4));
+  --professional-primary-alt-5: color-mix(in sRGB, var(--professional-dark) 84%, var(--professional-primary-5));
+
+  --professional-secondary: #8592a3;
+  --professional-success: #71dd37;
+  --professional-info: #03c3ec;
+  --professional-warning: #ffab00;
+  --professional-danger: #ff3e1d;
+  
+  --professional-light: #494a5d;
+  --professional-dark: #6b6c9d;
+  --professional-gray: #8f90a5;
+  --professional-paper: #2b2c40;
+
+  --professional-secondary-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-success-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-info-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-warning-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-danger-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-light-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-dark-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+  --professional-gray-alt: color-mix(in sRGB, var(--professional-paper) 84%, var(--professional-secondary));
+
+  --professional-blue: #007bff;
+  --professional-indigo: #6610f2;
+  --professional-purple: #696cff;
+  --professional-pink: #e83e8c;
+  --professional-red: #ff3e1d;
+  --professional-orange: #fd7e14;
+  --professional-yellow: #ffab00;
+  --professional-green: #71dd37;
+  --professional-teal: #20c997;
+  --professional-cyan: #03c3ec;
+  --professional-black: #22303e;
+  --professional-white: #ffffff;
+  --professional-gray: #7a838b;
+  --professional-gray-dark: #4e5965;
+
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -131,4 +274,4 @@
   }
 }
 
-@import "@clerk/themes/shadcn.css"
+@import "@clerk/themes/shadcn.css";

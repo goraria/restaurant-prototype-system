@@ -1,15 +1,14 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   Plus,
   Search,
@@ -24,8 +23,17 @@ import {
   BarChart3,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Trash2,
+  RefreshCw
 } from "lucide-react"
+import { toast } from 'sonner'
+import { useDispatch } from "@/state/redux";
+
+// Import form components and API hooks
+import { InventoryItemForm } from '@/components/forms';
+import { DeleteConfirmDialog } from '@/components/forms';
+import { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem } from "@/services/inventoryServices";
 
 interface InventoryItem {
   id: string
@@ -56,372 +64,276 @@ interface PurchaseOrder {
 }
 
 export default function InventoryPage() {
+  const dispatch = useDispatch();
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
-  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
+  const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null)
 
-  const inventoryItems: InventoryItem[] = [
-    {
-      id: "1",
-      name: "Thịt bò tươi",
-      category: "ingredient",
-      currentStock: 25,
-      unit: "kg",
-      minThreshold: 10,
-      maxThreshold: 50,
-      unitCost: 280000,
-      totalValue: 7000000,
-      supplier: "Công ty TNHH Thực phẩm sạch",
-      lastOrdered: "2025-08-20",
-      expiryDate: "2025-08-27",
-      location: "Kho lạnh A1",
-      status: "in-stock"
-    },
-    {
-      id: "2",
-      name: "Rau xà lách",
-      category: "ingredient", 
-      currentStock: 8,
-      unit: "kg",
-      minThreshold: 15,
-      maxThreshold: 30,
-      unitCost: 35000,
-      totalValue: 280000,
-      supplier: "Nông trại hữu cơ Đà Lạt",
-      lastOrdered: "2025-08-21",
-      expiryDate: "2025-08-24",
-      location: "Kho lạnh B2",
-      status: "low-stock"
-    },
-    {
-      id: "3",
-      name: "Nước suối",
-      category: "beverage",
-      currentStock: 120,
-      unit: "chai",
-      minThreshold: 50,
-      maxThreshold: 200,
-      unitCost: 8000,
-      totalValue: 960000,
-      supplier: "Lavie",
-      lastOrdered: "2025-08-19",
-      location: "Kho B1",
-      status: "in-stock"
-    },
-    {
-      id: "4",
-      name: "Gạo tẻ",
-      category: "ingredient",
-      currentStock: 0,
-      unit: "kg",
-      minThreshold: 20,
-      maxThreshold: 100,
-      unitCost: 25000,
-      totalValue: 0,
-      supplier: "Gạo sạch Mekong",
-      lastOrdered: "2025-08-17",
-      location: "Kho A2",
-      status: "out-of-stock"
-    },
-    {
-      id: "5",
-      name: "Hộp giấy đựng thức ăn",
-      category: "packaging",
-      currentStock: 500,
-      unit: "cái",
-      minThreshold: 200,
-      maxThreshold: 1000,
-      unitCost: 3500,
-      totalValue: 1750000,
-      supplier: "Bao bì An Khang",
-      lastOrdered: "2025-08-18",
-      location: "Kho C1",
-      status: "in-stock"
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const fetchInventory = async () => {
+    setIsLoading(true);
+    try {
+      const items = await getInventoryItems(dispatch);
+      setInventoryItems(items);
+    } catch (e) {
+      toast.error('Lỗi khi tải dữ liệu kho');
+    } finally {
+      setIsLoading(false);
     }
-  ]
+  };
 
-  const purchaseOrders: PurchaseOrder[] = [
-    {
-      id: "PO-2025-001",
-      orderNumber: "PO-2025-001",
-      supplier: "Nông trại hữu cơ Đà Lạt",
-      orderDate: "2025-08-22",
-      expectedDelivery: "2025-08-24",
-      status: "confirmed",
-      totalAmount: 2450000,
-      items: [
-        { name: "Rau xà lách", quantity: 30, unitCost: 35000 },
-        { name: "Cà chua", quantity: 25, unitCost: 28000 },
-        { name: "Hành tây", quantity: 15, unitCost: 22000 }
-      ]
-    },
-    {
-      id: "PO-2025-002", 
-      orderNumber: "PO-2025-002",
-      supplier: "Gạo sạch Mekong",
-      orderDate: "2025-08-23",
-      expectedDelivery: "2025-08-25",
-      status: "pending",
-      totalAmount: 3500000,
-      items: [
-        { name: "Gạo tẻ", quantity: 100, unitCost: 25000 },
-        { name: "Gạo nàng hương", quantity: 50, unitCost: 35000 }
-      ]
+  const handleCreate = async (data: any) => {
+    try {
+      await createInventoryItem(dispatch, data);
+      fetchInventory();
+      toast.success('Mục kho đã được tạo thành công!');
+      setIsCreateDialogOpen(false);
+    } catch (e) {
+      toast.error('Lỗi khi tạo mục kho');
     }
-  ]
+  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'in-stock': return 'bg-green-100 text-green-800 border-green-200'
-      case 'low-stock': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'out-of-stock': return 'bg-red-100 text-red-800 border-red-200'
-      case 'expired': return 'bg-gray-100 text-gray-800 border-gray-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+  const handleUpdate = async (id: string, data: any) => {
+    try {
+      await updateInventoryItem(dispatch, id, data);
+      fetchInventory();
+      toast.success('Thông tin kho đã được cập nhật!');
+      setIsEditDialogOpen(false);
+      setEditingItem(null);
+    } catch (e) {
+      toast.error('Lỗi khi cập nhật mục kho');
     }
-  }
+  };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'in-stock': return 'Còn hàng'
-      case 'low-stock': return 'Sắp hết'
-      case 'out-of-stock': return 'Hết hàng'
-      case 'expired': return 'Đã hết hạn'
-      default: return status
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteInventoryItem(dispatch, id);
+      fetchInventory();
+      toast.success('Mục kho đã được xóa!');
+      setIsDeleteDialogOpen(false);
+      setDeletingItem(null);
+    } catch (e) {
+      toast.error('Lỗi khi xóa mục kho');
     }
-  }
+  };
 
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'ingredient': return 'Nguyên liệu'
-      case 'beverage': return 'Đồ uống'
-      case 'packaging': return 'Bao bì'
-      case 'equipment': return 'Thiết bị'
-      case 'cleaning': return 'Vệ sinh'
-      default: return category
-    }
-  }
-
-  const getOrderStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'confirmed': return 'bg-blue-100 text-blue-800'
-      case 'shipped': return 'bg-purple-100 text-purple-800'
-      case 'delivered': return 'bg-green-100 text-green-800'
-      case 'cancelled': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getOrderStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pending': return 'Chờ xác nhận'
-      case 'confirmed': return 'Đã xác nhận'
-      case 'shipped': return 'Đang giao'
-      case 'delivered': return 'Đã giao'
-      case 'cancelled': return 'Đã hủy'
-      default: return status
-    }
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount)
-  }
-
-  const filteredItems = inventoryItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredItems = inventoryItems.filter((item: InventoryItem) => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.supplier.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || item.category === selectedCategory
     const matchesStatus = selectedStatus === "all" || item.status === selectedStatus
     return matchesSearch && matchesCategory && matchesStatus
   })
 
-  const inventoryStats = {
-    totalItems: inventoryItems.length,
-    lowStockItems: inventoryItems.filter(item => item.status === 'low-stock').length,
-    outOfStockItems: inventoryItems.filter(item => item.status === 'out-of-stock').length,
-    totalValue: inventoryItems.reduce((sum, item) => sum + item.totalValue, 0),
-    pendingOrders: purchaseOrders.filter(order => order.status === 'pending').length
+  const getInventoryStats = () => {
+    const totalItems = inventoryItems.length
+    const lowStockItems = inventoryItems.filter((item: InventoryItem) => item.status === 'low-stock').length
+    const outOfStockItems = inventoryItems.filter((item: InventoryItem) => item.status === 'out-of-stock').length
+    const totalValue = inventoryItems.reduce((sum: number, item: InventoryItem) => sum + item.totalValue, 0)
+    const expiringItems = inventoryItems.filter((item: InventoryItem) => {
+      if (!item.expiryDate) return false
+      const expiryDate = new Date(item.expiryDate)
+      const today = new Date()
+      const diffDays = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+      return diffDays <= 7 && diffDays > 0
+    }).length
+
+    return { totalItems, lowStockItems, outOfStockItems, totalValue, expiringItems }
+  }
+
+  const getStatusBadge = (status: InventoryItem['status']) => {
+    switch (status) {
+      case 'in-stock':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Còn hàng</Badge>
+      case 'low-stock':
+        return <Badge className="bg-yellow-100 text-yellow-800"><AlertTriangle className="w-3 h-3 mr-1" />Sắp hết</Badge>
+      case 'out-of-stock':
+        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Hết hàng</Badge>
+      case 'expired':
+        return <Badge className="bg-red-100 text-red-800"><Clock className="w-3 h-3 mr-1" />Hết hạn</Badge>
+      default:
+        return <Badge variant="outline">Không xác định</Badge>
+    }
+  }
+
+  const getCategoryIcon = (category: InventoryItem['category']) => {
+    switch (category) {
+      case 'ingredient':
+        return <Package2 className="w-4 h-4 text-blue-500" />
+      case 'beverage':
+        return <Package2 className="w-4 h-4 text-green-500" />
+      case 'packaging':
+        return <Package2 className="w-4 h-4 text-purple-500" />
+      case 'equipment':
+        return <Package2 className="w-4 h-4 text-orange-500" />
+      case 'cleaning':
+        return <Package2 className="w-4 h-4 text-red-500" />
+      default:
+        return <Package2 className="w-4 h-4 text-gray-500" />
+    }
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', { 
+      style: 'currency', 
+      currency: 'VND',
+      maximumFractionDigits: 0
+    }).format(amount)
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN')
+  }
+
+  const openCreateDialog = () => {
+    setIsCreateDialogOpen(true)
+  }
+
+  const openEditDialog = (item: InventoryItem) => {
+    setEditingItem(item)
+    setIsEditDialogOpen(true)
+  }
+
+  const openDeleteDialog = (item: InventoryItem) => {
+    setDeletingItem(item)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const stats = getInventoryStats()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Quản lý kho</h2>
+          <h1 className="text-3xl font-bold tracking-tight">Quản lý kho</h1>
           <p className="text-muted-foreground">
-            Theo dõi tồn kho và đặt hàng nguyên vật liệu
+            Theo dõi và quản lý hàng tồn kho
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Upload className="h-4 w-4 mr-2" />
-            Import
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Dialog open={isAddItemModalOpen} onOpenChange={setIsAddItemModalOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Thêm mặt hàng
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Thêm mặt hàng mới</DialogTitle>
-                <DialogDescription>
-                  Nhập thông tin chi tiết về mặt hàng mới
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="itemName">Tên mặt hàng</Label>
-                    <Input id="itemName" placeholder="Nhập tên mặt hàng" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Danh mục</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn danh mục" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ingredient">Nguyên liệu</SelectItem>
-                        <SelectItem value="beverage">Đồ uống</SelectItem>
-                        <SelectItem value="packaging">Bao bì</SelectItem>
-                        <SelectItem value="equipment">Thiết bị</SelectItem>
-                        <SelectItem value="cleaning">Vệ sinh</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="unit">Đơn vị</Label>
-                    <Input id="unit" placeholder="kg, lít, cái..." />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="minThreshold">Tồn kho tối thiểu</Label>
-                    <Input id="minThreshold" type="number" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="maxThreshold">Tồn kho tối đa</Label>
-                    <Input id="maxThreshold" type="number" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="unitCost">Giá đơn vị</Label>
-                    <Input id="unitCost" type="number" placeholder="VND" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier">Nhà cung cấp</Label>
-                    <Input id="supplier" placeholder="Tên nhà cung cấp" />
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setIsAddItemModalOpen(false)}>
-                    Hủy
-                  </Button>
-                  <Button onClick={() => setIsAddItemModalOpen(false)}>
-                    Thêm mặt hàng
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Button onClick={openCreateDialog}>
+          <Plus className="mr-2 h-4 w-4" />
+          Thêm mục kho
+        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Tổng mặt hàng</p>
-                <p className="text-2xl font-bold">{inventoryStats.totalItems}</p>
-              </div>
-              <Package2 className="h-8 w-8 text-blue-500" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Tổng mục kho
+            </CardTitle>
+            <Package2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalItems}</div>
+            <p className="text-xs text-muted-foreground">
+              Tất cả danh mục
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Sắp hết hàng</p>
-                <p className="text-2xl font-bold text-yellow-600">{inventoryStats.lowStockItems}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-yellow-500" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Sắp hết hàng
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{stats.lowStockItems}</div>
+            <p className="text-xs text-muted-foreground">
+              Cần đặt hàng
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Hết hàng</p>
-                <p className="text-2xl font-bold text-red-600">{inventoryStats.outOfStockItems}</p>
-              </div>
-              <XCircle className="h-8 w-8 text-red-500" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Hết hàng
+            </CardTitle>
+            <XCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.outOfStockItems}</div>
+            <p className="text-xs text-muted-foreground">
+              Cần bổ sung gấp
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Giá trị tồn kho</p>
-                <p className="text-2xl font-bold">{formatCurrency(inventoryStats.totalValue)}</p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-green-500" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Sắp hết hạn
+            </CardTitle>
+            <Clock className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.expiringItems}</div>
+            <p className="text-xs text-muted-foreground">
+              Trong 7 ngày tới
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Đơn chờ xử lý</p>
-                <p className="text-2xl font-bold text-orange-600">{inventoryStats.pendingOrders}</p>
-              </div>
-              <Clock className="h-8 w-8 text-orange-500" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Tổng giá trị
+            </CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(stats.totalValue)}</div>
+            <p className="text-xs text-muted-foreground">
+              Hàng tồn kho
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="inventory" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="inventory">Tồn kho</TabsTrigger>
+          <TabsTrigger value="inventory">Hàng tồn kho</TabsTrigger>
           <TabsTrigger value="orders">Đơn đặt hàng</TabsTrigger>
-          <TabsTrigger value="suppliers">Nhà cung cấp</TabsTrigger>
           <TabsTrigger value="reports">Báo cáo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="space-y-4">
-          {/* Filters */}
           <Card>
-            <CardContent className="p-4">
-              <div className="flex gap-4">
+            <CardHeader>
+              <CardTitle>Danh sách hàng tồn kho</CardTitle>
+              <CardDescription>
+                Quản lý tất cả các mục trong kho
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4 mb-6">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Tìm kiếm mặt hàng..." 
-                    className="pl-10"
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Tìm kiếm theo tên hoặc nhà cung cấp..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
                   />
                 </div>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -449,217 +361,174 @@ export default function InventoryPage() {
                     <SelectItem value="expired">Hết hạn</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Lọc nâng cao
+                <Button variant="outline" size="sm" onClick={() => refetch()}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Làm mới
                 </Button>
+                <Button variant="outline" size="sm">
+                  <Download className="mr-2 h-4 w-4" />
+                  Xuất báo cáo
+                </Button>
+              </div>
+
+              <div className="grid gap-4">
+                {filteredItems.map((item: InventoryItem) => (
+                  <Card key={item.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          {getCategoryIcon(item.category)}
+                          <div>
+                            <h3 className="font-semibold">{item.name}</h3>
+                            <p className="text-sm text-muted-foreground">{item.supplier}</p>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold">{item.currentStock} {item.unit}</div>
+                          <div className="text-xs text-muted-foreground">Hiện tại</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm font-medium">{formatCurrency(item.unitCost)}</div>
+                          <div className="text-xs text-muted-foreground">Đơn giá</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm font-medium">{formatCurrency(item.totalValue)}</div>
+                          <div className="text-xs text-muted-foreground">Tổng giá trị</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm">{item.location}</div>
+                          <div className="text-xs text-muted-foreground">Vị trí</div>
+                        </div>
+                        <div>
+                          {getStatusBadge(item.status)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => openDeleteDialog(item)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Mức tồn kho</span>
+                        <span>{item.currentStock} / {item.maxThreshold} {item.unit}</span>
+                      </div>
+                      <Progress 
+                        value={(item.currentStock / item.maxThreshold) * 100} 
+                        className="h-2"
+                      />
+                    </div>
+                  </Card>
+                ))}
               </div>
             </CardContent>
           </Card>
-
-          {/* Inventory List */}
-          <div className="space-y-4">
-            {filteredItems.map((item) => (
-              <Card key={item.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-3">
-                          <h4 className="font-medium text-lg">{item.name}</h4>
-                          <Badge variant="outline" className={getStatusColor(item.status)}>
-                            {getStatusLabel(item.status)}
-                          </Badge>
-                          <Badge variant="secondary">
-                            {getCategoryLabel(item.category)}
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-muted-foreground">
-                          <div>
-                            <span className="font-medium">Tồn kho:</span> {item.currentStock} {item.unit}
-                          </div>
-                          <div>
-                            <span className="font-medium">Giá trị:</span> {formatCurrency(item.totalValue)}
-                          </div>
-                          <div>
-                            <span className="font-medium">Nhà cung cấp:</span> {item.supplier}
-                          </div>
-                          <div>
-                            <span className="font-medium">Vị trí:</span> {item.location}
-                          </div>
-                        </div>
-
-                        {/* Stock Level Progress */}
-                        <div className="mt-3">
-                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                            <span>Mức tồn kho</span>
-                            <span>{item.currentStock}/{item.maxThreshold} {item.unit}</span>
-                          </div>
-                          <Progress 
-                            value={(item.currentStock / item.maxThreshold) * 100} 
-                            className="h-2"
-                          />
-                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                            <span>Tối thiểu: {item.minThreshold}</span>
-                            <span>Tối đa: {item.maxThreshold}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Chi tiết
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Sửa
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Package2 className="h-4 w-4 mr-2" />
-                        Đặt hàng
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </TabsContent>
 
         <TabsContent value="orders" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Đơn đặt hàng</h3>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Tạo đơn đặt hàng
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {purchaseOrders.map((order) => (
-              <Card key={order.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-3 flex-1">
-                      <div className="flex items-center gap-3">
-                        <h4 className="font-medium text-lg">{order.orderNumber}</h4>
-                        <Badge className={getOrderStatusColor(order.status)}>
-                          {getOrderStatusLabel(order.status)}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Nhà cung cấp:</span>
-                          <p className="font-medium">{order.supplier}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Ngày đặt:</span>
-                          <p className="font-medium">{new Date(order.orderDate).toLocaleDateString('vi-VN')}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Giao dự kiến:</span>
-                          <p className="font-medium">{new Date(order.expectedDelivery).toLocaleDateString('vi-VN')}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Tổng tiền:</span>
-                          <p className="font-medium">{formatCurrency(order.totalAmount)}</p>
-                        </div>
-                      </div>
-
-                      <div>
-                        <span className="text-sm text-muted-foreground">Danh sách mặt hàng:</span>
-                        <p className="text-sm">{order.items.map(item => `${item.name} (${item.quantity})`).join(', ')}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Xem
-                      </Button>
-                      {order.status === 'pending' && (
-                        <Button size="sm">
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Xác nhận
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="suppliers" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Nhà cung cấp</CardTitle>
-              <CardDescription>Quản lý thông tin nhà cung cấp</CardDescription>
+              <CardTitle>Đơn đặt hàng</CardTitle>
+              <CardDescription>
+                Quản lý các đơn đặt hàng từ nhà cung cấp
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <Truck className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">Tính năng quản lý nhà cung cấp</p>
-                <p className="text-sm text-muted-foreground">Đang phát triển</p>
+                <Truck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Chưa có đơn đặt hàng</h3>
+                <p className="text-muted-foreground mb-4">
+                  Tạo đơn đặt hàng mới để bổ sung hàng tồn kho
+                </p>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tạo đơn đặt hàng
+                </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Báo cáo tồn kho</CardTitle>
-                <CardDescription>Thống kê chi tiết về tình hình kho</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Tỷ lệ mặt hàng còn đủ</span>
-                    <span className="font-medium">60%</span>
-                  </div>
-                  <Progress value={60} className="h-2" />
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Tỷ lệ sắp hết hàng</span>
-                    <span className="font-medium">20%</span>
-                  </div>
-                  <Progress value={20} className="h-2" />
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Tỷ lệ hết hàng</span>
-                    <span className="font-medium">20%</span>
-                  </div>
-                  <Progress value={20} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Xu hướng nhập hàng</CardTitle>
-                <CardDescription>Phân tích mua sắm theo thời gian</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48 flex items-center justify-center bg-muted/10 rounded-lg">
-                  <div className="text-center">
-                    <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">Biểu đồ xu hướng</p>
-                    <p className="text-sm text-muted-foreground">Chart.js integration</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Báo cáo kho</CardTitle>
+              <CardDescription>
+                Thống kê và phân tích hàng tồn kho
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Báo cáo đang phát triển</h3>
+                <p className="text-muted-foreground">
+                  Tính năng báo cáo chi tiết sẽ được cập nhật sớm
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Create Inventory Item Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Thêm mục kho mới</DialogTitle>
+            <DialogDescription>
+              Thêm mới mục hàng vào kho
+            </DialogDescription>
+          </DialogHeader>
+          <InventoryItemForm
+            mode="create"
+            onSuccess={handleCreate}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Inventory Item Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa mục kho</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin mục kho
+            </DialogDescription>
+          </DialogHeader>
+          {editingItem && (
+            <InventoryItemForm
+              mode="update"
+              initialValues={editingItem}
+              onSuccess={handleUpdate}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Xóa mục kho"
+        description={`Bạn có chắc chắn muốn xóa "${deletingItem?.name}"?`}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteInventoryItem(deletingItem.id)
+              .unwrap()
+              .then(handleDeleteSuccess)
+              .catch(() => toast.error('Có lỗi xảy ra khi xóa mục kho!'));
+          }
+        }}
+      />
     </div>
   )
 }
-

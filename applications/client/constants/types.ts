@@ -30,6 +30,7 @@ export interface AppSidebarUserProps {
 
 export interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
   sidebar: {
+    role: string;
     navMain: NavMainItem[];
     projects: { name: string; url: string; icon: LucideIcon }[];
     user: { name: string; email: string; avatar: string };

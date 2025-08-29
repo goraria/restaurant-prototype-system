@@ -505,6 +505,30 @@ export const api = createApi({
       query: (data) => ({ url: `/inventory/quick-update`, method: "POST", body: data }),
     }),
 
+    // Tables
+    createTable: builder.mutation<any, any>({
+      query: (data) => ({ url: `/tables`, method: "POST", body: data }),
+    }),
+    getTables: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/tables`, params: params ?? {} }),
+    }),
+    getTableById: builder.query<any, string>({ query: (id) => `/tables/${id}` }),
+    updateTable: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({ url: `/tables/${id}`, method: "PUT", body: data }),
+    }),
+    deleteTable: builder.mutation<any, string>({
+      query: (id) => ({ url: `/tables/${id}`, method: "DELETE" }),
+    }),
+    getTablesByRestaurant: builder.query<any, string>({
+      query: (restaurantId) => `/tables/restaurant/${restaurantId}`,
+    }),
+    updateTableStatus: builder.mutation<any, any>({
+      query: (data) => ({ url: `/tables/status`, method: "PUT", body: data }),
+    }),
+    checkTableAvailability: builder.mutation<any, any>({
+      query: (data) => ({ url: `/tables/availability`, method: "POST", body: data }),
+    }),
+
     // Reservations
     createReservation: builder.mutation<any, any>({
       query: (data) => ({ url: `/reservations`, method: "POST", body: data }),
@@ -802,6 +826,16 @@ export const {
   useUpdateMenuMutation,
   useDeleteMenuMutation,
   useGetMenuItemsQuery,
+  
+  // Tables
+  useGetTablesQuery,
+  useGetTableByIdQuery,
+  useCreateTableMutation,
+  useUpdateTableMutation,
+  useDeleteTableMutation,
+  useGetTablesByRestaurantQuery,
+  useUpdateTableStatusMutation,
+  useCheckTableAvailabilityMutation,
   
   // useUpdateUserMutation,
   // useCreateCourseMutation,

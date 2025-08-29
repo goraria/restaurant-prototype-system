@@ -1,5 +1,5 @@
 import { Header } from "@/components/customer/header"
-import { Footer } from "@/components/customer/footer"
+import { Footer } from "@/components/layout/footer"
 
 export default function CustomerLayout({
   children,

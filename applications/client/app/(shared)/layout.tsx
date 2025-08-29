@@ -36,10 +36,8 @@ export default function SharedLayout({ children }: { children: ReactNode }) {
           </div>
         </div> */}
         <div className="flex flex-1 flex-col">
-          <div className="container-wrapper">
-            <div className="p-6">
-              {children}
-            </div>
+          <div className="container mx-auto p-6">
+            {children}
           </div>
         </div>
       </main>
