@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
-import { 
+import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
@@ -21,6 +21,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,12 +60,14 @@ import {
   Phone,
   Clock,
   MapPin,
-  ShoppingCart
+  ShoppingCart,
+  Heart
 } from "lucide-react";
 import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { ClerkSignIn, ClerkSignUp } from "@/components/elements/clerk-buttons";
 import { dark } from "@clerk/themes";
 import { navigation } from "@/constants/constants";
+import { SearchBarHolder } from "../elements/search-bar";
 
 export function Navbar() {
   const { user } = useUser();
@@ -82,7 +89,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="bg-[#EC6683] text-white py-2">
+      <div className="bg-professional-main text-white py-2">
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-6">
@@ -208,7 +215,35 @@ export function Navbar() {
                 </SheetTitle>
               </SheetHeader>
               <Separator />
-              <nav className="flex flex-col space-y-0 p-4 pt-0">
+              <nav className="p-4 pt-0">
+                {navigation.map((item) => (
+                  <div key={item.title}>
+                    <Link
+                      href={item.href}
+                      className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-accent"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.title}</span>
+                    </Link>
+                    {item.children && (
+                      <div className="ml-8 space-y-1">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.title}
+                            href={child.href}
+                            className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            {child.title}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </nav>
+              {/* <nav className="flex flex-col space-y-0 p-4 pt-0">
                 {navigation.map((item, index) => (
                   <Button
                     key={index}
@@ -225,7 +260,7 @@ export function Navbar() {
                     </Link>
                   </Button>
                 ))}
-              </nav>
+              </nav> */}
             </SheetContent>
           </Sheet>
 
@@ -241,6 +276,7 @@ export function Navbar() {
                 />
               </div>
             </div>
+            {/* <SearchBarHolder /> */}
 
             {/* Language */}
             {/* <DropdownMenu>
@@ -263,6 +299,22 @@ export function Navbar() {
             <ModeToggle />
             <QuickSetting />
 
+            <Link
+              href="/favorites"
+            >
+              <Button variant="ghost" size="icon" className="cursor-pointer">
+                <Heart className="h-6 w-6" />
+              </Button>
+            </Link>
+
+            {/* <Tooltip>
+              <TooltipTrigger asChild>
+
+              </TooltipTrigger>
+              <TooltipContent align="center" side="top">
+                <p>Favorite</p>
+              </TooltipContent>
+            </Tooltip> */}
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

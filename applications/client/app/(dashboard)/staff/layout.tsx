@@ -9,7 +9,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { appGlobal, customerSidebar } from "@/constants/constants"
+import { appGlobal, staffSidebar } from "@/constants/constants"
 import { createBreadcrumbs } from "@/utils/breadcrumb-utils"
 import { Dashbar } from "@/components/layout/dashbar"
 import { Copyright } from "@/components/layout/copyright"
@@ -24,7 +24,7 @@ export default function StaffLayout({ children }: { children: ReactNode } ) {
   return (
     <SidebarProvider>
       <AppSidebar 
-        sidebar={customerSidebar} 
+        sidebar={staffSidebar} 
         global={appGlobal} 
         user={{
           name: user?.fullName,
@@ -37,10 +37,8 @@ export default function StaffLayout({ children }: { children: ReactNode } ) {
           <SidebarTrigger className="-ml-1" />
         </Dashbar>
         <main className="flex flex-1 flex-col">
-          <div className="container-wrapper">
-            <div className="p-6">
-              {children}
-            </div>
+          <div className="container mx-auto p-6">
+            {children}
           </div>
         </main>
         <Copyright />

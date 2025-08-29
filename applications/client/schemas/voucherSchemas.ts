@@ -1,16 +1,21 @@
 import { z } from 'zod';
-import { Decimal } from '@prisma/client/runtime/library';
+// import { Decimal } from '@/utils/schema-utils';
 
 // Custom Decimal transform
-const DecimalSchema = z.union([
-  z.number(),
-  z.instanceof(Decimal),
-  z.string()
-]).transform((val) => {
-  if (val instanceof Decimal) {
-    return val.toNumber();
-  }
-  return typeof val === 'string' ? parseFloat(val) : val;
+// const DecimalSchema = z.union([
+//   z.number(),
+//   z.instanceof(Decimal),
+//   z.string()
+// ]).transform((val) => {
+//   if (val instanceof Decimal) {
+//     return val.toNumber();
+//   }
+//   return typeof val === 'string' ? parseFloat(val) : val;
+// });
+
+// export const Decimal = z.union([z.number(), z.string()]);
+export const DecimalSchema = z.union([z.number(), z.string()]).transform((val) => {
+  return typeof val === "string" ? parseFloat(val) : val;
 });
 
 // Voucher discount type enum schema

@@ -42,31 +42,31 @@ export function QuickSetting({
 		},
 		{
 			name: "cyan",
-			className: "cyan-500",
+			className: "professional-primary-1",
       color: "#696CFF",
 			active: false
 		},
     {
       name: "green",
-      className: "green-500",
+      className: "professional-primary-2",
       color: "#0D9394",
       active: false
     },
 		{
 			name: "yellow",
-			className: "yellow-500",
+			className: "professional-primary-3",
       color: "#FFAB1D",
 			active: false
 		},
 		{
 			name: "red",
-			className: "red-500",
+			className: "professional-primary-4",
       color: "#EB3D63",
 			active: false
 		},
 		{
 			name: "blue",
-			className: "orange-500",
+			className: "professional-primary-5",
       color: "#2092EC",
 			active: false
 		},
@@ -159,9 +159,9 @@ export function QuickSetting({
                         border="square"
                         type="hidden"
                         className={`bg-${color.className} rounded-md`}
-                        style={{
-                        	backgroundColor: color.color
-                        }}
+                        // style={{
+                        // 	backgroundColor: color.color
+                        // }}
                       />
                     </div>
                   ))}

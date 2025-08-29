@@ -1,4 +1,4 @@
-import { ZodSchema } from "zod";
+import z, { ZodSchema } from "zod";
 import { api } from "@/state/api";
 
 export type AppDispatch = any;

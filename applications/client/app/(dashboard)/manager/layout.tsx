@@ -93,10 +93,8 @@ export default function DashboardLayout({ children }: { children: ReactNode } ) 
 
             </div>
           </section> */}
-          <div className="container-wrapper">
-            <div className="p-6">{/* container */}
-              {children}
-            </div>
+          <div className="container mx-auto p-6">
+            {children}
           </div>
         </main>
         <Copyright />

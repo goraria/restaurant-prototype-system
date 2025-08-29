@@ -22,15 +22,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +64,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Import form components and API hooks
+import { ReservationForm } from '@/components/forms';
+import { DeleteConfirmDialog } from '@/components/forms';
+import { useGetReservationsQuery, useCreateReservationMutation, useUpdateReservationMutation, useDeleteReservationMutation, useUpdateReservationStatusMutation } from '@/state/api';
+
 interface Reservation {
   id: string;
   customer_id: string;
@@ -98,115 +94,7 @@ interface Reservation {
   updated_at: string;
 }
 
-// Mock data cho đặt bàn
-const mockReservations: Reservation[] = [
-  {
-    id: '1',
-    customer_id: 'CUST001',
-    customer_name: 'Nguyễn Văn Minh',
-    customer_phone: '0901234567',
-    customer_email: 'nguyen.minh@email.com',
-    reservation_date: '2024-03-30',
-    reservation_time: '19:30',
-    party_size: 4,
-    table_number: 'B05',
-    status: 'confirmed',
-    special_requests: 'Bàn gần cửa sổ, không hút thuốc',
-    occasion: 'Sinh nhật',
-    deposit_amount: 500000,
-    deposit_paid: true,
-    estimated_duration: 120,
-    staff_notes: 'Khách VIP, chuẩn bị bánh sinh nhật',
-    created_at: '2024-03-25T10:30:00Z',
-    updated_at: '2024-03-26T15:45:00Z'
-  },
-  {
-    id: '2',
-    customer_id: 'CUST002',
-    customer_name: 'Trần Thị Hương',
-    customer_phone: '0907654321',
-    customer_email: 'tran.huong@company.vn',
-    reservation_date: '2024-03-30',
-    reservation_time: '12:00',
-    party_size: 8,
-    table_number: 'VIP01',
-    status: 'checked_in',
-    special_requests: 'Menu vegetarian, không cay',
-    occasion: 'Họp mặt công ty',
-    deposit_amount: 1000000,
-    deposit_paid: true,
-    estimated_duration: 150,
-    actual_arrival_time: '2024-03-30T12:15:00Z',
-    staff_notes: 'Công ty ABC - thanh toán chuyển khoản',
-    created_at: '2024-03-20T14:20:00Z',
-    updated_at: '2024-03-30T12:15:00Z'
-  },
-  {
-    id: '3',
-    customer_id: 'CUST003',
-    customer_name: 'Lê Hoàng Phúc',
-    customer_phone: '0912345678',
-    customer_email: 'le.phuc@gmail.com',
-    reservation_date: '2024-03-31',
-    reservation_time: '18:00',
-    party_size: 2,
-    table_number: 'A03',
-    status: 'pending',
-    special_requests: 'Bàn riêng tư, romantic',
-    occasion: 'Kỷ niệm',
-    deposit_amount: 300000,
-    deposit_paid: false,
-    estimated_duration: 90,
-    staff_notes: 'Cần xác nhận đặt cọc trong 2h',
-    created_at: '2024-03-29T16:45:00Z',
-    updated_at: '2024-03-29T16:45:00Z'
-  },
-  {
-    id: '4',
-    customer_id: 'CUST004',
-    customer_name: 'Phạm Minh Tú',
-    customer_phone: '0938765432',
-    customer_email: 'pham.tu@outlook.com',
-    reservation_date: '2024-03-29',
-    reservation_time: '20:00',
-    party_size: 6,
-    table_number: 'B08',
-    status: 'completed',
-    special_requests: 'Không hành tỏi',
-    occasion: 'Gia đình',
-    deposit_amount: 0,
-    deposit_paid: false,
-    estimated_duration: 110,
-    actual_arrival_time: '2024-03-29T20:10:00Z',
-    actual_departure_time: '2024-03-29T22:05:00Z',
-    total_bill: 2850000,
-    discount_applied: 285000,
-    staff_notes: 'Khách hài lòng, tip 200k',
-    created_at: '2024-03-28T09:30:00Z',
-    updated_at: '2024-03-29T22:05:00Z'
-  },
-  {
-    id: '5',
-    customer_id: 'CUST005',
-    customer_name: 'Vũ Thành Đạt',
-    customer_phone: '0945123789',
-    customer_email: 'vu.dat@email.vn',
-    reservation_date: '2024-03-28',
-    reservation_time: '19:00',
-    party_size: 3,
-    table_number: 'A07',
-    status: 'no_show',
-    special_requests: 'Bàn yên tĩnh',
-    occasion: 'Bạn bè',
-    deposit_amount: 200000,
-    deposit_paid: true,
-    estimated_duration: 100,
-    staff_notes: 'Không đến không báo, đã gọi nhiều lần',
-    created_at: '2024-03-27T11:15:00Z',
-    updated_at: '2024-03-28T19:30:00Z'
-  }
-];
-
+// Mock data for tables and customers (in real app, these would come from API)
 const tables = [
   { id: 'A01', name: 'Bàn A01', capacity: 2, area: 'Khu A' },
   { id: 'A02', name: 'Bàn A02', capacity: 2, area: 'Khu A' },
@@ -237,33 +125,24 @@ const customers = [
 ];
 
 export default function ReservationsPage() {
-  const [reservations, setReservations] = useState<Reservation[]>(mockReservations);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTable, setSelectedTable] = useState('all');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
-  
-  const [formData, setFormData] = useState({
-    customer_id: '',
-    customer_name: '',
-    customer_phone: '',
-    customer_email: '',
-    reservation_date: '',
-    reservation_time: '',
-    party_size: 2,
-    table_number: '',
-    special_requests: '',
-    occasion: '',
-    deposit_amount: 0,
-    deposit_paid: false,
-    estimated_duration: 90,
-    staff_notes: '',
-    status: 'pending' as const
-  });
+  const [deletingReservation, setDeletingReservation] = useState<Reservation | null>(null);
 
-  const filteredReservations = reservations.filter(reservation => {
+  // API hooks
+  const { data: reservations = [], isLoading, refetch } = useGetReservationsQuery();
+  const [createReservation] = useCreateReservationMutation();
+  const [updateReservation] = useUpdateReservationMutation();
+  const [deleteReservation] = useDeleteReservationMutation();
+  const [updateReservationStatus] = useUpdateReservationStatusMutation();
+
+  const filteredReservations = reservations.filter((reservation: Reservation) => {
     const matchesSearch = reservation.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          reservation.customer_phone.includes(searchTerm) ||
                          reservation.table_number.toLowerCase().includes(searchTerm.toLowerCase());
@@ -276,12 +155,12 @@ export default function ReservationsPage() {
   const getReservationStats = () => {
     const total = reservations.length;
     const today = new Date().toISOString().split('T')[0];
-    const todayReservations = reservations.filter(r => r.reservation_date === today).length;
-    const confirmed = reservations.filter(r => r.status === 'confirmed').length;
-    const checkedIn = reservations.filter(r => r.status === 'checked_in').length;
-    const pending = reservations.filter(r => r.status === 'pending').length;
+    const todayReservations = reservations.filter((r: Reservation) => r.reservation_date === today).length;
+    const confirmed = reservations.filter((r: Reservation) => r.status === 'confirmed').length;
+    const checkedIn = reservations.filter((r: Reservation) => r.status === 'checked_in').length;
+    const pending = reservations.filter((r: Reservation) => r.status === 'pending').length;
     const totalRevenue = reservations
-      .filter(r => r.status === 'completed' && r.total_bill)
+      .filter((r: Reservation) => r.status === 'completed' && r.total_bill)
       .reduce((sum, r) => sum + (r.total_bill || 0), 0);
     
     return { total, todayReservations, confirmed, checkedIn, pending, totalRevenue };
@@ -351,135 +230,71 @@ export default function ReservationsPage() {
     return `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
   };
 
-  const getAvailableTables = (partySize: number, date: string, time: string) => {
-    const suitableTables = tables.filter(table => table.capacity >= partySize);
-    // In a real app, you would check for conflicts with existing reservations
-    return suitableTables;
-  };
-
-  const handleCreate = () => {
-    if (!formData.customer_name || !formData.customer_phone || !formData.reservation_date || 
-        !formData.reservation_time || !formData.table_number) {
-      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc!');
-      return;
-    }
-
-    const newReservation: Reservation = {
-      id: Date.now().toString(),
-      ...formData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    setReservations([...reservations, newReservation]);
+  const handleCreateSuccess = () => {
+    setIsCreateDialogOpen(false);
+    refetch();
     toast.success('Đặt bàn đã được tạo thành công!');
-    resetForm();
-    setIsDialogOpen(false);
   };
 
-  const handleUpdate = () => {
-    if (!editingReservation) return;
-    
-    if (!formData.customer_name || !formData.customer_phone || !formData.reservation_date || 
-        !formData.reservation_time || !formData.table_number) {
-      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc!');
-      return;
-    }
-    
-    setReservations(reservations.map(reservation => 
-      reservation.id === editingReservation.id 
-        ? { 
-            ...reservation, 
-            ...formData,
-            updated_at: new Date().toISOString() 
-          }
-        : reservation
-    ));
+  const handleUpdateSuccess = () => {
+    setIsEditDialogOpen(false);
+    setEditingReservation(null);
+    refetch();
     toast.success('Thông tin đặt bàn đã được cập nhật!');
-    resetForm();
-    setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setReservations(reservations.filter(reservation => reservation.id !== id));
+  const handleDeleteSuccess = () => {
+    setIsDeleteDialogOpen(false);
+    setDeletingReservation(null);
+    refetch();
     toast.success('Đặt bàn đã được xóa!');
   };
 
-  const handleUpdateStatus = (id: string, status: Reservation['status']) => {
-    const updateData: any = { status, updated_at: new Date().toISOString() };
-    
-    if (status === 'checked_in') {
-      updateData.actual_arrival_time = new Date().toISOString();
-    } else if (status === 'completed') {
-      updateData.actual_departure_time = new Date().toISOString();
+  const handleUpdateStatus = async (id: string, status: Reservation['status']) => {
+    try {
+      await updateReservationStatus({ id, status }).unwrap();
+      refetch();
+      
+      const statusText = {
+        'confirmed': 'xác nhận',
+        'checked_in': 'check-in', 
+        'completed': 'hoàn thành',
+        'cancelled': 'hủy',
+        'no_show': 'không đến'
+      }[status] || status;
+      
+      toast.success(`Đặt bàn đã được ${statusText}!`);
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái!');
     }
-    
-    setReservations(reservations.map(reservation => 
-      reservation.id === id 
-        ? { ...reservation, ...updateData }
-        : reservation
-    ));
-    
-    const statusText = {
-      'confirmed': 'xác nhận',
-      'checked_in': 'check-in', 
-      'completed': 'hoàn thành',
-      'cancelled': 'hủy',
-      'no_show': 'không đến'
-    }[status] || status;
-    
-    toast.success(`Đặt bàn đã được ${statusText}!`);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      customer_id: '',
-      customer_name: '',
-      customer_phone: '',
-      customer_email: '',
-      reservation_date: '',
-      reservation_time: '',
-      party_size: 2,
-      table_number: '',
-      special_requests: '',
-      occasion: '',
-      deposit_amount: 0,
-      deposit_paid: false,
-      estimated_duration: 90,
-      staff_notes: '',
-      status: 'pending'
-    });
-    setEditingReservation(null);
   };
 
   const openCreateDialog = () => {
-    resetForm();
-    setIsDialogOpen(true);
+    setIsCreateDialogOpen(true);
   };
 
   const openEditDialog = (reservation: Reservation) => {
     setEditingReservation(reservation);
-    setFormData({
-      customer_id: reservation.customer_id,
-      customer_name: reservation.customer_name,
-      customer_phone: reservation.customer_phone,
-      customer_email: reservation.customer_email,
-      reservation_date: reservation.reservation_date,
-      reservation_time: reservation.reservation_time,
-      party_size: reservation.party_size,
-      table_number: reservation.table_number,
-      special_requests: reservation.special_requests,
-      occasion: reservation.occasion,
-      deposit_amount: reservation.deposit_amount,
-      deposit_paid: reservation.deposit_paid,
-      estimated_duration: reservation.estimated_duration,
-      staff_notes: reservation.staff_notes,
-      status: reservation.status
-    });
-    setIsDialogOpen(true);
+    setIsEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (reservation: Reservation) => {
+    setDeletingReservation(reservation);
+    setIsDeleteDialogOpen(true);
   };
 
   const stats = getReservationStats();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -490,240 +305,10 @@ export default function ReservationsPage() {
             Quản lý đặt chỗ và theo dõi tình trạng bàn
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openCreateDialog}>
-              <Plus className="mr-2 h-4 w-4" />
-              Đặt bàn mới
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[825px]">
-            <DialogHeader>
-              <DialogTitle>
-                {editingReservation ? 'Chỉnh sửa đặt bàn' : 'Tạo đặt bàn mới'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingReservation 
-                  ? 'Cập nhật thông tin đặt bàn'
-                  : 'Tạo mới thông tin đặt bàn cho khách hàng'
-                }
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4 max-h-[600px] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="customer_name" className="text-right">
-                    Tên khách hàng *
-                  </Label>
-                  <Input
-                    id="customer_name"
-                    value={formData.customer_name}
-                    onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
-                    className="col-span-3"
-                    placeholder="Nhập tên khách hàng"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="customer_phone" className="text-right">
-                    Số điện thoại *
-                  </Label>
-                  <Input
-                    id="customer_phone"
-                    value={formData.customer_phone}
-                    onChange={(e) => setFormData({...formData, customer_phone: e.target.value})}
-                    className="col-span-3"
-                    placeholder="Nhập số điện thoại"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="customer_email" className="text-right">
-                    Email
-                  </Label>
-                  <Input
-                    id="customer_email"
-                    type="email"
-                    value={formData.customer_email}
-                    onChange={(e) => setFormData({...formData, customer_email: e.target.value})}
-                    className="col-span-3"
-                    placeholder="Nhập email (tùy chọn)"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="party_size" className="text-right">
-                    Số người
-                  </Label>
-                  <Input
-                    id="party_size"
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={formData.party_size}
-                    onChange={(e) => setFormData({...formData, party_size: parseInt(e.target.value)})}
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="reservation_date" className="text-right">
-                    Ngày đặt *
-                  </Label>
-                  <Input
-                    id="reservation_date"
-                    type="date"
-                    value={formData.reservation_date}
-                    onChange={(e) => setFormData({...formData, reservation_date: e.target.value})}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="reservation_time" className="text-right">
-                    Giờ đặt *
-                  </Label>
-                  <Input
-                    id="reservation_time"
-                    type="time"
-                    value={formData.reservation_time}
-                    onChange={(e) => setFormData({...formData, reservation_time: e.target.value})}
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="table_number" className="text-right">
-                    Bàn *
-                  </Label>
-                  <Select value={formData.table_number} onValueChange={(value) => setFormData({...formData, table_number: value})}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Chọn bàn" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getAvailableTables(formData.party_size, formData.reservation_date, formData.reservation_time).map(table => (
-                        <SelectItem key={table.id} value={table.id}>
-                          {table.name} - {table.capacity} chỗ ({table.area})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="estimated_duration" className="text-right">
-                    Thời gian dự kiến (phút)
-                  </Label>
-                  <Input
-                    id="estimated_duration"
-                    type="number"
-                    min="30"
-                    max="300"
-                    step="15"
-                    value={formData.estimated_duration}
-                    onChange={(e) => setFormData({...formData, estimated_duration: parseInt(e.target.value)})}
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="occasion" className="text-right">
-                    Dịp đặc biệt
-                  </Label>
-                  <Select value={formData.occasion} onValueChange={(value) => setFormData({...formData, occasion: value})}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Chọn dịp đặc biệt" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Không có</SelectItem>
-                      <SelectItem value="Sinh nhật">Sinh nhật</SelectItem>
-                      <SelectItem value="Kỷ niệm">Kỷ niệm</SelectItem>
-                      <SelectItem value="Họp mặt công ty">Họp mặt công ty</SelectItem>
-                      <SelectItem value="Gia đình">Gia đình</SelectItem>
-                      <SelectItem value="Bạn bè">Bạn bè</SelectItem>
-                      <SelectItem value="Hẹn hò">Hẹn hò</SelectItem>
-                      <SelectItem value="Khác">Khác</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="deposit_amount" className="text-right">
-                    Đặt cọc (VND)
-                  </Label>
-                  <Input
-                    id="deposit_amount"
-                    type="number"
-                    min="0"
-                    step="10000"
-                    value={formData.deposit_amount}
-                    onChange={(e) => setFormData({...formData, deposit_amount: parseInt(e.target.value)})}
-                    className="col-span-3"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="special_requests" className="text-right">
-                  Yêu cầu đặc biệt
-                </Label>
-                <Textarea
-                  id="special_requests"
-                  value={formData.special_requests}
-                  onChange={(e) => setFormData({...formData, special_requests: e.target.value})}
-                  className="col-span-3"
-                  rows={3}
-                  placeholder="Ghi chú yêu cầu đặc biệt của khách hàng..."
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="staff_notes" className="text-right">
-                  Ghi chú nội bộ
-                </Label>
-                <Textarea
-                  id="staff_notes"
-                  value={formData.staff_notes}
-                  onChange={(e) => setFormData({...formData, staff_notes: e.target.value})}
-                  className="col-span-3"
-                  rows={2}
-                  placeholder="Ghi chú cho nhân viên..."
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">
-                  Trạng thái
-                </Label>
-                <Select value={formData.status} onValueChange={(value: Reservation['status']) => setFormData({...formData, status: value})}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Chờ xác nhận</SelectItem>
-                    <SelectItem value="confirmed">Đã xác nhận</SelectItem>
-                    <SelectItem value="checked_in">Đã check-in</SelectItem>
-                    <SelectItem value="completed">Hoàn thành</SelectItem>
-                    <SelectItem value="cancelled">Đã hủy</SelectItem>
-                    <SelectItem value="no_show">Không đến</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Hủy
-              </Button>
-              <Button onClick={editingReservation ? handleUpdate : handleCreate}>
-                {editingReservation ? 'Cập nhật' : 'Tạo đặt bàn'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openCreateDialog}>
+          <Plus className="mr-2 h-4 w-4" />
+          Đặt bàn mới
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
@@ -840,31 +425,10 @@ export default function ReservationsPage() {
               onChange={(e) => setSelectedDate(e.target.value)}
               className="w-48"
             />
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="pending">Chờ xác nhận</SelectItem>
-                <SelectItem value="confirmed">Đã xác nhận</SelectItem>
-                <SelectItem value="checked_in">Đã check-in</SelectItem>
-                <SelectItem value="completed">Hoàn thành</SelectItem>
-                <SelectItem value="cancelled">Đã hủy</SelectItem>
-                <SelectItem value="no_show">Không đến</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedTable} onValueChange={setSelectedTable}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Bàn" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả bàn</SelectItem>
-                {tables.map(table => (
-                  <SelectItem key={table.id} value={table.id}>{table.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Làm mới
+            </Button>
             <Button variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
               Xuất báo cáo
@@ -886,7 +450,7 @@ export default function ReservationsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredReservations.map((reservation) => (
+              {filteredReservations.map((reservation: Reservation) => (
                 <TableRow key={reservation.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
@@ -1039,7 +603,7 @@ export default function ReservationsPage() {
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem 
-                          onClick={() => handleDelete(reservation.id)}
+                          onClick={() => openDeleteDialog(reservation)}
                           className="text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -1054,6 +618,59 @@ export default function ReservationsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Create Reservation Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Tạo đặt bàn mới</DialogTitle>
+            <DialogDescription>
+              Tạo mới thông tin đặt bàn cho khách hàng
+            </DialogDescription>
+          </DialogHeader>
+          <ReservationForm
+            mode="create"
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Reservation Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa đặt bàn</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin đặt bàn
+            </DialogDescription>
+          </DialogHeader>
+          {editingReservation && (
+            <ReservationForm
+              mode="update"
+              initialValues={editingReservation}
+              onSuccess={handleUpdateSuccess}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Xóa đặt bàn"
+        description={`Bạn có chắc chắn muốn xóa đặt bàn của ${deletingReservation?.customer_name}?`}
+        onConfirm={() => {
+          if (deletingReservation) {
+            deleteReservation(deletingReservation.id)
+              .unwrap()
+              .then(handleDeleteSuccess)
+              .catch(() => toast.error('Có lỗi xảy ra khi xóa đặt bàn!'));
+          }
+        }}
+      />
     </div>
   );
 }

@@ -2,6 +2,14 @@ import {
   Wifi,
   Waves,
   Dumbbell,
+  Book,
+  Truck,
+  PartyPopper,
+  Briefcase,
+  HelpCircle,
+  FileText,
+  RefreshCw,
+  Globe,
   Car,
   PawPrint,
   Tv,
@@ -62,15 +70,22 @@ import {
   Calendar,
   MessageCircle,
   Camera,
+  Award,
+  Mail,
   Star,
-  Mail
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+  Github,
+  Twitch
 } from "lucide-react";
 
 export const appGlobal = {
   name: "Waddles",
   description: "Design by Japtor Gorthenburg",
   title: "Comprehensive Restaurant Management System",
-  address: "123 Main St, Hai Bà Trưng, Hà Nội, Việt Nam",
+  address: "208 Main St, Hai Bà Trưng, Hà Nội, Việt Nam",
   times: "06:00 - 22:00 (Hằng ngày)",
   opening: "06:00 - 22:00 (GMT+7) (Thứ Hai - Chủ Nhật)",
   phone: "(+84) 123 456 789",
@@ -85,21 +100,22 @@ export const appGlobal = {
 
 export const navigation = [
   {
-    title: "Trang chủ",
-    href: "/customer",
-    icon: Utensils
-  },
-  {
     title: "Thực đơn",
-    href: "/customer/menu",
+    href: "/menu",
     icon: Utensils,
     description: "Khám phá các món ăn ngon"
   },
   {
     title: "Đặt bàn",
-    href: "/customer/booking",
+    href: "/booking",
     icon: Calendar,
     description: "Đặt bàn trước để có chỗ ngồi tốt nhất"
+  },
+  {
+    title: "Yêu thích",
+    href: "/favorites",
+    icon: Heart,
+    description: "Xem các món ăn yêu thích của bạn"
   },
   {
     title: "Khám phá",
@@ -108,24 +124,24 @@ export const navigation = [
     children: [
       {
         title: "Thư viện ảnh",
-        href: "/customer/gallery",
+        href: "/gallery",
         description: "Những khoảnh khắc đẹp tại nhà hàng"
       },
       {
         title: "Blog ẩm thực",
-        href: "/customer/blog",
+        href: "/blog",
         description: "Câu chuyện và kinh nghiệm ẩm thực"
       },
       {
         title: "Đánh giá",
-        href: "/customer/reviews",
+        href: "/reviews",
         description: "Đánh giá từ khách hàng"
       }
     ]
   },
   {
     title: "Liên hệ",
-    href: "/customer/contact",
+    href: "/contact",
     icon: Mail,
     description: "Thông tin liên hệ và hỗ trợ"
   }
@@ -134,6 +150,189 @@ export const navigation = [
   // { name: "Pages", href: "/pages" },
   // { name: "Components", href: "/manager" },
 ]
+
+export const footer = {
+  introduction: "Nhà hàng ẩm thực Việt Nam truyền thống với hơn 10 năm kinh nghiệm. Chúng tôi tự hào mang đến những món ăn ngon nhất từ khắp ba miền Bắc - Trung - Nam trong không gian ấm cúng và thân thiện.",
+  information: [
+    {
+      title: "Thành tựu",
+      description: [
+        {
+          icon: Award,
+          color: "professional-orange",
+          text: "Top 10 nhà hàng Việt Nam 2024"
+        },
+        {
+          icon: Star,
+          color: "professional-orange",
+          text: "4.8/5 sao đánh giá khách hàng"
+        },
+        {
+          icon: Heart,
+          color: "professional-orange",
+          text: "10,000+ khách hàng hài lòng"
+        }
+      ],
+    },
+    {
+      title: "Thông tin liên hệ",
+      description: [
+        {
+          icon: MapPin,
+          color: "professional-main",
+          text: "Địa chỉ: " + appGlobal.address
+        },
+        {
+          icon: Phone,
+          color: "professional-main",
+          text: "Hotline: " + appGlobal.phone
+        },
+        {
+          icon: Mail,
+          color: "professional-main",
+          text: "Email: " + appGlobal.email
+        },
+        {
+          icon: Clock,
+          color: "professional-main",
+          text: "Giờ mở cửa: " + appGlobal.opening
+        }
+      ]
+    },
+    {
+      title: "Kết nối với chúng tôi",
+      description: [
+        {
+          icon: Calendar,
+          color: "professional-main",
+          text: "Đặt bàn trước 24h để có ưu đãi"
+        },
+        {
+          icon: MessageCircle,
+          color: "professional-main",
+          text: "Chat trực tiếp với chúng tôi hoặc chat qua Zalo"
+        },
+        {
+          icon: Camera,
+          color: "professional-main",
+          text: "Tag @restaurant để được repost"
+        }
+      ]
+    }
+  ],
+  feedback: "Phản hồi nóng về chất lượng sản phẩm và dịch vụ. Đội ngũ Kiểm Soát Chất Lượng của chúng tôi sẵn sàng lắng nghe quý khách.",
+  sections: [
+    {
+      title: "Khám phá",
+      items: [
+        { name: "Trang chủ", icon: Home, color: "#", href: "/customer" },
+        { name: "Thực đơn", icon: MenuSquare, color: "#", href: "/customer/menu" },
+        { name: "Đặt bàn", icon: Calendar, color: "#", href: "/customer/booking" },
+        { name: "Thư viện ảnh", icon: GalleryVerticalEnd, color: "#", href: "/customer/gallery" },
+        { name: "Blog ẩm thực", icon: Book, color: "#", href: "/customer/blog" }
+      ]
+    },
+    {
+      title: "Dịch vụ",
+      items: [
+        { name: "Đặt bàn online", icon: Calendar, color: "#", href: "/customer/booking" },
+        { name: "Giao hàng tận nơi", icon: Truck, color: "#", href: "#" },
+        { name: "Tổ chức tiệc", icon: PartyPopper, color: "#", href: "#" },
+        { name: "Buffet cuối tuần", icon: UtensilsCrossed, color: "#", href: "#" },
+        { name: "Menu doanh nghiệp", icon: Briefcase, color: "#", href: "#" }
+      ]
+    },
+    {
+      title: "Hỗ trợ",
+      items: [
+        { name: "Liên hệ", icon: Mail, color: "#", href: "/contact" },
+        { name: "Câu hỏi thường gặp", icon: HelpCircle, color: "#", href: "#" },
+        { name: "Chính sách đặt bàn", icon: FileText, color: "#", href: "#" },
+        { name: "Đánh giá của bạn", icon: Star, color: "#", href: "/customer/reviews" },
+        { name: "Góp ý & Khiếu nại", icon: MessageSquare, color: "#", href: "/customer/contact" }
+      ]
+    },
+    {
+      title: "Phương thức thanh toán",
+      items: [
+        { name: "Chuyển khoản ngân hàng", icon: CircleDollarSign, color: "#", href: "#" },
+        { name: "Tiền mặt", icon: Banknote, color: "#", href: "#" },
+        { name: "Thẻ ATM", icon: CreditCard, color: "#", href: "#" },
+        { name: "PayPal", icon: Wallet, color: "#", href: "#" }
+      ]
+    },
+    {
+      title: "Chính sách & Thông tin",
+      items: [
+        { name: "Chính sách bảo hành", icon: CircleCheck, color: "#", href: "#" },
+        { name: "Chính sách đổi trả", icon: RefreshCw, color: "#", href: "#" },
+        { name: "Chính sách vận chuyển", icon: Package, color: "#", href: "#" },
+        { name: "Chính sách bảo mật", icon: ShieldCheck, color: "#", href: "#" },
+        { name: "Chính sách thanh toán", icon: Wallet, color: "#", href: "#" },
+        { name: "Chính sách kiểm tra", icon: Expand, color: "#", href: "#" },
+        { name: "Hướng dẫn mua hàng online", icon: Globe, color: "#", href: "#" },
+        { name: "Về chúng tôi", icon: Info, color: "#", href: "/about" }
+      ]
+    },
+    {
+      title: "Mạng xã hội",
+      items: [
+        { name: "Github", icon: Github, color: "#9032ac", href: "https://github.com/goraria" },
+        { name: "Facebook", icon: Facebook, color: "#0068ff", href: "#" },
+        { name: "Youtube", icon: Youtube, color: "#fe080a", href: "#" },
+        { name: "Twitter", icon: Twitter, color: "#249ef0", href: "#" },
+        { name: "Instagram", icon: Instagram, color: "#e73495", href: "#" },
+      ]
+    }
+  ],
+  socials: {
+    title: "Mạng xã hội",
+    item: [
+      {
+        name: "Facebook",
+        icon: Facebook,
+        color: "blue",
+        hover: "#0068ff",
+        link: "https://facebook.com"
+      },
+      {
+        name: "Instagram",
+        icon: Instagram,
+        color: "blue",
+        hover: "#e73495",
+        link: "https://instagram.com"
+      },
+      {
+        name: "Twitter",
+        icon: Twitter,
+        color: "blue",
+        hover: "#249ef0",
+        link: "https://twitter.com"
+      },
+      {
+        name: "Youtube",
+        icon: Youtube,
+        color: "blue",
+        hover: "#fe080a",
+        link: "https://youtube.com"
+      },
+      // {
+      //   name: "Github",
+      //   icon: Github,
+      //   color: "blue",
+      //   hover: "#fe080a",
+      //   link: "https://github.com"
+      // },
+      // {
+      //   name: "Twitch",
+      //   icon: Twitch,
+      //   color: "blue",
+      //   hover: "#9146ff",
+      //   link: "https://twitch.com"
+      // }
+    ]
+  }
+}
 
 export const userDefault = {
   name: "japtor",
@@ -188,6 +387,7 @@ export const managerSidebar = {
     avatar: "/avatars/waddles.jpeg",
   },
   route: "/manager",
+  role: "Quản lý",
   teams: [
     {
       name: "Gorth Inc.",
@@ -546,6 +746,7 @@ export const settingsSidebar = {
     avatar: "/avatars/waddles.jpeg",
   },
   route: "/settings",
+  role: "Cài đặt",
   teams: [
     {
       name: "Gorth Inc.",
@@ -732,6 +933,7 @@ export const staffSidebar = {
     avatar: "/avatars/staff.jpeg",
   },
   route: "/staff",
+  role: "Nhân viên",
   navMain: [
     {
       title: "Tổng quan",
@@ -855,6 +1057,7 @@ export const customerSidebar = {
     avatar: "/avatars/customer.jpeg",
   },
   route: "/customer",
+  role: "Khách hàng",
   teams: [],
   navMain: [
     {
@@ -989,44 +1192,6 @@ export const sharedRoutes = {
   auth: [
     { path: "/sign-in", title: "Đăng nhập" },
     { path: "/sign-up", title: "Đăng ký" },
-  ],
-}
-
-export const footerLinks = {
-  paymentIcons: [
-    { id: 1, name: "Banking", icon: CircleDollarSign, link: "#" },
-    { id: 2, name: "Cash", icon: Banknote, link: "#" },
-    { id: 3, name: "ATM Card", icon: CreditCard, link: "#" },
-    { id: 4, name: "PayPal", box: "paypal", link: "#" },
-    // { id: 5, name: "VISA Card", box: "bxl-visa", link: "#" },
-    // { id: 6, name: "Mastercard", box: "bx-credit-card", link: "#" },
-  ],
-
-  usefulInfo: [
-    { id: 1, name: "Warranty Policy", icon: CircleCheck, link: "#" },
-    { id: 2, name: "Return Policy", box: "bx-rotate-left", link: "#" },
-    { id: 3, name: "Shipping Policy", icon: Package, link: "#" },
-    { id: 4, name: "Privacy Policy", icon: ShieldCheck, link: "#" },
-    { id: 5, name: "Payment Policy", icon: Wallet, link: "#" },
-    { id: 6, name: "Inspection Policy", icon: Expand, link: "#" },
-    { id: 7, name: "Online Shopping Guide", box: "bx-planet", link: "#" },
-    { id: 8, name: "About Us", icon: Info, link: "/about" }
-  ],
-
-  socialIcons: [
-    { id: 1, name: "Github", box: "github", link: "https://github.com/goraria/e-commerce" },
-    { id: 2, name: "Facebook", box: "facebook-circle", link: "#" },
-    { id: 3, name: "Youtube", box: "youtube", link: "#" },
-    { id: 4, name: "Tiktok", box: "tiktok", link: "#" },
-    { id: 5, name: "Twitter", box: "twitter", link: "#" },
-    // { id: 6, name: "Threads" box: "thread", link: "#" },
-    { id: 7, name: "Instagram", box: "instagram", link: "#" },
-    // { id: 8, name: "Pinterest", box: "pinterest", link: "#" },
-    // { id: 9, name: "Whatsapp", box: "whatsapp", link: "#" },
-    { id: 10, name: "Reddit", box: "reddit", link: "#" },
-    // { id: 11, name: "Steam", box: "steam", link: "#" },
-    // { id: 12, name: "Snapchat", box: "snapchat", link: "#" },
-    { id: 13, name: "Telegram", box: "telegram", link: "#" }
   ],
 }
 
