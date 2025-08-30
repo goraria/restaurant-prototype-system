@@ -141,7 +141,7 @@ export default function ProfileScreen() {
                   }}
                   size="icon"
                   variant="ghost"
-                  className="rounded-full p-4"
+                  className="rounded-full" // p-4
                 >
                   <Icon
                     as={SettingsIcon}
@@ -211,7 +211,7 @@ export default function ProfileScreen() {
             <View className="px-4 mb-6">
               <View className="flex-row items-center justify-between mb-4">
                 <Text className="text-lg font-bold">Lịch sử đặt bàn</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => console.log('Navigate to history')}>
                   <Text className="text-primary text-sm font-medium">Xem tất cả</Text>
                 </TouchableOpacity>
               </View>
@@ -270,28 +270,28 @@ export default function ProfileScreen() {
                     icon={<Calendar size={20} color="#09090b" />}
                     title="Đặt bàn của tôi"
                     subtitle="Xem và quản lý đặt bàn"
-                    onPress={() => { }}
+                    onPress={() => console.log('Navigate to reservations')}
                   />
                   <Separator />
                   <MenuSection
                     icon={<Heart size={20} color="#EF4444" />}
                     title="Yêu thích"
                     subtitle="Nhà hàng và món ăn yêu thích"
-                    onPress={() => { }}
+                    onPress={() => console.log('Navigate to promotions')}
                   />
                   <Separator />
                   <MenuSection
                     icon={<Award size={20} color="#8B5CF6" />}
                     title="Điểm thưởng"
                     subtitle={`${userStats.loyaltyPoints} điểm có thể sử dụng`}
-                    onPress={() => { }}
+                    onPress={() => console.log('Navigate to promotions')}
                   />
                   <Separator />
                   <MenuSection
                     icon={<Receipt size={20} color="#10B981" />}
                     title="Lịch sử thanh toán"
                     subtitle="Xem chi tiết hóa đơn"
-                    onPress={() => { }}
+                    onPress={() => console.log('Navigate to history')}
                   />
                 </CardContent>
               </Card>

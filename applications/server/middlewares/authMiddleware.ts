@@ -30,3 +30,20 @@ export const verifyToken: RequestHandler = async (
         res.status(500).json({ error: err.message });
     }
 };
+
+// Alias for compatibility with chat service
+export const authenticateToken = verifyToken;
+
+// Function to verify token and return user data (for Socket.IO)
+export const verifyTokenAndGetUser = async (token: string): Promise<any> => {
+    try {
+        if (token.startsWith("Bearer ")) {
+            token = token.slice(7, token.length).trimLeft();
+        }
+
+        const verified = jwt.verify(token, process.env.JWT_SECRET!);
+        return verified;
+    } catch (err: any) {
+        throw new Error('Invalid token');
+    }
+};

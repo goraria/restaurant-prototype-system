@@ -9,7 +9,8 @@ import Animated, {
 
 import { ThemedView } from '@/components/element/ThemedView';
 import { useBottomTabOverflow } from '@/components/element/TabBarBackground';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from 'nativewind';
+// import { useColorScheme } from '@/hooks/useColorScheme';
 
 const HEADER_HEIGHT = 250;
 

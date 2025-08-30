@@ -15,10 +15,12 @@
     "lint": "expo lint",
     "reset-project": "node ./scripts/reset-project.js",
     "postinstall": "npx tailwindcss -i ./global.css -o ./node_modules/.cache/nativewind/global.css",
-    "shadcn": "npx @react-native-reusables/cli@latest add accordion alert-dialog aspect-ratio avatar badge button card checkbox collapsible context-menu dialog dropdown-menu hover-card input label menubar popover progress radio-group select separator switch tabs textarea toggle toggle-group tooltip"
+    "primitives": "npx @react-native-reusables/cli@latest add accordion alert-dialog aspect-ratio avatar badge button card checkbox collapsible context-menu dialog dropdown-menu hover-card input label menubar popover progress radio-group select separator switch tabs textarea toggle toggle-group tooltip",
+    "shadcn": "npx @react-native-reusables/cli@latest --all --overwrite",
+    "doctor": "npx @react-native-reusables/cli@latest doctor"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "^2.14.24",
+    "@clerk/clerk-expo": "^2.14.25",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^7.3.10",
@@ -87,12 +89,12 @@
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
-    "zod": "^4.1.3"
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@types/node": "^24.3.0",
-    "@types/react": "~19.0.14",
+    "@types/react": "~19.0.10",
     "@types/uuid": "^10.0.0",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",

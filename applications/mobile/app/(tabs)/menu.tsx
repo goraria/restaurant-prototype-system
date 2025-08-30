@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCartButton } from '@/components/element/shopping-cart';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { 
   Search, 
   Star, 
