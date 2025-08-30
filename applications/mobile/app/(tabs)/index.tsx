@@ -26,7 +26,7 @@ import * as React from 'react';
 import { Image, ScrollView, TouchableOpacity, View, FlatList } from 'react-native';
 
 import { ThemeToggle } from '@/components/element/ThemeToggle';
-import { UserMenu } from '@/components/user-menu';
+import { UserMenu } from '@/components/auth/user-menu';
 import { Icon } from "@/components/ui/icon";
 import { HeaderStack } from '@/components/layout/header';
 
@@ -91,12 +91,11 @@ export default function HomeScreen() {
   const [cartItemCount, setCartItemCount] = React.useState(3); // Mock cart count
 
   const handleCartPress = () => {
-    // Navigate to cart screen
     console.log('Navigate to cart');
   };
 
   const renderRestaurantCard = ({ item }: { item: any }) => (
-    <TouchableOpacity className="mr-4">
+    <TouchableOpacity className="mr-4" onPress={() => console.log('Navigate to tables')}>
       <Card className="w-72 overflow-hidden">
         <View className="relative">
           <Image
@@ -249,32 +248,32 @@ export default function HomeScreen() {
         <View className="px-4 mb-6">
           <Text className="text-lg font-bold mb-4">Dịch vụ</Text>
           <View className="flex-row justify-between">
-            <TouchableOpacity className="items-center flex-1">
+            <TouchableOpacity className="items-center flex-1" onPress={() => console.log('Navigate to create-reservation')}>
               <View className="w-16 h-16 rounded-xl bg-blue-100 items-center justify-center mb-2">
                 <Calendar size={24} color="#3B82F6" />
               </View>
               <Text className="text-sm font-medium text-center">Đặt bàn</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="items-center flex-1">
+            <TouchableOpacity className="items-center flex-1" onPress={() => console.log('Navigate to cart')}>
               <View className="w-16 h-16 rounded-xl bg-green-100 items-center justify-center mb-2">
                 <UtensilsCrossed size={24} color="#10B981" />
               </View>
               <Text className="text-sm font-medium text-center">Gọi món</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="items-center flex-1">
+            <TouchableOpacity className="items-center flex-1" onPress={() => console.log('Navigate to promotions')}>
               <View className="w-16 h-16 rounded-xl bg-purple-100 items-center justify-center mb-2">
                 <Award size={24} color="#8B5CF6" />
               </View>
               <Text className="text-sm font-medium text-center">Ưu đãi</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="items-center flex-1">
+            <TouchableOpacity className="items-center flex-1" onPress={() => console.log('Navigate to history')}>
               <View className="w-16 h-16 rounded-xl bg-yellow-100 items-center justify-center mb-2">
                 <TrendingUp size={24} color="#F59E0B" />
               </View>
-              <Text className="text-sm font-medium text-center">Xu hướng</Text>
+              <Text className="text-sm font-medium text-center">Lịch sử</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -293,7 +292,7 @@ export default function HomeScreen() {
                   <Text className="text-sm text-muted-foreground">Hôm nay, 19:00 - 2 người</Text>
                   <Text className="text-xs text-green-600">Đã xác nhận</Text>
                 </View>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => console.log('Navigate to reservations')}>
                   <Button size="sm">
                     <Text>Xem chi tiết</Text>
                   </Button>

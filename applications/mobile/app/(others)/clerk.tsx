@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { UserMenu } from '@/components/user-menu';
+import { UserMenu } from '@/components/auth/user-menu';
 import { useUser } from '@clerk/clerk-expo';
 import { Link, Stack } from 'expo-router';
 import { MoonStarIcon, XIcon, SunIcon } from 'lucide-react-native';

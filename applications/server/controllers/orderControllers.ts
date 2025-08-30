@@ -1,6 +1,18 @@
 import { Request, Response } from 'express';
 import { z, ZodError } from 'zod';
-import { ValidationError, NotFoundError, AuthError } from './baseControllers';
+import { 
+  ValidationError, 
+  NotFoundError, 
+  AuthError, 
+  ForbiddenError,
+  sendSuccess, 
+  sendPaginatedSuccess, 
+  asyncHandler, 
+  validateBody, 
+  validateQuery, 
+  validateIdParam, 
+  getCurrentUserId 
+} from './baseControllers';
 import {
   CreateOrderSchema,
   UpdateOrderSchema,
@@ -85,485 +97,320 @@ const handleError = (error: any, res: Response) => {
 // 🛒 ORDER CONTROLLERS
 // ================================
 
-export class OrderController {
-  constructor() {
-    // Bind methods to maintain context
-    this.createOrder = this.createOrder.bind(this);
-    this.getOrderById = this.getOrderById.bind(this);
-    this.getOrderByCode = this.getOrderByCode.bind(this);
-    this.getOrders = this.getOrders.bind(this);
-    this.updateOrder = this.updateOrder.bind(this);
-    this.cancelOrder = this.cancelOrder.bind(this);
-    this.getOrderStats = this.getOrderStats.bind(this);
-    this.getKitchenOrders = this.getKitchenOrders.bind(this);
-    this.updateCookingStatus = this.updateCookingStatus.bind(this);
-    this.bulkOrderActions = this.bulkOrderActions.bind(this);
-    this.getOrderAnalytics = this.getOrderAnalytics.bind(this);
-    this.getMyOrders = this.getMyOrders.bind(this);
-    this.getCurrentOrder = this.getCurrentOrder.bind(this);
-    this.getRestaurantOrders = this.getRestaurantOrders.bind(this);
-    this.getPendingOrders = this.getPendingOrders.bind(this);
-    this.getRestaurantDashboard = this.getRestaurantDashboard.bind(this);
-  }
+/**
+ * Tạo đơn hàng mới
+ */
+export const createOrderController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const validatedData = validateBody(req, CreateOrderSchema) as any;
+    const result = await createOrder(validatedData);
 
-  /**
-   * Tạo đơn hàng mới
-   */
-  async createOrder(req: AuthenticatedRequest, res: Response) {
-    try {
-      const validatedData = CreateOrderSchema.parse(req.body);
-      const result = await createOrder(validatedData);
-
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.status(201).json({
-        success: true,
-        message: 'Tạo đơn hàng thành công',
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendSuccess(res, result.data, 'Tạo đơn hàng thành công', 201);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Lấy thông tin đơn hàng theo ID
-   */
-  async getOrderById(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { id } = req.params;
-      const result = await getOrderById(id);
+/**
+ * Lấy thông tin đơn hàng theo ID
+ */
+export const getOrderByIdController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const id = validateIdParam(req);
+    const result = await getOrderById(id);
 
-      if (!result.success) {
-        throw new NotFoundError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new NotFoundError(result.error!);
     }
+
+    sendSuccess(res, result.data);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Lấy đơn hàng theo mã order
-   */
-  async getOrderByCode(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { orderCode } = req.params;
-      const result = await getOrderByCode(orderCode);
+/**
+ * Lấy đơn hàng theo mã order
+ */
+export const getOrderByCodeController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { orderCode } = req.params;
+    const result = await getOrderByCode(orderCode);
 
-      if (!result.success) {
-        throw new NotFoundError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new NotFoundError(result.error!);
     }
+
+    sendSuccess(res, result.data);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Lấy danh sách đơn hàng với bộ lọc
-   */
-  async getOrders(req: AuthenticatedRequest, res: Response) {
-    try {
-      const validatedQuery = OrderQuerySchema.parse(req.query);
-      const result = await getOrders(validatedQuery);
+/**
+ * Lấy danh sách đơn hàng với bộ lọc
+ */
+export const getOrdersController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const validatedQuery = validateQuery(req, OrderQuerySchema) as any;
+    const result = await getOrders(validatedQuery);
 
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data?.orders || [],
-        pagination: result.data?.pagination
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendPaginatedSuccess(res, result.data?.orders || [], result.data?.pagination);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Cập nhật đơn hàng
-   */
-  async updateOrder(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { id } = req.params;
-      const validatedData = UpdateOrderSchema.parse(req.body);
-      const result = await updateOrder(id, validatedData);
+/**
+ * Cập nhật đơn hàng
+ */
+export const updateOrderController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const id = validateIdParam(req);
+    const validatedData = validateBody(req, UpdateOrderSchema) as any;
+    const result = await updateOrder(id, validatedData);
 
-      if (!result.success) {
-        if (result.error === 'Đơn hàng không tồn tại') {
-          throw new NotFoundError(result.error);
-        }
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        message: 'Cập nhật đơn hàng thành công',
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendSuccess(res, result.data, 'Cập nhật đơn hàng thành công');
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Hủy đơn hàng
-   */
-  async cancelOrder(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { id } = req.params;
-      const validatedData = CancelOrderSchema.parse(req.body);
-      const userId = req.user?.id;
+/**
+ * Hủy đơn hàng
+ */
+export const cancelOrderController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const id = validateIdParam(req);
+    const validatedData = validateBody(req, CancelOrderSchema) as any;
+    const result = await cancelOrder(id, validatedData);
 
-      const result = await cancelOrder(id, validatedData.reason, userId);
-
-      if (!result.success) {
-        if (result.error === 'Đơn hàng không tồn tại') {
-          throw new NotFoundError(result.error);
-        }
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        message: 'Hủy đơn hàng thành công',
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendSuccess(res, result.data, 'Hủy đơn hàng thành công');
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Lấy thống kê đơn hàng
-   */
-  async getOrderStats(req: AuthenticatedRequest, res: Response) {
-    try {
-      const validatedQuery = OrderStatsSchema.parse(req.query);
-      const result = await getOrderStatistics(validatedQuery);
+/**
+ * Lấy thống kê đơn hàng
+ */
+export const getOrderStatsController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const validatedQuery = validateQuery(req, OrderStatsSchema) as any;
+    const result = await getOrderStatistics(validatedQuery);
 
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendSuccess(res, result.data);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  // ================================
-  // 🍳 KITCHEN MANAGEMENT
-  // ================================
+/**
+ * Lấy danh sách đơn hàng cho nhà bếp
+ */
+export const getKitchenOrdersController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const validatedQuery = validateQuery(req, KitchenOrderQuerySchema) as any;
+    const result = await getKitchenOrderList(validatedQuery);
 
-  /**
-   * Lấy danh sách đơn hàng cho bếp
-   */
-  async getKitchenOrders(req: AuthenticatedRequest, res: Response) {
-    try {
-      const validatedQuery = KitchenOrderQuerySchema.parse(req.query);
-      const result = await getKitchenOrderList(validatedQuery);
-
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data?.kitchen_orders || [],
-        pagination: result.data?.pagination
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendPaginatedSuccess(res, result.data?.kitchen_orders || [], result.data?.pagination);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Cập nhật trạng thái nấu ăn
-   */
-  async updateCookingStatus(req: AuthenticatedRequest, res: Response) {
-    try {
-      const validatedData = UpdateCookingStatusSchema.parse(req.body);
-      const result = await updateCookingOrderStatus(validatedData);
+/**
+ * Cập nhật trạng thái nấu ăn
+ */
+export const updateCookingStatusController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const validatedData = validateBody(req, UpdateCookingStatusSchema) as any;
+    const result = await updateCookingOrderStatus(validatedData);
 
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        message: 'Cập nhật trạng thái nấu ăn thành công',
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendSuccess(res, result.data, 'Cập nhật trạng thái nấu ăn thành công');
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Thực hiện hành động hàng loạt trên orders
-   */
-  async bulkOrderActions(req: AuthenticatedRequest, res: Response) {
-    try {
-      const validatedData = BulkOrderActionSchema.parse(req.body);
-      const result = await bulkUpdateOrders(validatedData);
+/**
+ * Thực hiện hành động hàng loạt
+ */
+export const bulkOrderActionsController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const validatedData = validateBody(req, BulkOrderActionSchema) as any;
+    const result = await bulkUpdateOrders(validatedData);
 
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        message: 'Thực hiện hành động hàng loạt thành công',
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendSuccess(res, result.data, 'Thực hiện hành động hàng loạt thành công');
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Lấy analytics chi tiết cho orders
-   */
-  async getOrderAnalytics(req: AuthenticatedRequest, res: Response) {
-    try {
-      const validatedQuery = OrderAnalyticsSchema.parse(req.query);
-      const result = await getOrderAnalyticsData(validatedQuery);
+/**
+ * Lấy dữ liệu phân tích đơn hàng
+ */
+export const getOrderAnalyticsController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const validatedQuery = validateQuery(req, OrderAnalyticsSchema) as any;
+    const result = await getOrderAnalyticsData(validatedQuery);
 
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendSuccess(res, result.data);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  // ================================
-  // 🚀 CUSTOMER-SPECIFIC ENDPOINTS
-  // ================================
+/**
+ * Lấy đơn hàng của tôi
+ */
+export const getMyOrdersController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = getCurrentUserId(req);
+    const validatedQuery = validateQuery(req, OrderQuerySchema) as any;
+    const result = await getOrders({ ...validatedQuery, customer_id: userId });
 
-  /**
-   * Lấy đơn hàng của customer hiện tại
-   */
-  async getMyOrders(req: AuthenticatedRequest, res: Response) {
-    try {
-      const userId = req.user?.id;
-      
-      if (!userId) {
-        throw new ValidationError('Vui lòng đăng nhập');
-      }
-
-      const query = {
-        ...req.query,
-        customer_id: userId
-      };
-
-      const validatedQuery = OrderQuerySchema.parse(query);
-      const result = await getOrders(validatedQuery);
-
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data?.orders || [],
-        pagination: result.data?.pagination
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendPaginatedSuccess(res, result.data?.orders || [], result.data?.pagination);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Lấy đơn hàng hiện tại của customer (đang active)
-   */
-  async getCurrentOrder(req: AuthenticatedRequest, res: Response) {
-    try {
-      const userId = req.user?.id;
-      
-      if (!userId) {
-        throw new ValidationError('Vui lòng đăng nhập');
-      }
-
-    const query = {
-      customer_id: userId,
-      status: ['pending', 'confirmed', 'preparing', 'ready'] as ('pending' | 'confirmed' | 'preparing' | 'ready')[],
+/**
+ * Lấy đơn hàng hiện tại
+ */
+export const getCurrentOrderController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = getCurrentUserId(req);
+    const result = await getOrders({ 
+      customer_id: userId, 
+      status: ['pending', 'confirmed', 'preparing', 'ready'],
       page: 1,
       limit: 1,
-      sort_by: 'created_at' as const,
-      sort_order: 'desc' as const
-    };      const result = await getOrders(query);
+      sort_by: 'created_at',
+      sort_order: 'desc'
+    });
 
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      const currentOrder = result.data?.orders && result.data.orders.length > 0 ? result.data.orders[0] : null;
-
-      res.json({
-        success: true,
-        data: currentOrder
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    const currentOrder = result.data?.orders && result.data.orders.length > 0 ? result.data.orders[0] : null;
+    sendSuccess(res, currentOrder);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  // ================================
-  // 🏪 RESTAURANT-SPECIFIC ENDPOINTS
-  // ================================
-
-  /**
-   * Lấy đơn hàng của restaurant hiện tại
-   */
-  async getRestaurantOrders(req: AuthenticatedRequest, res: Response) {
-    try {
-      const restaurantId = req.restaurant?.id;
-      
-      if (!restaurantId) {
-        throw new ValidationError('Không tìm thấy thông tin restaurant');
-      }
-
-      const query = {
-        ...req.query,
-        restaurant_id: restaurantId
-      };
-
-      const validatedQuery = OrderQuerySchema.parse(query);
-      const result = await getOrders(validatedQuery);
-
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data?.orders || [],
-        pagination: result.data?.pagination
-      });
-    } catch (error) {
-      handleError(error, res);
+/**
+ * Lấy đơn hàng của nhà hàng
+ */
+export const getRestaurantOrdersController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.restaurant?.id;
+    if (!restaurantId) {
+      throw new AuthError('Không có quyền truy cập nhà hàng');
     }
+
+    const validatedQuery = validateQuery(req, OrderQuerySchema) as any;
+    const result = await getOrders({ ...validatedQuery, restaurant_id: restaurantId });
+
+    if (!result.success) {
+      throw new ValidationError(result.error!);
+    }
+
+    sendPaginatedSuccess(res, result.data?.orders || [], result.data?.pagination);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Lấy đơn hàng đang chờ xử lý của restaurant
-   */
-  async getPendingOrders(req: AuthenticatedRequest, res: Response) {
-    try {
-      const restaurantId = req.restaurant?.id;
-      
-      if (!restaurantId) {
-        throw new ValidationError('Không tìm thấy thông tin restaurant');
-      }
+/**
+ * Lấy đơn hàng đang chờ
+ */
+export const getPendingOrdersController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.restaurant?.id;
+    if (!restaurantId) {
+      throw new AuthError('Không có quyền truy cập nhà hàng');
+    }
 
-    const query = {
+    const validatedQuery = validateQuery(req, OrderQuerySchema) as any;
+    const result = await getOrders({ 
+      ...validatedQuery, 
       restaurant_id: restaurantId,
-      status: ['pending'] as ('pending')[],
-      page: 1,
-      sort_by: 'created_at' as const,
-      sort_order: 'asc' as const,
-      limit: 50
-    };      const result = await getOrders(query);
+      status: ['pending', 'confirmed', 'preparing']
+    });
 
-      if (!result.success) {
-        throw new ValidationError(result.error!);
-      }
-
-      res.json({
-        success: true,
-        data: result.data?.orders || []
-      });
-    } catch (error) {
-      handleError(error, res);
+    if (!result.success) {
+      throw new ValidationError(result.error!);
     }
+
+    sendPaginatedSuccess(res, result.data?.orders || [], result.data?.pagination);
+  } catch (error) {
+    handleError(error, res);
   }
+});
 
-  /**
-   * Dashboard cho restaurant
-   */
-  async getRestaurantDashboard(req: AuthenticatedRequest, res: Response) {
-    try {
-      const restaurantId = req.restaurant?.id;
-      
-      if (!restaurantId) {
-        throw new ValidationError('Không tìm thấy thông tin restaurant');
-      }
-
-      // Get today's stats
-      const todayStatsResult = await getOrderStatistics({
-        restaurant_id: restaurantId,
-        period: 'today',
-        group_by: 'day'
-      });
-
-      // Get pending orders count
-      const pendingResult = await getOrders({
-        restaurant_id: restaurantId,
-        status: ['pending'] as ('pending')[],
-        page: 1,
-        sort_by: 'created_at' as const,
-        sort_order: 'desc' as const,
-        limit: 1
-      });
-
-      // Get preparing orders count
-      const preparingResult = await getOrders({
-        restaurant_id: restaurantId,
-        status: ['confirmed', 'preparing'] as ('confirmed' | 'preparing')[],
-        page: 1,
-        sort_by: 'created_at' as const,
-        sort_order: 'desc' as const,
-        limit: 1
-      });
-
-      // Get ready orders count
-      const readyResult = await getOrders({
-        restaurant_id: restaurantId,
-        status: ['ready'] as ('ready')[],
-        page: 1,
-        sort_by: 'created_at' as const,
-        sort_order: 'desc' as const,
-        limit: 1
-      });
-
-      res.json({
-        success: true,
-        data: {
-          today_stats: todayStatsResult.data,
-          order_counts: {
-            pending: pendingResult.data?.pagination.total || 0,
-            preparing: preparingResult.data?.pagination.total || 0,
-            ready: readyResult.data?.pagination.total || 0
-          }
-        }
-      });
-    } catch (error) {
-      handleError(error, res);
+/**
+ * Lấy dashboard nhà hàng
+ */
+export const getRestaurantDashboardController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const restaurantId = req.restaurant?.id;
+    if (!restaurantId) {
+      throw new AuthError('Không có quyền truy cập nhà hàng');
     }
-  }
-}
 
-// Export singleton instance
-export const orderController = new OrderController();
+    const validatedQuery = validateQuery(req, OrderStatsSchema) as any;
+    const result = await getOrderStatistics({ ...validatedQuery, restaurant_id: restaurantId });
+
+    if (!result.success) {
+      throw new ValidationError(result.error!);
+    }
+
+    sendSuccess(res, result.data);
+  } catch (error) {
+    handleError(error, res);
+  }
+});

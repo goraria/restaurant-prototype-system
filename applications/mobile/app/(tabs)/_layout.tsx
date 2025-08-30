@@ -5,7 +5,8 @@ import { Platform } from 'react-native';
 import { HapticTab } from '@/components/element/HapticTab';
 import TabBarBackground from '@/components/element/TabBarBackground';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from 'nativewind';
+// import { useColorScheme } from '@/hooks/useColorScheme';
 import {
   Home,
   UtensilsCrossed,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react-native";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
 
   return (
     <>

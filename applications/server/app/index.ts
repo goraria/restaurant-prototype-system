@@ -18,6 +18,7 @@ import {
   requireAuth,
 } from '@clerk/express';
 import prisma from '@/config/prisma';
+import { initializeSocketService } from '@/services/socketService';
 
 /* OLD ROUTE IMPORTS */
 import authRoutes from "@/routes/authRoutes";
@@ -31,6 +32,7 @@ import restaurantRoutes from "@/routes/restaurantRoutes";
 import orderRoutes from "@/routes/orderRoutes";
 import menuRoutes from "@/routes/menuRoutes";
 import uploadRoutes from "@/routes/uploadRoutes";
+import chatRoutes from "@/routes/chatRoutes";
 import { errorHandler } from '@/middlewares/error.middleware';
 
 /* CONFIGURATIONS */
@@ -204,6 +206,7 @@ app.use('/restaurants', requireAuth(), restaurantRoutes);
 app.use('/orders', requireAuth(), orderRoutes);
 app.use('/menus', menuRoutes); //, requireAuth()
 app.use('/upload', uploadRoutes);
+app.use('/chat', requireAuth(), chatRoutes);
 
 // Debug route to test voucher endpoints
 // app.get('/debug/voucher', (req, res) => {
@@ -265,35 +268,12 @@ app.use(errorHandler);
 // connectDB();
 
 const httpServer = http.createServer(app);
-const io = new SocketIOServer(httpServer, {
-  cors: {
-    origin: [
-      process.env.EXPRESS_CLIENT_URL!,
-      process.env.EXPRESS_MOBILE_URL!,
-    ],
-    credentials: true,
-  },
-});
 
-// Lắng nghe kết nối realtime
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-  // Ví dụ: lắng nghe sự kiện client gửi
-  socket.on('ping', (data) => {
-    socket.emit('pong', { msg: 'pong', data });
-  });
-  socket.on('get_users', async () => {
-    const users = await prisma.users.findMany();
-    socket.emit('users', users);
-  });
-  // Lắng nghe ngắt kết nối
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
+// Initialize Socket.IO service for chat
+const socketService = initializeSocketService(httpServer);
 
-// Cho phép các controller/service khác sử dụng io
-export { io };
+// Export socket service for use in other parts of the application
+export { socketService };
 
 const port = process.env.EXPRESS_PORT || 8080;
 

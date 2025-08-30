@@ -4,7 +4,7 @@
     "target": "ES2022", // Hoặc phiên bản ECMAScript mới hơn bạn muốn nhắm tới
     "module": "CommonJS", // Phổ biến cho Node.js backend
     "lib": ["ES2022", "DOM"], // Thêm 'DOM' nếu bạn có code liên quan (thường không cần cho API thuần)
-    "outDir": "./dist", // Thư mục chứa code JavaScript sau khi build
+    "outDir": "./.express", // Thư mục chứa code JavaScript sau khi build
     "rootDir": ".", // Thư mục gốc chứa code TypeScript (toàn bộ project)
     "strict": true, // Bật tất cả các kiểm tra strict type (rất khuyến khích)
     "esModuleInterop": true, // Cho phép import default từ các module CommonJS
