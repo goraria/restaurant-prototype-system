@@ -42,30 +42,30 @@ export const globalSlice = createSlice({
   name: "global",
   initialState,
   reducers: {
-    // setIsSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
-    //   state.isSidebarCollapsed = action.payload;
-    // },
-    // setIsDarkMode: (state, action: PayloadAction<boolean>) => {
-    //   state.isDarkMode = action.payload;
-    // },
-    // setFilters: (state, action: PayloadAction<Partial<FiltersState>>) => {
-    //   state.filters = { ...state.filters, ...action.payload };
-    // },
-    // toggleFiltersFullOpen: (state) => {
-    //   state.isFiltersFullOpen = !state.isFiltersFullOpen;
-    // },
-    // setViewMode: (state, action: PayloadAction<"grid" | "list">) => {
-    //   state.viewMode = action.payload;
-    // }
+    setIsSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
+      state.isSidebarCollapsed = action.payload;
+    },
+    setIsDarkMode: (state, action: PayloadAction<boolean>) => {
+      state.isDarkMode = action.payload;
+    },
+    setFilters: (state, action: PayloadAction<Partial<FiltersState>>) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    toggleFiltersFullOpen: (state) => {
+      state.isFiltersFullOpen = !state.isFiltersFullOpen;
+    },
+    setViewMode: (state, action: PayloadAction<"grid" | "list">) => {
+      state.viewMode = action.payload;
+    }
   }
 });
 
 export const {
-  // setIsSidebarCollapsed,
-  // setIsDarkMode,
-  // setFilters,
-  // toggleFiltersFullOpen,
-  // setViewMode
+  setIsSidebarCollapsed,
+  setIsDarkMode,
+  setFilters,
+  toggleFiltersFullOpen,
+  setViewMode
 } = globalSlice.actions;
 
 export default globalSlice.reducer;

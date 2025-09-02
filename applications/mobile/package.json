@@ -16,6 +16,7 @@
     "reset-project": "node ./scripts/reset-project.js",
     "postinstall": "npx tailwindcss -i ./global.css -o ./node_modules/.cache/nativewind/global.css",
     "primitives": "npx @react-native-reusables/cli@latest add accordion alert-dialog aspect-ratio avatar badge button card checkbox collapsible context-menu dialog dropdown-menu hover-card input label menubar popover progress radio-group select separator switch tabs textarea toggle toggle-group tooltip",
+    "reusables": "npx @react-native-reusables/cli@latest --a --o",
     "shadcn": "npx @react-native-reusables/cli@latest --all --overwrite",
     "doctor": "npx @react-native-reusables/cli@latest doctor"
   },

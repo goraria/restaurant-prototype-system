@@ -46,35 +46,40 @@ import { toast } from 'sonner'
 // Import form components and services
 import { MenuItemForm } from '@/components/forms';
 import { DeleteConfirmDialog } from '@/components/forms';
-import { useAppDispatch } from '@/state/redux';
-import { fetchMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from '@/services/menuServices';
+import { 
+  useGetMenuItemsQuery, 
+  useDeleteMenuItemMutation 
+} from '@/state/api';
 
 interface MenuItem {
   id: string
-  restaurant_id: string
+  restaurant_id?: string
   menu_id: string
   category_id?: string
   name: string
   description?: string
-  price: number
+  price: number | string
   image_url?: string
   preparation_time?: number
   calories?: number
   allergens?: string[]
   dietary_info?: string[]
-  is_vegetarian: boolean
-  is_vegan: boolean
+  is_vegetarian?: boolean
+  is_vegan?: boolean
   is_available: boolean
+  is_featured?: boolean
   display_order: number
   created_at: string
   updated_at: string
-  menu?: {
+  menus?: {
     id: string
     name: string
+    restaurant_id?: string
   }
-  category?: {
+  categories?: {
     id: string
     name: string
+    slug?: string
   }
 }
 
@@ -88,27 +93,39 @@ export default function MenuItemsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null)
   const [deletingMenuItem, setDeletingMenuItem] = useState<MenuItem | null>(null)
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
 
-  const dispatch = useAppDispatch();
+  // Sử dụng RTK Query hook để lấy dữ liệu
+  const { 
+    data: menuItems = [], 
+    isLoading, 
+    error, 
+    refetch: refetchMenuItems 
+  } = useGetMenuItemsQuery({});
 
-  const loadMenuItems = async () => {
-    try {
-      setIsLoading(true)
-      const data = await fetchMenuItems(dispatch, {})
-      setMenuItems(data || [])
-    } catch (error) {
-      console.error('Error loading menu items:', error)
-      toast.error('Có lỗi xảy ra khi tải danh sách món ăn!')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Sử dụng mutation hooks
+  const [deleteMenuItemMutation] = useDeleteMenuItemMutation();
 
+  // Xử lý lỗi từ RTK Query
   useEffect(() => {
-    loadMenuItems()
-  }, [])
+    if (error) {
+      console.error('Lỗi khi tải menu items:', error);
+      let errorMessage = 'Có lỗi xảy ra khi tải danh sách món ăn!';
+      
+      if ('status' in error) {
+        if (error.status === 'FETCH_ERROR') {
+          errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra server backend có đang chạy không!';
+        } else if (error.status === 401) {
+          errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!';
+        } else if (error.status === 404) {
+          errorMessage = 'API endpoint không tồn tại. Vui lòng kiểm tra cấu hình backend!';
+        } else if (error.status === 500) {
+          errorMessage = 'Lỗi server nội bộ. Vui lòng thử lại sau!';
+        }
+      }
+      
+      toast.error(errorMessage);
+    }
+  }, [error]);
 
   const filteredMenuItems = menuItems.filter((item: MenuItem) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,35 +145,39 @@ export default function MenuItemsPage() {
     const unavailableItems = menuItems.filter((item: MenuItem) => !item.is_available).length
     const vegetarianItems = menuItems.filter((item: MenuItem) => item.is_vegetarian).length
     const veganItems = menuItems.filter((item: MenuItem) => item.is_vegan).length
-    const totalValue = menuItems.reduce((sum: number, item: MenuItem) => sum + item.price, 0)
+    const totalValue = menuItems.reduce((sum: number, item: MenuItem) => {
+      const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price
+      return sum + (price || 0)
+    }, 0)
 
     return { totalItems, availableItems, unavailableItems, vegetarianItems, veganItems, totalValue }
   }
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | string) => {
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
-    }).format(amount)
+    }).format(numericAmount || 0)
   }
 
   const handleCreateSuccess = () => {
     setIsCreateDialogOpen(false)
-    loadMenuItems()
+    refetchMenuItems()
     toast.success('Món ăn đã được tạo thành công!')
   }
 
   const handleUpdateSuccess = () => {
     setIsEditDialogOpen(false)
     setEditingMenuItem(null)
-    loadMenuItems()
+    refetchMenuItems()
     toast.success('Thông tin món ăn đã được cập nhật!')
   }
 
   const handleDeleteSuccess = () => {
     setIsDeleteDialogOpen(false)
     setDeletingMenuItem(null)
-    loadMenuItems()
+    refetchMenuItems()
     toast.success('Món ăn đã được xóa!')
   }
 
@@ -326,14 +347,34 @@ export default function MenuItemsPage() {
                 <SelectItem value="unavailable">Hết hàng</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={loadMenuItems}>
+            <Button variant="outline" size="sm" onClick={() => refetchMenuItems()}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Làm mới
             </Button>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredMenuItems.map((item: MenuItem) => (
+            {filteredMenuItems.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                <Utensils className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                  Chưa có món ăn nào
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {menuItems.length === 0 
+                    ? "Chưa có món ăn nào trong hệ thống. Hãy thêm món đầu tiên!"
+                    : "Không tìm thấy món ăn nào phù hợp với bộ lọc."
+                  }
+                </p>
+                {menuItems.length === 0 && (
+                  <Button onClick={openCreateDialog}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Thêm món đầu tiên
+                  </Button>
+                )}
+              </div>
+            ) : (
+              filteredMenuItems.map((item: MenuItem) => (
               <Card key={item.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -425,7 +466,7 @@ export default function MenuItemsPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )))}
           </div>
         </CardContent>
       </Card>
@@ -477,9 +518,10 @@ export default function MenuItemsPage() {
         onConfirm={async () => {
           if (deletingMenuItem) {
             try {
-              await deleteMenuItem(dispatch, deletingMenuItem.id)
+              await deleteMenuItemMutation(deletingMenuItem.id).unwrap();
               handleDeleteSuccess()
-            } catch (error) {
+            } catch (err) {
+              console.error('Lỗi khi xóa món ăn:', err);
               toast.error('Có lỗi xảy ra khi xóa món!')
             }
           }

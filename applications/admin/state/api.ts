@@ -2,106 +2,85 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   BaseQueryFn,
   FetchArgs,
-  FetchBaseQueryError
+  FetchBaseQueryError,
+  QueryReturnValue,
+  FetchBaseQueryMeta,
+  BaseQueryApi
 } from "@reduxjs/toolkit/query";
 import { User } from "@clerk/nextjs/server";
+import { Clerk } from "@clerk/clerk-js";
 import { toast } from "sonner";
 
-const baseQueryWithClerk: BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  FetchBaseQueryError
-> = async (args, api, extraOptions) => {
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: BASE_URL,
+  credentials: 'include',
+  prepareHeaders: (headers) => headers,
+});
+
+const baseQueryWithClerk = async (
+  args: string | FetchArgs,
+  api: BaseQueryApi,
+  extraOptions: any
+) => {
   const baseQuery = fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
-    credentials: 'include',
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
     prepareHeaders: async (headers) => {
-      try {
-        // Kiểm tra xem Clerk có sẵn không
-        if (typeof window !== 'undefined' && window.Clerk?.session) {
-          const token = await window.Clerk.session.getToken();
-          if (token) {
-            headers.set("Authorization", `Bearer ${token}`);
-          }
-        }
-      } catch (error) {
-        console.warn('Không thể lấy token xác thực:', error);
+      const token = await window.Clerk?.session?.getToken();
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
       }
-      headers.set('Content-Type', 'application/json');
       return headers;
     },
   });
 
-  // Gọi baseQuery và trả về kết quả trực tiếp
-  const result = await baseQuery(args, api, extraOptions);
+  try {
+    const result: any = await baseQuery(args, api, extraOptions);
 
-  // Xử lý lỗi và hiển thị toast
-  if (result.error) {
-    const errorData = result.error.data as any;
-    const status = result.error.status;
-    let errorMessage = "Có lỗi xảy ra";
-
-    if (errorData?.message) {
-      errorMessage = errorData.message;
-    } else if (typeof status === 'number') {
-      switch (status) {
-        case 401:
-          errorMessage = "Phiên đăng nhập đã hết hạn";
-          break;
-        case 403:
-          errorMessage = "Bạn không có quyền thực hiện hành động này";
-          break;
-        case 404:
-          errorMessage = "Không tìm thấy dữ liệu";
-          break;
-        case 500:
-          errorMessage = "Lỗi server nội bộ";
-          break;
-        default:
-          errorMessage = `Lỗi ${status}`;
-      }
+    if (result.error) {
+      const errorData = result.error.data;
+      const errorMessage =
+        errorData?.message ||
+        result.error.status.toString() ||
+        "An error occurred";
+      toast.error(`Error: ${errorMessage}`);
     }
 
-    console.error('API Error:', {
-      status,
-      errorData,
-      args
-    });
-
-    // Chỉ hiển thị toast cho lỗi nghiêm trọng
-    if (typeof status === 'number' && status >= 400) {
-      toast.error(errorMessage);
-    }
-  }
-
-  // Kiểm tra và hiển thị thông báo thành công cho mutations
-  if (result.data && !result.error) {
-    const isMutationRequest = typeof args === 'object' && 
-      args.method && 
-      args.method !== "GET";
+    const isMutationRequest =
+      (args as FetchArgs).method && (args as FetchArgs).method !== "GET";
 
     if (isMutationRequest) {
-      const responseData = result.data as any;
-      if (responseData?.message && typeof responseData.message === 'string') {
-        toast.success(responseData.message);
+      const successMessage = result.data?.message;
+      if (successMessage) toast.success(successMessage);
+    }
+
+    if (result.data !== undefined) {
+      const payload = result.data as any;
+      if (payload && typeof payload === 'object' && 'data' in payload) {
+        result.data = payload.data;
       }
+    } else if (
+      result.error?.status === 204 ||
+      result.meta?.response?.status === 204
+    ) {
+      return { data: null };
     }
-  }
 
-  // Xử lý cấu trúc dữ liệu response nếu cần
-  if (result.data && typeof result.data === 'object') {
-    const payload = result.data as any;
-    if (payload && 'data' in payload) {
-      return { ...result, data: payload.data };
-    }
-  }
+    return result;
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-  return result;
+    return { error: { status: "FETCH_ERROR", error: errorMessage } };
+  }
 };
 
 
 export const api = createApi({
-  baseQuery: baseQueryWithClerk,
+  baseQuery: fetchBaseQuery({
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL
+  }),
   reducerPath: "api",
   tagTypes: ["Users", "Restaurants", "Orders", "Menus"],
   endpoints: (builder) => ({
@@ -814,9 +793,6 @@ export const {
   useUpdateMenuMutation,
   useDeleteMenuMutation,
   useGetMenuItemsQuery,
-  useCreateMenuItemMutation,
-  useUpdateMenuItemMutation,
-  useDeleteMenuItemMutation,
 
   // Tables
   useGetTablesQuery,

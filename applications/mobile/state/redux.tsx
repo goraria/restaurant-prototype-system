@@ -1,5 +1,3 @@
-"use client";
-
 import { ReactNode, useRef } from "react";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import {
@@ -22,38 +20,37 @@ const rootReducer = combineReducers({
 export const makeStore = () => {
   return configureStore({
     reducer: rootReducer,
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(api.middleware),
-    // Thêm middleware của RTK Query
-    //  {
-    //     // Cấu hình serializableCheck để bỏ qua các action/path nhất định
-    //     // Thường hữu ích khi làm việc với File, FormData hoặc các dữ liệu lớn, không tuần tự hóa được trong action/state
-    //     serializableCheck: {
-    //       ignoredActions: [
-    //         // Bỏ qua các action của RTK Query mutation lifecycle nếu cần
-    //         "api/executeMutation/pending",
-    //         "api/executeMutation/fulfilled",
-    //         "api/executeMutation/rejected",
-    //         // Thêm các action type khác nếu cần thiết
-    //       ],
-    //       ignoredActionPaths: [
-    //         // Các đường dẫn trong action payload/meta cần bỏ qua kiểm tra
-    //         "meta.arg.originalArgs.file",
-    //         "meta.arg.originalArgs.formData",
-    //         "payload.chapter.video",
-    //         "meta.baseQueryMeta.request",
-    //         "meta.baseQueryMeta.response",
-    //         // Thêm các action path khác nếu cần
-    //       ],
-    //       ignoredPaths: [
-    //         // Các đường dẫn trong state cần bỏ qua kiểm tra
-    //         "global.courseEditor.sections", // Ví dụ: nếu sections chứa dữ liệu phức tạp
-    //         // "entities.videos.data", // Ví dụ khác
-    //         "api.mutations", // Thường chứa request/response objects
-    //         "api.queries",   // Thường chứa request/response objects
-    //         // Thêm các state path khác nếu cần
-    //       ],
-    //     },
-    //   }
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        // Cấu hình serializableCheck để bỏ qua các action/path nhất định
+        // Thường hữu ích khi làm việc với File, FormData hoặc các dữ liệu lớn, không tuần tự hóa được trong action/state
+        serializableCheck: {
+          ignoredActions: [
+            // Bỏ qua các action của RTK Query mutation lifecycle nếu cần
+            "api/executeMutation/pending",
+            "api/executeMutation/fulfilled",
+            "api/executeMutation/rejected",
+            // Thêm các action type khác nếu cần thiết
+          ],
+          ignoredActionPaths: [
+            // Các đường dẫn trong action payload/meta cần bỏ qua kiểm tra
+            "meta.arg.originalArgs.file",
+            "meta.arg.originalArgs.formData",
+            "payload.chapter.video",
+            "meta.baseQueryMeta.request",
+            "meta.baseQueryMeta.response",
+            // Thêm các action path khác nếu cần
+          ],
+          ignoredPaths: [
+            // Các đường dẫn trong state cần bỏ qua kiểm tra
+            "global.courseEditor.sections", // Ví dụ: nếu sections chứa dữ liệu phức tạp
+            // "entities.videos.data", // Ví dụ khác
+            "api.mutations", // Thường chứa request/response objects
+            "api.queries",   // Thường chứa request/response objects
+            // Thêm các state path khác nếu cần
+          ],
+        },
+      }).concat(api.middleware), // Thêm middleware của RTK Query
   });
 };
 
@@ -67,11 +64,7 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 /* PROVIDER COMPONENT */
-export default function StoreProvider({ 
-  children
-}: { 
-  children: ReactNode 
-}) {
+export default function StoreProvider({ children }: { children: ReactNode }) {
   // Sử dụng useRef để đảm bảo store chỉ được tạo một lần
   const storeRef = useRef<AppStore | null>(null);
   if (!storeRef.current) {

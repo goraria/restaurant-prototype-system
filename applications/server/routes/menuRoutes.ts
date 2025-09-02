@@ -33,13 +33,6 @@ router.get('/restaurant/:restaurantId/stats', getMenuStats); // Thống kê menu
 // Protected routes - Cần authentication
 // router.use(authMiddleware); // Uncomment khi có auth middleware
 
-// Menu CRUD operations
-router.get('/', getMenus); // Lấy danh sách menu với filter
-router.post('/', createMenu); // Tạo menu mới
-router.get('/:id', getMenuById); // Lấy menu theo ID
-router.put('/:id', updateMenu); // Cập nhật menu
-router.delete('/:id', deleteMenu); // Xóa menu
-
 // ================================
 // 🍽️ MENU ITEM ROUTES
 // ================================
@@ -57,6 +50,13 @@ router.delete('/items/:id', deleteMenuItem); // Xóa món ăn
 // Bulk operations cho menu items
 router.put('/items/bulk/update', bulkUpdateMenuItems); // Cập nhật hàng loạt món ăn
 router.put('/items/bulk/availability', bulkToggleAvailability); // Bật/tắt trạng thái hàng loạt
+
+// Menu CRUD operations
+router.get('/', getMenus); // Lấy danh sách menu với filter
+router.post('/', createMenu); // Tạo menu mới
+router.get('/:id', getMenuById); // Lấy menu theo ID
+router.put('/:id', updateMenu); // Cập nhật menu
+router.delete('/:id', deleteMenu); // Xóa menu
 
 // Restaurant manager only routes
 // router.use(restaurantManagerMiddleware); // Uncomment khi có restaurant manager middleware

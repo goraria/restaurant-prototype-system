@@ -1,17 +1,17 @@
 import { Request, Response } from 'express';
 import { z, ZodError } from 'zod';
-import { 
-  ValidationError, 
-  NotFoundError, 
-  AuthError, 
+import {
+  ValidationError,
+  NotFoundError,
+  AuthError,
   ForbiddenError,
-  sendSuccess, 
-  sendPaginatedSuccess, 
-  asyncHandler, 
-  validateBody, 
-  validateQuery, 
-  validateIdParam, 
-  getCurrentUserId 
+  sendSuccess,
+  sendPaginatedSuccess,
+  asyncHandler,
+  validateBody,
+  validateQuery,
+  validateIdParam,
+  getCurrentUserId
 } from './baseControllers';
 import {
   CreateOrderSchema,
@@ -322,8 +322,8 @@ export const getMyOrdersController = asyncHandler(async (req: AuthenticatedReque
 export const getCurrentOrderController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = getCurrentUserId(req);
-    const result = await getOrders({ 
-      customer_id: userId, 
+    const result = await getOrders({
+      customer_id: userId,
       status: ['pending', 'confirmed', 'preparing', 'ready'],
       page: 1,
       limit: 1,
@@ -376,8 +376,8 @@ export const getPendingOrdersController = asyncHandler(async (req: Authenticated
     }
 
     const validatedQuery = validateQuery(req, OrderQuerySchema) as any;
-    const result = await getOrders({ 
-      ...validatedQuery, 
+    const result = await getOrders({
+      ...validatedQuery,
       restaurant_id: restaurantId,
       status: ['pending', 'confirmed', 'preparing']
     });

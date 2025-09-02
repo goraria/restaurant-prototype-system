@@ -87,9 +87,9 @@ app.use(clerkMiddleware({
 // // const __dirname = path.resolve();
 // const __dirname = path.dirname(__filename);
 // app.use("/assets", express.static(path.join(__dirname, "assets")));
-const directory = path.resolve(__dirname, "public");
+const directory = path.resolve(__dirname, "..", "public");
 if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
-app.use("/public", express.static(directory));
+app.use("@/public", express.static(directory));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

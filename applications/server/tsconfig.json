@@ -2,7 +2,7 @@
   "compilerOptions": {
     /* Basic Options */
     "target": "ES2022", // Hoặc phiên bản ECMAScript mới hơn bạn muốn nhắm tới
-    "module": "CommonJS", // Phổ biến cho Node.js backend
+    "module": "nodenext", // Phổ biến cho Node.js backend
     "lib": ["ES2022", "DOM"], // Thêm 'DOM' nếu bạn có code liên quan (thường không cần cho API thuần)
     "outDir": "./.express", // Thư mục chứa code JavaScript sau khi build
     "rootDir": ".", // Thư mục gốc chứa code TypeScript (toàn bộ project)
@@ -12,7 +12,7 @@
     "forceConsistentCasingInFileNames": true, // Đảm bảo tên file nhất quán về kiểu chữ hoa/thường
 
     /* Module Resolution Options */
-    "moduleResolution": "node", // Cách trình biên dịch tìm module
+    "moduleResolution": "nodenext", // Cách trình biên dịch tìm module
     "baseUrl": ".", // Thư mục gốc cho các đường dẫn không tương đối (quan trọng cho paths)
     "paths": { // Định nghĩa các alias (quan trọng)
       "@/*": ["*"],
@@ -37,7 +37,7 @@
   ],
   "exclude": [
     "node_modules", // Loại trừ thư mục node_modules
-    "build" // Loại trừ thư mục build
+    ".express" // Loại trừ thư mục build
     // Thêm các thư mục/file khác bạn muốn loại trừ
   ]
 }
