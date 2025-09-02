@@ -27,7 +27,7 @@ import userRoutes from "@/routes/userRoutes";
 // import inventoryRoutes from "@/routes/inventoryRoutes";
 // import { csrfProtect, issueCsrfToken } from '@/middlewares/csrfMiddleware';
 
-import { connectDB } from "@config/database";
+// import { connectDB } from "@config/database";
 
 /* CONFIGURATIONS */
 dotenv.config();

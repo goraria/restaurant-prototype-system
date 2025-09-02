@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "turbo": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "clean": "rm -rf .next node_modules",
     "shadcn": "npx shadcn@latest add -a -o"
   },
   "dependencies": {

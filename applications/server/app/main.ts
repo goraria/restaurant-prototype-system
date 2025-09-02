@@ -8,13 +8,13 @@ import helmet from "helmet";
 import morgan from "morgan";
 import multer from "multer";
 import path from "path";
-import mongoose from "mongoose";
+// import mongoose from "mongoose";
 import { fileURLToPath } from "node:url";
 
 /* ROUTE IMPORTS */
 import authRoutes from "@routes/authRoutes";
 import productRoutes from "@routes/productRoutes";
-import postRoutes from "@routes/postRoutes";
+// import postRoutes from "@routes/postRoutes";
 import taskRoutes from "@routes/taskRoutes";
 import userRoutes from "@routes/userRoutes";
 
@@ -67,7 +67,7 @@ const upload = multer({ storage });
 app.use("/auth", authRoutes)
 app.use("/products", productRoutes)
 app.use("/task", taskRoutes)
-app.use("/post", postRoutes)
+// app.use("/post", postRoutes)
 app.use("/users", userRoutes)
 
 // app.get('/', (req, res) => {
@@ -82,15 +82,15 @@ const port = process.env.PORT || 8080;
 //     console.log(`Server is running on http://localhost:${port}`);
 // });
 
-mongoose.connect(process.env.MONGODB_URI!, {
+// mongoose.connect(process.env.MONGODB_URI!, {
 
-}).then(() => {
-    app.listen(port, () => {
-        console.log(`Server is running on: http://localhost:${port}`);
-    });
-}).catch((error: any) => {
-    console.log(`Server did not connect: ${error}`);
-});
+// }).then(() => {
+//     app.listen(port, () => {
+//         console.log(`Server is running on: http://localhost:${port}`);
+//     });
+// }).catch((error: any) => {
+//     console.log(`Server did not connect: ${error}`);
+// });
 
 // mongoose.connect(process.env.MONGODB_URI!, {
 //     useNewUrlParser: true,

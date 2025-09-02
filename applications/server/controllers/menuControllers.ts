@@ -16,9 +16,9 @@ import {
   bulkToggleAvailability as bulkToggleAvailabilityService,
   getMenuStats as getMenuStatsService
 } from '@/services/menuServices';
-import { 
-  CreateMenuSchema, 
-  UpdateMenuSchema, 
+import {
+  CreateMenuSchema,
+  UpdateMenuSchema,
   MenuQuerySchema,
   CreateMenuItemSchema,
   UpdateMenuItemSchema,
@@ -39,7 +39,7 @@ export const createMenu = async (req: Request, res: Response) => {
   try {
     // Validate dữ liệu đầu vào
     const result = CreateMenuSchema.safeParse(req.body);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -87,7 +87,7 @@ export const getMenuById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy thông tin menu';
-    
+
     if (errorMessage.includes('không tìm thấy') || errorMessage.includes('không hợp lệ')) {
       return res.status(404).json({
         success: false,
@@ -109,7 +109,7 @@ export const getMenus = async (req: Request, res: Response) => {
   try {
     // Validate query parameters
     const result = MenuQuerySchema.safeParse(req.query);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -158,7 +158,7 @@ export const getMenusByRestaurantId = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy menu của nhà hàng';
-    
+
     if (errorMessage.includes('không hợp lệ')) {
       return res.status(400).json({
         success: false,
@@ -189,7 +189,7 @@ export const updateMenu = async (req: Request, res: Response) => {
 
     // Validate dữ liệu đầu vào
     const result = UpdateMenuSchema.safeParse(req.body);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -207,7 +207,7 @@ export const updateMenu = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi cập nhật menu';
-    
+
     if (errorMessage.includes('không tìm thấy') || errorMessage.includes('không hợp lệ')) {
       return res.status(404).json({
         success: false,
@@ -244,7 +244,7 @@ export const deleteMenu = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi xóa menu';
-    
+
     if (errorMessage.includes('không tìm thấy') || errorMessage.includes('không hợp lệ')) {
       return res.status(404).json({
         success: false,
@@ -277,7 +277,7 @@ export const createMenuItem = async (req: Request, res: Response) => {
   try {
     // Validate dữ liệu đầu vào
     const result = CreateMenuItemSchema.safeParse(req.body);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -295,7 +295,7 @@ export const createMenuItem = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi tạo món ăn';
-    
+
     if (errorMessage.includes('không tồn tại')) {
       return res.status(404).json({
         success: false,
@@ -333,7 +333,7 @@ export const getMenuItemById = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy thông tin món ăn';
-    
+
     if (errorMessage.includes('không tìm thấy') || errorMessage.includes('không hợp lệ')) {
       return res.status(404).json({
         success: false,
@@ -355,7 +355,7 @@ export const getMenuItems = async (req: Request, res: Response) => {
   try {
     // Validate query parameters
     const result = MenuItemQuerySchema.safeParse(req.query);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -388,7 +388,7 @@ export const getFeaturedMenuItems = async (req: Request, res: Response) => {
   try {
     // Validate query parameters
     const result = FeaturedItemsQuerySchema.safeParse(req.query);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -429,7 +429,7 @@ export const updateMenuItem = async (req: Request, res: Response) => {
 
     // Validate dữ liệu đầu vào
     const result = UpdateMenuItemSchema.safeParse(req.body);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -447,7 +447,7 @@ export const updateMenuItem = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi cập nhật món ăn';
-    
+
     if (errorMessage.includes('không tìm thấy') || errorMessage.includes('không hợp lệ') || errorMessage.includes('không tồn tại')) {
       return res.status(404).json({
         success: false,
@@ -484,7 +484,7 @@ export const deleteMenuItem = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi xóa món ăn';
-    
+
     if (errorMessage.includes('không tìm thấy') || errorMessage.includes('không hợp lệ')) {
       return res.status(404).json({
         success: false,
@@ -517,7 +517,7 @@ export const bulkUpdateMenuItems = async (req: Request, res: Response) => {
   try {
     // Validate dữ liệu đầu vào
     const result = BulkUpdateMenuItemsSchema.safeParse(req.body);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -535,7 +535,7 @@ export const bulkUpdateMenuItems = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi cập nhật hàng loạt món ăn';
-    
+
     if (errorMessage.includes('không hợp lệ')) {
       return res.status(400).json({
         success: false,
@@ -557,7 +557,7 @@ export const bulkToggleAvailability = async (req: Request, res: Response) => {
   try {
     // Validate dữ liệu đầu vào
     const result = BulkToggleAvailabilitySchema.safeParse(req.body);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -575,7 +575,7 @@ export const bulkToggleAvailability = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi thay đổi trạng thái hàng loạt';
-    
+
     if (errorMessage.includes('không hợp lệ')) {
       return res.status(400).json({
         success: false,
@@ -617,7 +617,7 @@ export const getMenuStats = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy thống kê menu';
-    
+
     if (errorMessage.includes('không hợp lệ')) {
       return res.status(400).json({
         success: false,

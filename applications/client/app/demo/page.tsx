@@ -12,6 +12,7 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { DataTableCustom, Payment } from "@/components/tables/custom";
+import { DataTableJaptor } from "@/components/tables/japtor";
 
 async function getData(): Promise<Payment[]> {
   // Fetch data from your API here.
@@ -703,8 +704,10 @@ export default async function Page() {
         {/* <DataTablePagination table={table} /> */}
       </Card>
 
-      <div className=""> {/** container mx-auto py-10 */}
+      <div className="p-4"> {/** container mx-auto py-10 */}
       </div>
+
+      <DataTableJaptor columns={columns} data={data} />
     </div>
   )
 }

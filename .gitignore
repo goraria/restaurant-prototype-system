@@ -22,7 +22,8 @@ dist
 **/dist
 **/.next
 **/.expo
-/applications/server/dist
+**/.express
+/applications/server/.express
 /applications/client/.next
 /applications/mobile/.expo
 /applications/mobile/expo-env.d.ts
