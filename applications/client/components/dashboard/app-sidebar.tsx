@@ -19,7 +19,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 // import { appGlobal } from "@/constants/constants";
-import { AppSidebarProps } from "@/constants/types"
+import { AppSidebarProps } from "@/constants/interfaces"
 
 export function AppSidebar({ sidebar, global, user, ...props }: AppSidebarProps) {
 // export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
