@@ -1,9 +1,13 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
 import { 
   Plus,
   Search,
@@ -41,6 +45,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { toast } from 'sonner'
 
 // Import form components and services
@@ -50,38 +56,7 @@ import {
   useGetMenuItemsQuery, 
   useDeleteMenuItemMutation 
 } from '@/state/api';
-
-interface MenuItem {
-  id: string
-  restaurant_id?: string
-  menu_id: string
-  category_id?: string
-  name: string
-  description?: string
-  price: number | string
-  image_url?: string
-  preparation_time?: number
-  calories?: number
-  allergens?: string[]
-  dietary_info?: string[]
-  is_vegetarian?: boolean
-  is_vegan?: boolean
-  is_available: boolean
-  is_featured?: boolean
-  display_order: number
-  created_at: string
-  updated_at: string
-  menus?: {
-    id: string
-    name: string
-    restaurant_id?: string
-  }
-  categories?: {
-    id: string
-    name: string
-    slug?: string
-  }
-}
+import { MenuItem } from '@/constants/interfaces';
 
 export default function MenuItemsPage() {
   const [searchTerm, setSearchTerm] = useState("")

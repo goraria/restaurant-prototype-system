@@ -29,7 +29,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { AppSidebarUserProps } from "@/constants/types"
+import { AppSidebarUserProps } from "@/constants/interfaces"
 
 export function NavUser({
   user,
