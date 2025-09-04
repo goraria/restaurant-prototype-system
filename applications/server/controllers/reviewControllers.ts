@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/types/auth';
 import {
   CreateRestaurantReviewSchema,
   CreateMenuItemReviewSchema,
@@ -10,14 +11,6 @@ import {
   BulkReviewActionSchema
 } from '@/schemas/reviewSchemas';
 import reviewServices from '@/services/reviewServices';
-
-// Extend Request interface
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-  };
-}
 
 // ================================
 // 🌟 REVIEW CONTROLLERS

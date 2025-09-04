@@ -1,12 +1,10 @@
-import React, { use, useState } from "react";
-import { View, ScrollView, Image } from "react-native";
-import { router, useRouter } from "expo-router";
-import Stack from "expo-router/stack";
+import React, { useState } from "react";
+import { View, ScrollView, Image, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Icon } from "@/components/ui/icon";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   ArrowLeft, 
   Plus, 
@@ -16,11 +14,8 @@ import {
   Clock,
   UtensilsCrossed,
   ChevronRight,
-  AlertCircle,
-  Pill
+  AlertCircle
 } from "lucide-react-native";
-import { Separator } from "@/components/ui/separator";
-import { CartItem } from '@/components/element/menu-item';
 
 export default function CartScreen() {
   const [cartItems, setCartItems] = useState([
@@ -53,16 +48,6 @@ export default function CartScreen() {
       category: "Đồ uống",
       cookingTime: 5,
       specialRequests: "Ít đường"
-    },
-    {
-      id: "4",
-      name: "Cà Phê Sữa Đá",
-      price: 25000,
-      quantity: 3,
-      image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400",
-      category: "Đồ uống",
-      cookingTime: 5,
-      specialRequests: "Ít đường"
     }
   ]);
 
@@ -87,84 +72,119 @@ export default function CartScreen() {
   const estimatedCookingTime = Math.max(...cartItems.map(item => item.cookingTime));
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          header: () => (
-            <View className="bg-background pt-16 pb-4 px-4 border-b border-border">
-              <View className="flex-row items-center justify-between gap-3">
-                <Button
-                  onPress={() => useRouter().back()}
-                  size="icon"
-                  variant="ghost"
-                  className="rounded-full p-4"
-                >
-                  <Icon
-                    as={ArrowLeft}
-                    className="size-6"
-                  />
-                </Button>
-                <View className="flex-1 justify-center items-center">
-                  <Text className="text-lg font-semibold">Giỏ hàng</Text>
-                </View>
-                <Button
-                  onPress={() => {
-                  }}
-                  size="icon"
-                  variant="ghost"
-                  className="rounded-full p-4"
-                >
-                  <Icon
-                    as={Pill}
-                    className="size-6"
-                  />
-                </Button>
-              </View>
-            </View>
-          )
-        }}
-      />
+    <SafeAreaView className="flex-1 bg-background">
+      {/* Header Card */}
+      <Card className="mx-4 mt-4 mb-4">
+        <CardHeader>
+          <View className="flex-row items-center">
+            <TouchableOpacity 
+              className="p-2 rounded-md mr-3"
+              onPress={() => router.back()}
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </TouchableOpacity>
+            <CardTitle className="text-xl">Giỏ hàng</CardTitle>
+          </View>
+        </CardHeader>
+      </Card>
 
       {cartItems.length > 0 ? (
         <>
+          {/* Estimated Time Card */}
+          <Card className="mx-4 mb-4">
+            <CardContent className="p-4">
+              <View className="flex-row items-center justify-center">
+                <Clock className="w-5 h-5 text-orange-500 mr-2" />
+                <Text className="text-center text-orange-600 font-medium">
+                  Thời gian chuẩn bị: {estimatedCookingTime} phút
+                </Text>
+              </View>
+            </CardContent>
+          </Card>
+
           {/* Cart Items */}
           <ScrollView className="flex-1 px-4">
-            <View className="gap-4 py-4">
-              {cartItems.map((item, index) => (
-                <CartItem
-                  key={index}
-                  item={item}
-                  update={updateQuantity}
-                  remove={removeItem}
-                />
-              ))}
-            </View>
+            {cartItems.map((item) => (
+              <Card key={item.id} className="mb-4">
+                <CardContent className="p-4">
+                  <View className="flex-row">
+                    <Image
+                      source={{ uri: item.image }}
+                      className="w-20 h-20 rounded-lg mr-4"
+                      resizeMode="cover"
+                    />
+                    
+                    <View className="flex-1">
+                      <View className="flex-row justify-between items-start mb-2">
+                        <Text className="text-lg font-semibold flex-1" numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => removeItem(item.id)}
+                          className="p-1"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </TouchableOpacity>
+                      </View>
+
+                      <Text className="text-sm text-muted-foreground mb-2">
+                        {item.category} • {item.cookingTime} phút
+                      </Text>
+
+                      {item.specialRequests && (
+                        <Text className="text-xs text-blue-600 mb-2">
+                          Ghi chú: {item.specialRequests}
+                        </Text>
+                      )}
+
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-lg font-bold text-primary">
+                          {item.price.toLocaleString()}đ
+                        </Text>
+                        
+                        <View className="flex-row items-center bg-muted rounded-lg">
+                          <TouchableOpacity
+                            onPress={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="p-2"
+                          >
+                            <Minus className="w-4 h-4 text-foreground" />
+                          </TouchableOpacity>
+                          <Text className="px-4 font-semibold">{item.quantity}</Text>
+                          <TouchableOpacity
+                            onPress={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="p-2"
+                          >
+                            <Plus className="w-4 h-4 text-foreground" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </CardContent>
+              </Card>
+            ))}
           </ScrollView>
 
-          {/* Order Summary */}
-          <View className="px-4 pt-4 pb-10 border-t border-border bg-background">
-            <Card className="p-4 mb-4">
-              <View className="gap-2">
-                <View className="">
-                  <Text className="text-lg font-semibold text-foreground">Tóm tắt đơn hàng</Text>
+          {/* Order Summary Card */}
+          <Card className="mx-4 mb-4">
+            <CardHeader>
+              <CardTitle className="text-lg">Tóm tắt đơn hàng</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <View className="space-y-2">
+                <View className="flex-row justify-between">
+                  <Text className="text-muted-foreground">Tạm tính:</Text>
+                  <Text className="font-medium text-foreground">
+                    {subtotal.toLocaleString()}đ
+                  </Text>
                 </View>
-                <View className="">
-                  <View className="flex-row justify-between">
-                    <Text className="text-muted-foreground">Tạm tính:</Text>
-                    <Text className="font-medium text-foreground">
-                      {subtotal.toLocaleString()}đ
-                    </Text>
-                  </View>
-                  <View className="flex-row justify-between">
-                    <Text className="text-muted-foreground">Phí dịch vụ (5%):</Text>
-                    <Text className="font-medium text-foreground">
-                      {serviceFee.toLocaleString()}đ
-                    </Text>
-                  </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-muted-foreground">Phí dịch vụ (5%):</Text>
+                  <Text className="font-medium text-foreground">
+                    {serviceFee.toLocaleString()}đ
+                  </Text>
                 </View>
-                <Separator />
-                <View className="">
+                <View className="border-t border-border pt-2">
                   <View className="flex-row justify-between">
                     <Text className="text-lg font-semibold text-foreground">Tổng cộng:</Text>
                     <Text className="text-lg font-semibold text-primary">
@@ -173,28 +193,31 @@ export default function CartScreen() {
                   </View>
                 </View>
               </View>
-            </Card>
+            </CardContent>
+          </Card>
 
-            {/* Checkout Button */}
-            <Button 
-              size="lg"
-              className="w-full"
-              onPress={() => router.push("../(payments)/checkout")}
-            >
-              <ShoppingCart className="w-5 h-5 mr-2 text-white" />
-              <Text className="text-white font-semibold">
-                Thanh toán {total.toLocaleString()}đ
-              </Text>
-              <ChevronRight className="w-5 h-5 ml-2 text-white" />
-            </Button>
-          </View>
+          {/* Checkout Button Card */}
+          <Card className="mx-4 mb-4">
+            <CardContent className="p-4">
+              <Button 
+                size="lg"
+                className="w-full"
+                onPress={() => router.push("/(payments)/checkout")}
+              >
+                <ShoppingCart className="w-5 h-5 mr-2 text-white" />
+                <Text className="text-white font-semibold">
+                  Thanh toán {total.toLocaleString()}đ
+                </Text>
+                <ChevronRight className="w-5 h-5 ml-2 text-white" />
+              </Button>
+            </CardContent>
+          </Card>
         </>
       ) : (
-        /* Empty Cart */
-        <View className="flex-1 px-6 justify-center items-center">
-          <Card className="p-8 items-center">
+        <Card className="mx-4 mb-4">
+          <CardContent className="p-8 items-center">
             <ShoppingCart className="w-16 h-16 text-muted-foreground mb-4" />
-            <Text className="text-xl font-bold text-foreground mb-2">Giỏ hàng trống</Text>
+            <CardTitle className="text-xl mb-2">Giỏ hàng trống</CardTitle>
             <Text className="text-muted-foreground text-center mb-6">
               Bạn chưa có món ăn nào trong giỏ hàng. Hãy thêm món ăn từ menu!
             </Text>
@@ -204,9 +227,9 @@ export default function CartScreen() {
             >
               <Text className="text-white font-semibold">Xem menu</Text>
             </Button>
-          </Card>
-        </View>
+          </CardContent>
+        </Card>
       )}
-    </>
+    </SafeAreaView>
   );
 }

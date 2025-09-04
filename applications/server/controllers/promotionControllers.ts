@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/types/auth';
 import {
   CreateVoucherSchema,
   CreatePromotionSchema,
@@ -12,15 +13,6 @@ import {
   DiscountAnalyticsSchema
 } from '@/schemas/promotionSchemas';
 import promotionServices from '@/services/promotionServices';
-
-// Extend Request interface to include user information
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-    restaurant_id?: string;
-  };
-}
 
 // ================================
 // 🎟️ VOUCHER CONTROLLERS

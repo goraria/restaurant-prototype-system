@@ -3,12 +3,12 @@ import { ScrollView, TouchableOpacity, View, Alert } from "react-native";
 import { Link, Stack, router } from "expo-router";
 import { useUser, useClerk } from "@clerk/clerk-expo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 import { Separator } from "@/components/ui/separator";
-import { Icon } from "@/components/ui/icon";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Settings,
   MapPin,
@@ -29,7 +29,6 @@ import {
   Receipt,
   SettingsIcon
 } from "lucide-react-native";
-import { ThemeToggle } from "@/components/element/ThemeToggle";
 
 // Mock data cho lịch sử đặt bàn
 const recentBookings = [
@@ -91,13 +90,13 @@ export default function ProfileScreen() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-100"><Text className="text-green-800 text-xs">Hoàn thành</Text></Badge>;
+        return <View className="bg-green-100 px-2 py-1 rounded-full"><Text className="text-green-800 text-xs">Hoàn thành</Text></View>;
       case "cancelled":
-        return <Badge className="bg-red-100"><Text className="text-red-800 text-xs">Đã hủy</Text></Badge>;
+        return <View className="bg-red-100 px-2 py-1 rounded-full"><Text className="text-red-800 text-xs">Đã hủy</Text></View>;
       case "confirmed":
-        return <Badge className="bg-blue-100"><Text className="text-blue-800 text-xs">Đã xác nhận</Text></Badge>;
+        return <View className="bg-blue-100 px-2 py-1 rounded-full"><Text className="text-blue-800 text-xs">Đã xác nhận</Text></View>;
       default:
-        return <Badge className="bg-gray-100"><Text className="text-gray-800 text-xs">Chờ xác nhận</Text></Badge>;
+        return <View className="bg-gray-100 px-2 py-1 rounded-full"><Text className="text-gray-800 text-xs">Chờ xác nhận</Text></View>;
     }
   };
 
@@ -128,167 +127,314 @@ export default function ProfileScreen() {
   );
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          header: () => (
-            <View className="bg-background pt-16 pb-4 px-4 border-b border-border">
-              <View className="flex-row items-center justify-between gap-3">
-                <ThemeToggle />
-                <Button
-                  onPress={() => {
-                  }}
-                  size="icon"
-                  variant="ghost"
-                  className="rounded-full" // p-4
-                >
-                  <Icon
-                    as={SettingsIcon}
-                    className="size-6"
-                  />
-                </Button>
-              </View>
+    <SafeAreaView className="flex-1 bg-background">
+      <ScrollView className="flex-1 px-4">
+        {/* Header Profile */}
+        <Card className="mt-4 mb-4">
+          <CardHeader>
+            <View className="flex-row items-center justify-between">
+              <CardTitle className="text-2xl font-bold">Hồ sơ của tôi</CardTitle>
+              <TouchableOpacity 
+                onPress={() => router.push("/(settings)/profile")}
+                className="p-2 bg-muted rounded-lg"
+              >
+                <SettingsIcon className="w-5 h-5 text-muted-foreground" />
+              </TouchableOpacity>
             </View>
-          ),
-        }}
-      />
-      {user ? (
-        <>
-          <ScrollView className="flex-1 bg-background">
-            {/* Header Profile */}
-            <View className="bg-primary pt-12 pb-8 px-4">
-              <View className="flex-row items-center">
-                <Avatar alt="User Avatar" className="w-20 h-20 mr-4">
-                  <AvatarImage source={{ uri: user?.imageUrl }} />
-                  <AvatarFallback>
-                    <Text className="text-primary-foreground text-xl font-bold">
-                      {user?.firstName?.charAt(0) || user?.emailAddresses[0]?.emailAddress.charAt(0)}
-                    </Text>
-                  </AvatarFallback>
-                </Avatar>
-                <View className="flex-1">
-                  <Text className="text-primary-foreground text-xl font-bold">
-                    {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.emailAddresses[0]?.emailAddress}
+          </CardHeader>
+          <CardContent>
+            <View className="flex-row items-center">
+              <Avatar alt="User Avatar" className="w-20 h-20 mr-4">
+                <AvatarImage source={{ uri: user?.imageUrl }} />
+                <AvatarFallback>
+                  <Text className="text-lg font-bold">
+                    {user?.firstName?.charAt(0) || user?.emailAddresses[0]?.emailAddress.charAt(0)}
                   </Text>
-                  <Text className="text-primary-foreground/80 text-sm">Thành viên từ tháng 3/2024</Text>
-                  <View className="flex-row items-center mt-1">
-                    <Star size={16} fill="#FFD700" color="#FFD700" />
-                    <Text className="text-primary-foreground/80 text-sm ml-1">VIP Member</Text>
-                  </View>
-                </View>
-                <TouchableOpacity className="p-2">
-                  <Edit size={20} color="white" />
-                </TouchableOpacity>
+                </AvatarFallback>
+              </Avatar>
+              <View className="flex-1">
+                <Text className="text-xl font-bold text-foreground mb-1">
+                  {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.emailAddresses[0]?.emailAddress}
+                </Text>
+                <Text className="text-sm text-muted-foreground mb-2">Thành viên từ tháng 3/2024</Text>
+                <Badge variant="secondary" className="self-start">
+                  <Star className="w-3 h-3 mr-1" />
+                  <Text className="text-xs">VIP Member</Text>
+                </Badge>
               </View>
             </View>
+          </CardContent>
+        </Card>
 
-            {/* Stats Cards */}
-            <View className="px-4 -mt-6 mb-6">
-              <View className="flex-row justify-between">
-                <Card className="flex-1 mr-2">
-                  <CardContent className="p-3 items-center">
-                    <Text className="text-2xl font-bold text-primary">{userStats.totalBookings}</Text>
+        {/* Stats Cards */}
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Thống kê của bạn</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View className="flex-row justify-between">
+              <View className="items-center flex-1">
+                <Text className="text-2xl font-bold text-primary mb-1">{userStats.totalBookings}</Text>
+                <Text className="text-xs text-muted-foreground">Đặt bàn</Text>
+              </View>
+              <View className="items-center flex-1">
+                <Text className="text-2xl font-bold text-green-600 mb-1">{userStats.favoriteRestaurants}</Text>
+                <Text className="text-xs text-muted-foreground">Yêu thích</Text>
+              </View>
+              <View className="items-center flex-1">
+                <Text className="text-2xl font-bold text-orange-600 mb-1">{formatCurrency(userStats.totalSpent)}</Text>
+                <Text className="text-xs text-muted-foreground">Đã chi tiêu</Text>
+              </View>
+              <View className="items-center flex-1">
+                <Text className="text-2xl font-bold text-purple-600 mb-1">{userStats.loyaltyPoints}</Text>
+                <Text className="text-xs text-muted-foreground">Điểm tích lũy</Text>
+              </View>
+            </View>
+          </CardContent>
+        </Card>
+
+        {/* Menu Options */}
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Tài khoản</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <TouchableOpacity 
+              onPress={() => router.push("/(settings)/profile")}
+              className="flex-row items-center p-4 border-b border-border"
+            >
+              <Edit className="w-5 h-5 text-gray-600 mr-3" />
+              <View className="flex-1">
+                <Text className="font-medium">Chỉnh sửa hồ sơ</Text>
+                <Text className="text-sm text-muted-foreground">Cập nhật thông tin cá nhân</Text>
+              </View>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => router.push("/(settings)/notifications")}
+              className="flex-row items-center p-4 border-b border-border"
+            >
+              <Bell className="w-5 h-5 text-gray-600 mr-3" />
+              <View className="flex-1">
+                <Text className="font-medium">Thông báo</Text>
+                <Text className="text-sm text-muted-foreground">Quản lý cài đặt thông báo</Text>
+              </View>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => router.push("/(booking)/reservations")}
+              className="flex-row items-center p-4"
+            >
+              <Calendar className="w-5 h-5 text-gray-600 mr-3" />
+              <View className="flex-1">
+                <Text className="font-medium">Lịch sử đặt bàn</Text>
+                <Text className="text-sm text-muted-foreground">Xem các đặt bàn trước đây</Text>
+              </View>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </TouchableOpacity>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Hỗ trợ</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <TouchableOpacity 
+              onPress={() => router.push("/(settings)/help")}
+              className="flex-row items-center p-4 border-b border-border"
+            >
+              <HelpCircle className="w-5 h-5 text-gray-600 mr-3" />
+              <View className="flex-1">
+                <Text className="font-medium">Trợ giúp</Text>
+                <Text className="text-sm text-muted-foreground">FAQ & Hướng dẫn sử dụng</Text>
+              </View>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => router.push("/(tabs)/messages")}
+              className="flex-row items-center p-4"
+            >
+              <Users className="w-5 h-5 text-gray-600 mr-3" />
+              <View className="flex-1">
+                <Text className="font-medium">Liên hệ hỗ trợ</Text>
+                <Text className="text-sm text-muted-foreground">Chat trực tiếp với đội ngũ hỗ trợ</Text>
+              </View>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </TouchableOpacity>
+          </CardContent>
+        </Card>
+
+        {/* Recent Bookings */}
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Đặt bàn gần đây</CardTitle>
+            <CardDescription>3 đặt bàn gần đây nhất</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentBookings.slice(0, 3).map((booking, index) => (
+              <View key={booking.id} className={`${index !== 2 ? 'border-b border-border pb-3 mb-3' : ''}`}>
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text className="font-semibold text-foreground">{booking.restaurantName}</Text>
+                  <Badge variant={booking.status === 'completed' ? 'default' : booking.status === 'cancelled' ? 'destructive' : 'secondary'}>
+                    <Text className="text-xs">
+                      {booking.status === 'completed' ? 'Hoàn thành' : booking.status === 'cancelled' ? 'Đã hủy' : 'Chờ xác nhận'}
+                    </Text>
+                  </Badge>
+                </View>
+                <View className="flex-row items-center text-sm text-muted-foreground">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  <Text className="text-sm text-muted-foreground mr-4">{booking.date}</Text>
+                  <Clock className="w-4 h-4 mr-1" />
+                  <Text className="text-sm text-muted-foreground mr-4">{booking.time}</Text>
+                  <Users className="w-4 h-4 mr-1" />
+                  <Text className="text-sm text-muted-foreground">{booking.guests} người</Text>
+                </View>
+                {booking.status === 'completed' && booking.total > 0 && (
+                  <View className="flex-row items-center justify-between mt-2">
+                    <Text className="text-sm font-medium">{formatCurrency(booking.total)}</Text>
+                    {booking.rating && (
+                      <View className="flex-row items-center">
+                        {Array.from({ length: booking.rating }).map((_, i) => (
+                          <Star key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" />
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
+              </View>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Sign Out */}
+        <Card className="mb-8">
+          <CardContent className="p-0">
+            <TouchableOpacity 
+              onPress={handleSignOut}
+              className="flex-row items-center p-4"
+            >
+              <LogOut className="w-5 h-5 text-red-600 mr-3" />
+              <Text className="font-medium text-red-600">Đăng xuất</Text>
+            </TouchableOpacity>
+          </CardContent>
+        </Card>
+      </ScrollView>
+    </SafeAreaView>
+  );
                     <Text className="text-xs text-muted-foreground text-center">Lượt đặt bàn</Text>
                   </CardContent>
                 </Card>
-                <Card className="flex-1 mx-1">
-                  <CardContent className="p-3 items-center">
-                    <Text className="text-2xl font-bold text-blue-500">{userStats.favoriteRestaurants}</Text>
-                    <Text className="text-xs text-muted-foreground text-center">Nhà hàng yêu thích</Text>
+                <Card className="flex-1 border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardContent className="p-4 items-center">
+                    <Text className="text-2xl font-bold text-blue-500 mb-1">{userStats.favoriteRestaurants}</Text>
+                    <Text className="text-xs text-muted-foreground text-center">Yêu thích</Text>
                   </CardContent>
                 </Card>
-                <Card className="flex-1 ml-2">
-                  <CardContent className="p-3 items-center">
-                    <Text className="text-lg font-bold text-green-500">{userStats.loyaltyPoints}</Text>
+                <Card className="flex-1 border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardContent className="p-4 items-center">
+                    <Text className="text-lg font-bold text-amber-500 mb-1">{userStats.loyaltyPoints}</Text>
                     <Text className="text-xs text-muted-foreground text-center">Điểm tích lũy</Text>
                   </CardContent>
                 </Card>
               </View>
             </View>
 
-            {/* Recent Bookings */}
-            <View className="px-4 mb-6">
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-lg font-bold">Lịch sử đặt bàn</Text>
+            {/* Recent Bookings với thiết kế iOS 18 */}
+            <View className="px-4 mb-8">
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
+                  📅 Lịch sử gần đây
+                </Text>
                 <TouchableOpacity onPress={() => console.log('Navigate to history')}>
                   <Text className="text-primary text-sm font-medium">Xem tất cả</Text>
                 </TouchableOpacity>
               </View>
 
-              {recentBookings.slice(0, 3).map((booking, index) => (
-                <Card key={booking.id} className="mb-3">
-                  <CardContent className="p-4">
-                    <View className="flex-row items-start justify-between mb-2">
-                      <View className="flex-1">
-                        <Text className="font-semibold">{booking.restaurantName}</Text>
-                        <View className="flex-row items-center mt-1">
-                          <Calendar size={14} color="#666" />
-                          <Text className="text-sm text-muted-foreground ml-1">
-                            {booking.date} • {booking.time}
-                          </Text>
+              <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+                <CardContent className="p-0">
+                  {recentBookings.slice(0, 3).map((booking, index) => (
+                    <View key={booking.id}>
+                      <View className="p-5">
+                        <View className="flex-row items-start justify-between mb-3">
+                          <View className="flex-1">
+                            <Text className="text-base font-semibold text-foreground mb-1">{booking.restaurantName}</Text>
+                            <View className="flex-row items-center mb-1">
+                              <Text className="text-lg mr-2">📅</Text>
+                              <Text className="text-sm text-muted-foreground">
+                                {booking.date} • {booking.time}
+                              </Text>
+                            </View>
+                            <View className="flex-row items-center">
+                              <Text className="text-lg mr-2">👥</Text>
+                              <Text className="text-sm text-muted-foreground">
+                                {booking.guests} người
+                              </Text>
+                            </View>
+                          </View>
+                          <View className="items-end">
+                            {getStatusBadge(booking.status)}
+                            {booking.total > 0 && (
+                              <Text className="text-sm font-medium mt-1 text-foreground">
+                                {formatCurrency(booking.total)}
+                              </Text>
+                            )}
+                          </View>
                         </View>
-                        <View className="flex-row items-center mt-1">
-                          <Users size={14} color="#666" />
-                          <Text className="text-sm text-muted-foreground ml-1">
-                            {booking.guests} người
-                          </Text>
-                        </View>
-                      </View>
-                      <View className="items-end">
-                        {getStatusBadge(booking.status)}
-                        {booking.total > 0 && (
-                          <Text className="text-sm font-medium mt-1">
-                            {formatCurrency(booking.total)}
-                          </Text>
+                        {booking.rating && (
+                          <View className="flex-row items-center">
+                            <Text className="text-sm text-muted-foreground mr-2">Đánh giá:</Text>
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                size={14}
+                                fill={i < booking.rating! ? "#F59E0B" : "transparent"}
+                                color="#F59E0B"
+                              />
+                            ))}
+                          </View>
                         )}
                       </View>
+                      {index < 2 && <View className="border-b border-border/50 ml-5" />}
                     </View>
-                    {booking.rating && (
-                      <View className="flex-row items-center mt-2">
-                        <Text className="text-sm text-muted-foreground mr-2">Đánh giá:</Text>
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            fill={i < booking.rating! ? "#FFD700" : "transparent"}
-                            color="#FFD700"
-                          />
-                        ))}
-                      </View>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                  ))}
+                </CardContent>
+              </Card>
             </View>
 
-            {/* Menu Options */}
-            <View className="px-4 mb-6">
-              <Card>
+            {/* Menu Options với thiết kế iOS 18 */}
+            <View className="px-4 mb-8">
+              <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                🎯 Hoạt động
+              </Text>
+              <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
                 <CardContent className="p-0">
                   <MenuSection
-                    icon={<Calendar size={20} color="#09090b" />}
+                    icon="📅"
                     title="Đặt bàn của tôi"
                     subtitle="Xem và quản lý đặt bàn"
                     onPress={() => console.log('Navigate to reservations')}
                   />
-                  <Separator />
+                  <View className="border-b border-border/50 ml-14" />
                   <MenuSection
-                    icon={<Heart size={20} color="#EF4444" />}
+                    icon="❤️"
                     title="Yêu thích"
                     subtitle="Nhà hàng và món ăn yêu thích"
                     onPress={() => console.log('Navigate to promotions')}
                   />
-                  <Separator />
+                  <View className="border-b border-border/50 ml-14" />
                   <MenuSection
-                    icon={<Award size={20} color="#8B5CF6" />}
+                    icon="🏆"
                     title="Điểm thưởng"
                     subtitle={`${userStats.loyaltyPoints} điểm có thể sử dụng`}
                     onPress={() => console.log('Navigate to promotions')}
                   />
-                  <Separator />
+                  <View className="border-b border-border/50 ml-14" />
                   <MenuSection
-                    icon={<Receipt size={20} color="#10B981" />}
+                    icon="🧾"
                     title="Lịch sử thanh toán"
                     subtitle="Xem chi tiết hóa đơn"
                     onPress={() => console.log('Navigate to history')}
@@ -297,58 +443,69 @@ export default function ProfileScreen() {
               </Card>
             </View>
 
-            {/* Settings */}
-            <View className="px-4 mb-6">
-              <Card>
+            {/* Settings với thiết kế iOS 18 */}
+            <View className="px-4 mb-8">
+              <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                ⚙️ Cài đặt
+              </Text>
+              <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
                 <CardContent className="p-0">
                   <MenuSection
-                    icon={<Settings size={20} color="#6B7280" />}
+                    icon="⚙️"
                     title="Cài đặt tài khoản"
                     subtitle="Thông tin cá nhân, bảo mật"
-                    onPress={() => { }}
+                    onPress={() => router.push("/(settings)" as any)}
                   />
-                  <Separator />
+                  <View className="border-b border-border/50 ml-14" />
                   <MenuSection
-                    icon={<Bell size={20} color="#F59E0B" />}
+                    icon="🔔"
                     title="Thông báo"
                     subtitle="Cài đặt thông báo"
-                    onPress={() => { }}
+                    onPress={() => router.push("/(settings)/notifications")}
                   />
-                  <Separator />
+                  <View className="border-b border-border/50 ml-14" />
                   <MenuSection
-                    icon={<CreditCard size={20} color="#3B82F6" />}
+                    icon="💳"
                     title="Phương thức thanh toán"
                     subtitle="Quản lý thẻ và ví điện tử"
                     onPress={() => { }}
                   />
-                  <Separator />
+                  <View className="border-b border-border/50 ml-14" />
                   <MenuSection
-                    icon={<MapPin size={20} color="#DC2626" />}
+                    icon="📍"
                     title="Địa chỉ"
                     subtitle="Quản lý địa chỉ giao hàng"
                     onPress={() => { }}
                   />
-                  <Separator />
+                  <View className="border-b border-border/50 ml-14" />
                   <MenuSection
-                    icon={<HelpCircle size={20} color="#059669" />}
+                    icon="❓"
                     title="Trợ giúp & Hỗ trợ"
                     subtitle="FAQ, liên hệ hỗ trợ"
-                    onPress={() => { }}
+                    onPress={() => router.push("/(settings)/about")}
                   />
                 </CardContent>
               </Card>
             </View>
 
-            {/* Sign Out */}
+            {/* Sign Out với thiết kế iOS 18 */}
             <View className="px-4 mb-8">
-              <Card>
+              <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                ⚠️ Tài khoản
+              </Text>
+              <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
                 <CardContent className="p-0">
-                  <MenuSection
-                    icon={<LogOut size={20} color="#EF4444" />}
-                    title="Đăng xuất"
+                  <TouchableOpacity 
                     onPress={handleSignOut}
-                    showChevron={false}
-                  />
+                    className="flex-row items-center py-4 px-5 active:bg-red-50"
+                  >
+                    <View className="w-10 h-10 bg-red-100 rounded-xl items-center justify-center mr-4">
+                      <Text className="text-lg">🚪</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-medium text-red-600">Đăng xuất</Text>
+                    </View>
+                  </TouchableOpacity>
                 </CardContent>
               </Card>
             </View>
@@ -356,30 +513,28 @@ export default function ProfileScreen() {
             {/* App Info */}
             <View className="px-4 pb-8">
               <Text className="text-center text-xs text-muted-foreground">
-                Japtor Restaurant v1.0.0
+                Waddles Restaurant v1.0.0
               </Text>
               <Text className="text-center text-xs text-muted-foreground mt-1">
-                © 2024 Japtor. All rights reserved.
+                © 2024 Waddles. All rights reserved.
               </Text>
             </View>
           </ScrollView>
         </>
       ) : (
         <>
-          <Button
-            variant="default"
-            className="m-4"
+          <TouchableOpacity
+            className="m-4 bg-primary py-3 px-6 rounded-lg"
             onPress={() => router.push('/sign-in')}
           >
-            <Text>Đăng nhập</Text>
-          </Button>
-          <Button
-            variant="outline"
-            className="m-4"
+            <Text className="text-white text-center font-medium">Đăng nhập</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="m-4 border border-border py-3 px-6 rounded-lg"
             onPress={() => router.push('/sign-up')}
           >
-            <Text>Đăng ký</Text>
-          </Button>
+            <Text className="text-foreground text-center font-medium">Đăng ký</Text>
+          </TouchableOpacity>
         </>
       )}
     </>

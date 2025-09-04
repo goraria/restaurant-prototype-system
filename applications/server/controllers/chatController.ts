@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { z, ZodError } from 'zod';
+import { AuthenticatedRequest } from '@/types/auth';
 import { 
-  ValidationError, 
-  NotFoundError, 
-  AuthError, 
-  ForbiddenError,
+  createValidationError, 
+  createNotFoundError, 
+  createAuthError, 
+  createForbiddenError,
   sendSuccess, 
   sendPaginatedSuccess, 
   asyncHandler, 
@@ -36,35 +37,26 @@ import {
   userCanAccessConversation
 } from '@/services/chatService';
 
-// AuthenticatedRequest interface
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-}
-
 // Universal error handler function
 const handleError = (error: any, res: Response) => {
   console.error('Chat Controller Error:', error);
 
-  if (error instanceof ValidationError) {
+  if (error.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
       message: error.message,
-      errors: error.errors
+      errors: (error as any).errors
     });
   }
 
-  if (error instanceof NotFoundError) {
+  if (error.name === 'NotFoundError') {
     return res.status(404).json({
       success: false,
       message: error.message
     });
   }
 
-  if (error instanceof AuthError) {
+  if (error.name === 'AuthError') {
     return res.status(401).json({
       success: false,
       message: error.message
@@ -121,13 +113,13 @@ export const getConversationController = asyncHandler(async (req: AuthenticatedR
     // Kiểm tra quyền truy cập
     const canAccess = await userCanAccessConversation(userId, id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
+      throw createForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
     }
 
     const result = await getConversation(id);
 
     if (!result) {
-      throw new NotFoundError('Không tìm thấy cuộc trò chuyện');
+      throw createNotFoundError('Không tìm thấy cuộc trò chuyện');
     }
 
     sendSuccess(res, result);
@@ -167,7 +159,7 @@ export const updateConversationController = asyncHandler(async (req: Authenticat
     // Kiểm tra quyền truy cập
     const canAccess = await userCanAccessConversation(userId, id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
+      throw createForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
     }
 
     const result = await updateConversation(id, validatedData);
@@ -189,7 +181,7 @@ export const deleteConversationController = asyncHandler(async (req: Authenticat
     // Kiểm tra quyền truy cập
     const canAccess = await userCanAccessConversation(userId, id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
+      throw createForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
     }
 
     await deleteConversation(id);
@@ -211,7 +203,7 @@ export const createMessageController = asyncHandler(async (req: AuthenticatedReq
     // Kiểm tra quyền truy cập cuộc trò chuyện
     const canAccess = await userCanAccessConversation(userId, validatedData.conversation_id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
+      throw createForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
     }
 
     const result = await createMessage({
@@ -236,13 +228,13 @@ export const getMessageController = asyncHandler(async (req: AuthenticatedReques
     const result = await getMessage(id);
 
     if (!result) {
-      throw new NotFoundError('Không tìm thấy tin nhắn');
+      throw createNotFoundError('Không tìm thấy tin nhắn');
     }
 
     // Kiểm tra quyền truy cập cuộc trò chuyện
     const canAccess = await userCanAccessConversation(userId, result.conversation_id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập tin nhắn này');
+      throw createForbiddenError('Không có quyền truy cập tin nhắn này');
     }
 
     sendSuccess(res, result);
@@ -262,7 +254,7 @@ export const getMessagesController = asyncHandler(async (req: AuthenticatedReque
     // Kiểm tra quyền truy cập cuộc trò chuyện
     const canAccess = await userCanAccessConversation(userId, validatedQuery.conversation_id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
+      throw createForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
     }
 
     const result = await getMessages(validatedQuery);
@@ -285,18 +277,18 @@ export const updateMessageController = asyncHandler(async (req: AuthenticatedReq
     const result = await updateMessage(id, validatedData);
 
     if (!result) {
-      throw new NotFoundError('Không tìm thấy tin nhắn');
+      throw createNotFoundError('Không tìm thấy tin nhắn');
     }
 
     // Kiểm tra quyền truy cập cuộc trò chuyện
     const canAccess = await userCanAccessConversation(userId, result.conversation_id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập tin nhắn này');
+      throw createForbiddenError('Không có quyền truy cập tin nhắn này');
     }
 
     // Chỉ cho phép người gửi cập nhật tin nhắn của mình
     if (result.sender_id !== userId) {
-      throw new ForbiddenError('Chỉ có thể cập nhật tin nhắn của mình');
+      throw createForbiddenError('Chỉ có thể cập nhật tin nhắn của mình');
     }
 
     sendSuccess(res, result, 'Cập nhật tin nhắn thành công');
@@ -316,18 +308,18 @@ export const deleteMessageController = asyncHandler(async (req: AuthenticatedReq
     // Lấy thông tin tin nhắn trước khi xóa để kiểm tra quyền
     const message = await getMessage(id);
     if (!message) {
-      throw new NotFoundError('Không tìm thấy tin nhắn');
+      throw createNotFoundError('Không tìm thấy tin nhắn');
     }
 
     // Kiểm tra quyền truy cập cuộc trò chuyện
     const canAccess = await userCanAccessConversation(userId, message.conversation_id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập tin nhắn này');
+      throw createForbiddenError('Không có quyền truy cập tin nhắn này');
     }
 
     // Chỉ cho phép người gửi xóa tin nhắn của mình
     if (message.sender_id !== userId) {
-      throw new ForbiddenError('Chỉ có thể xóa tin nhắn của mình');
+      throw createForbiddenError('Chỉ có thể xóa tin nhắn của mình');
     }
 
     await deleteMessage(id);
@@ -352,7 +344,7 @@ export const markMessagesAsReadController = asyncHandler(async (req: Authenticat
     // Kiểm tra quyền truy cập cuộc trò chuyện
     const canAccess = await userCanAccessConversation(userId, validatedData.conversation_id);
     if (!canAccess) {
-      throw new ForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
+      throw createForbiddenError('Không có quyền truy cập cuộc trò chuyện này');
     }
 
     await markMessagesAsRead(validatedData.message_ids || []);

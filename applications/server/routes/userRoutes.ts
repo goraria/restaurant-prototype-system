@@ -1,36 +1,58 @@
 import { Router } from 'express';
-// import { userController } from '@/controllers/userController';
-// Import middleware (tạm thời comment để không lỗi)
-// import { authMiddleware, adminMiddleware } from '@/middlewares/auth.middleware';
+import {
+  getCurrentUser,
+  updateUserProfile,
+  getUserAddresses,
+  addUserAddress,
+  updateUserAddress,
+  deleteUserAddress,
+  getUserOrders,
+  getUserStatistics,
+  deleteUserController
+} from '@/controllers/userControllers';
+import {
+  requireAuth,
+  requireCustomer,
+  requireRestaurantAccess
+} from '@/middlewares/authMiddleware';
+import { getOrdersController, getRestaurantOrdersController } from '@/controllers/orderControllers';
 
 const router = Router();
-// const userControllerInstance = new userController();
 
-// Public routes (không cần auth)
+// All routes are protected - auth middleware is applied in main app
 
-// Protected routes (cần auth)
-// router.use(authMiddleware); // Uncomment khi có auth middleware
+// User profile routes
+router.get('/me', getCurrentUser);
+router.put('/profile', updateUserProfile);
 
-// // User profile routes
-// router.get('/me', userControllerInstance.getMe);
-// router.put('/me', userControllerInstance.updateCurrentUser);
+// User addresses routes
+router.get('/addresses', getUserAddresses);
+router.post('/addresses', addUserAddress);
+router.put('/addresses/:id', updateUserAddress);
+router.delete('/addresses/:id', deleteUserAddress);
 
-// // User search routes
-// router.get('/search', userControllerInstance.searchUsers);
-// router.get('/stats', userControllerInstance.getUserStats);
+// User orders and statistics
+router.get('/orders', getUserOrders);
+router.get('/statistics', getUserStatistics);
 
-// // Get user by identifier
-// router.get('/email/:email', userControllerInstance.getUserByEmail);
-// router.get('/clerk/:clerkId', userControllerInstance.getUserByClerkId);
+// ================================
+// 🔐 ROLE-BASED AUTHENTICATION EXAMPLES
+// ================================
 
-// CRUD routes
-// router.get('/', userControllerInstance.getUsers);
-// router.post('/', userControllerInstance.createUser);
-// router.put('/:id', userControllerInstance.updateUser);
-// router.delete('/:id', userControllerInstance.deleteUser);
-// router.get('/:id', userControllerInstance.getUserById); // Đặt cuối để tránh xung đột
+// API cho nhiều role - Staff hoặc Manager có thể xem orders
+router.get('/all-orders', requireAuth(['staff', 'manager']), getOrdersController);
 
-// Admin only routes
-// router.use(adminMiddleware); // Uncomment khi có admin middleware
+// API cho 1 role duy nhất - Chỉ Admin có thể xóa user
+router.delete('/:id', requireAuth(['admin']), deleteUserController);
+
+// API cho khách hàng - Chỉ customer có thể xem profile
+router.get('/profile', requireCustomer, getCurrentUser);
+
+// API cho nhà hàng cụ thể - Staff/Manager chỉ xem orders của nhà hàng họ quản lý
+router.get('/restaurant/orders', 
+  requireAuth(['staff', 'manager']), 
+  requireRestaurantAccess(), 
+  getRestaurantOrdersController
+);
 
 export default router;

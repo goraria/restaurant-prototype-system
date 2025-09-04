@@ -1,14 +1,9 @@
-import React, { ReactNode } from "react";
-import { ScrollView, View } from "react-native";
+import { Stack } from 'expo-router';
 
-export default function OrdersLayout({
-  children
-}: {
-  children: ReactNode
-}) {
+export default function OrdersLayout() {
   return (
-    <View className="flex-1 bg-background">
-      <ScrollView>{children}</ScrollView>
-    </View>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="orders" />
+    </Stack>
   );
 }

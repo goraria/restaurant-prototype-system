@@ -18,6 +18,14 @@ import {
   updateCookingStatusController as updateCookingStatus,
 
 } from '@/controllers/orderControllers';
+import {
+  requireAuth,
+  requireCustomer,
+  requireStaff,
+  requireManager,
+  requireAdmin,
+  requireRestaurantAccess
+} from '@/middlewares/authMiddleware';
 
 const router = express.Router();
 
@@ -140,5 +148,44 @@ router.get('/kitchen/orders', getKitchenOrders);
  * @access  Private (Kitchen Staff)
  */
 router.put('/kitchen/cooking-status', updateCookingStatus);
+
+// ================================
+// 🔐 ROLE-BASED AUTHENTICATION EXAMPLES
+// ================================
+
+/**
+ * API cho nhiều role - Staff hoặc Manager có thể xem tất cả orders
+ * Ví dụ: /api/orders/all-orders-multi-role
+ */
+router.get('/all-orders-multi-role', requireAuth(['staff', 'manager']), getOrders);
+
+/**
+ * API cho 1 role duy nhất - Chỉ Admin có thể xem analytics
+ * Ví dụ: /api/orders/admin-analytics
+ */
+router.get('/admin-analytics', requireAuth(['admin']), getOrderAnalytics);
+
+/**
+ * API cho khách hàng - Customer xem orders của họ
+ * Ví dụ: /api/orders/my-orders-customer
+ */
+router.get('/my-orders-customer', requireCustomer, getMyOrders);
+
+/**
+ * API cho nhà hàng cụ thể - Staff/Manager chỉ xem orders của nhà hàng họ quản lý
+ * Ví dụ: /api/orders/restaurant-specific
+ */
+router.get('/restaurant-specific', 
+  requireAuth(['staff', 'manager']), 
+  requireRestaurantAccess(), 
+  getRestaurantOrders
+);
+
+/**
+ * API cho từng role riêng biệt
+ */
+router.get('/staff-only-orders', requireStaff, getPendingOrders);
+router.get('/manager-only-dashboard', requireManager, getRestaurantDashboard);
+router.get('/admin-only-stats', requireAdmin, getOrderStats);
 
 export default router;
