@@ -1,14 +1,15 @@
-import React, { ReactNode } from "react";
-import { ScrollView, View } from "react-native";
+import { Stack } from 'expo-router';
 
-export default function SettingsLayout({
-  children
-}: {
-  children: ReactNode
-}) {
+export default function SettingsLayout() {
   return (
-    <View className="flex-1 bg-background">
-      <ScrollView>{children}</ScrollView>
-    </View>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="setting" />
+      <Stack.Screen name="profile" />
+      <Stack.Screen name="account" />
+      <Stack.Screen name="security" />
+      <Stack.Screen name="notifications" />
+      <Stack.Screen name="language" />
+      <Stack.Screen name="about" />
+    </Stack>
   );
 }

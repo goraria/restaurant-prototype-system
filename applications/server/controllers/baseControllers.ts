@@ -99,7 +99,7 @@ export const validateBody = <T>(
   } catch (error) {
     if (error instanceof ZodError) {
       const errors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`);
-      throw new ValidationError('Dữ liệu không hợp lệ', errors);
+      throw createValidationError('Dữ liệu không hợp lệ', errors);
     }
     throw error;
   }
@@ -117,7 +117,7 @@ export const validateParams = <T>(
   } catch (error) {
     if (error instanceof ZodError) {
       const errors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`);
-      throw new ValidationError('Tham số không hợp lệ', errors);
+      throw createValidationError('Tham số không hợp lệ', errors);
     }
     throw error;
   }
@@ -135,7 +135,7 @@ export const validateQuery = <T>(
   } catch (error) {
     if (error instanceof ZodError) {
       const errors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`);
-      throw new ValidationError('Query parameters không hợp lệ', errors);
+      throw createValidationError('Query parameters không hợp lệ', errors);
     }
     throw error;
   }
@@ -154,7 +154,7 @@ export const getCurrentUser = (req: Request): any => {
 export const getCurrentUserId = (req: Request): string => {
   const user = getCurrentUser(req);
   if (!user || !user.id) {
-    throw new AuthError('Không tìm thấy thông tin user');
+    throw createAuthError('Không tìm thấy thông tin user');
   }
   return user.id;
 };
@@ -220,45 +220,42 @@ export const validateIdParam = (req: Request, paramName: string = 'id'): string 
   const id = req.params[paramName];
   
   if (!id) {
-    throw new ValidationError(`Thiếu tham số ${paramName}`);
+    throw createValidationError(`Thiếu tham số ${paramName}`);
   }
 
   if (!validateUUID(id)) {
-    throw new ValidationError(`${paramName} không hợp lệ`);
+    throw createValidationError(`${paramName} không hợp lệ`);
   }
 
   return id;
 };
 
 // ================================
-// ❌ CUSTOM ERROR CLASSES
+// ❌ CUSTOM ERROR FUNCTIONS
 // ================================
 
-// Custom Error Classes - Giữ nguyên vì cần kế thừa từ Error
-export class ValidationError extends Error {
-  constructor(message: string, public errors?: string[]) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
+// Custom Error Factory Functions - Chuyển đổi từ class sang function
+export const createValidationError = (message: string, errors?: string[]): Error => {
+  const error = new Error(message);
+  error.name = 'ValidationError';
+  (error as any).errors = errors;
+  return error;
+};
 
-export class AuthError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AuthError';
-  }
-}
+export const createAuthError = (message: string): Error => {
+  const error = new Error(message);
+  error.name = 'AuthError';
+  return error;
+};
 
-export class NotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NotFoundError';
-  }
-}
+export const createNotFoundError = (message: string): Error => {
+  const error = new Error(message);
+  error.name = 'NotFoundError';
+  return error;
+};
 
-export class ForbiddenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ForbiddenError';
-  }
-}
+export const createForbiddenError = (message: string): Error => {
+  const error = new Error(message);
+  error.name = 'ForbiddenError';
+  return error;
+};

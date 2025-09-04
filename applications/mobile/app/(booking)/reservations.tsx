@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   Plus, 
@@ -15,7 +15,6 @@ import {
   Star,
   CheckCircle,
   XCircle,
-  Clock as ClockIcon,
   Search,
   Filter
 } from 'lucide-react-native';
@@ -105,119 +104,115 @@ export default function ReservationsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
-      <View className="px-6 pt-4 pb-6">
-        <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-2xl font-bold text-foreground">Đặt bàn</Text>
-          <View className="flex-row space-x-2">
-            <Button variant="ghost" size="sm">
-              <Search className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Filter className="w-4 h-4" />
+      <Card className="mx-4 mt-4 mb-4">
+        <CardHeader>
+          <View className="flex-row items-center justify-between">
+            <CardTitle className="text-2xl">Đặt bàn của tôi</CardTitle>
+            <Button 
+              size="sm"
+              onPress={() => router.push('/(booking)/create-reservation' as any)}
+              className="flex-row items-center"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              <Text className="text-white">Đặt bàn</Text>
             </Button>
           </View>
-        </View>
+        </CardHeader>
+      </Card>
 
-        {/* Quick Stats */}
-        <View className="flex-row space-x-4 mb-6">
-          <Card className="flex-1 p-4">
-            <View className="flex-row items-center">
-              <View className="w-10 h-10 bg-primary/10 rounded-full items-center justify-center mr-3">
-                <Calendar className="w-5 h-5 text-primary" />
-              </View>
-              <View>
-                <Text className="text-2xl font-bold text-foreground">5</Text>
-                <Text className="text-sm text-muted-foreground">Đặt bàn</Text>
-              </View>
+      <ScrollView className="flex-1 px-4">
+        {/* Tab Navigation */}
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <View className="flex-row bg-muted rounded-lg p-1">
+              <TouchableOpacity
+                className={`flex-1 py-2 rounded-md ${activeTab === 'upcoming' ? 'bg-background shadow-sm' : ''}`}
+                onPress={() => setActiveTab('upcoming')}
+              >
+                <Text className={`text-center text-sm font-medium ${
+                  activeTab === 'upcoming' ? 'text-foreground' : 'text-muted-foreground'
+                }`}>
+                  Sắp tới
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 py-2 rounded-md ${activeTab === 'completed' ? 'bg-background shadow-sm' : ''}`}
+                onPress={() => setActiveTab('completed')}
+              >
+                <Text className={`text-center text-sm font-medium ${
+                  activeTab === 'completed' ? 'text-foreground' : 'text-muted-foreground'
+                }`}>
+                  Đã hoàn thành
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 py-2 rounded-md ${activeTab === 'all' ? 'bg-background shadow-sm' : ''}`}
+                onPress={() => setActiveTab('all')}
+              >
+                <Text className={`text-center text-sm font-medium ${
+                  activeTab === 'all' ? 'text-foreground' : 'text-muted-foreground'
+                }`}>
+                  Tất cả
+                </Text>
+              </TouchableOpacity>
             </View>
-          </Card>
-          
-          <Card className="flex-1 p-4">
-            <View className="flex-row items-center">
-              <View className="w-10 h-10 bg-green-100 rounded-full items-center justify-center mr-3">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              </View>
-              <View>
-                <Text className="text-2xl font-bold text-foreground">3</Text>
-                <Text className="text-sm text-muted-foreground">Đã xác nhận</Text>
-              </View>
-            </View>
-          </Card>
-        </View>
+          </CardContent>
+        </Card>
 
-        {/* Create New Reservation Button */}
-        <Button 
-          size="lg" 
-          className="mb-6"
-          onPress={() => router.push('/(reservations)/create')}
-        >
-          <Plus className="w-5 h-5 mr-2 text-white" />
-          <Text className="text-white font-semibold">Đặt bàn mới</Text>
-        </Button>
-      </View>
-
-      {/* Tabs */}
-      <View className="px-6 mb-6">
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          items={[
-            { value: 'upcoming', label: 'Sắp tới' },
-            { value: 'completed', label: 'Hoàn thành' },
-            { value: 'cancelled', label: 'Đã hủy' }
-          ]}
-        />
-      </View>
-
-      {/* Reservations List */}
-      <ScrollView className="flex-1 px-6">
+        {/* Reservations List */}
         {filteredReservations.length > 0 ? (
-          <View className="space-y-4">
-            {filteredReservations.map((reservation) => (
-              <Card key={reservation.id} className="p-4">
+          filteredReservations.map((reservation) => (
+            <Card key={reservation.id} className="mb-4">
+              <CardContent className="p-4">
                 <View className="flex-row">
-                  <Image
+                  {/* Restaurant Image */}
+                  <Image 
                     source={{ uri: reservation.restaurantImage }}
                     className="w-20 h-20 rounded-lg mr-4"
+                    resizeMode="cover"
                   />
+                  
+                  {/* Content */}
                   <View className="flex-1">
-                    <View className="flex-row justify-between items-start mb-2">
-                      <Text className="font-semibold text-foreground text-lg">
+                    {/* Header */}
+                    <View className="flex-row items-start justify-between mb-2">
+                      <Text className="text-lg font-semibold text-foreground flex-1" numberOfLines={1}>
                         {reservation.restaurantName}
                       </Text>
-                      <Badge className={getStatusColor(reservation.status)}>
-                        {getStatusText(reservation.status)}
+                      <Badge variant={reservation.status === 'confirmed' ? 'default' : reservation.status === 'pending' ? 'secondary' : 'destructive'}>
+                        <Text className="text-xs font-medium">
+                          {getStatusText(reservation.status)}
+                        </Text>
                       </Badge>
                     </View>
 
-                    <View className="space-y-2 mb-3">
+                    {/* Info */}
+                    <View className="space-y-1 mb-3">
                       <View className="flex-row items-center">
                         <Calendar className="w-4 h-4 text-muted-foreground mr-2" />
                         <Text className="text-sm text-foreground">{reservation.date}</Text>
-                      </View>
-                      <View className="flex-row items-center">
-                        <Clock className="w-4 h-4 text-muted-foreground mr-2" />
+                        <Clock className="w-4 h-4 text-muted-foreground ml-4 mr-2" />
                         <Text className="text-sm text-foreground">{reservation.time}</Text>
                       </View>
                       <View className="flex-row items-center">
                         <Users className="w-4 h-4 text-muted-foreground mr-2" />
                         <Text className="text-sm text-foreground">{reservation.partySize} người</Text>
+                        {reservation.tableNumber && (
+                          <>
+                            <MapPin className="w-4 h-4 text-muted-foreground ml-4 mr-2" />
+                            <Text className="text-sm text-foreground">Bàn {reservation.tableNumber}</Text>
+                          </>
+                        )}
                       </View>
-                      {reservation.tableNumber && (
-                        <View className="flex-row items-center">
-                          <MapPin className="w-4 h-4 text-muted-foreground mr-2" />
-                          <Text className="text-sm text-foreground">Bàn {reservation.tableNumber}</Text>
-                        </View>
-                      )}
                     </View>
 
-                    {/* Action Buttons */}
-                    <View className="flex-row space-x-2">
+                    {/* Actions */}
+                    <View className="flex-row gap-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
                         className="flex-1"
-                        onPress={() => router.push(`/(reservations)/detail/${reservation.id}`)}
+                        onPress={() => router.push(`/(booking)/reservation-detail?id=${reservation.id}` as any)}
                       >
                         <Text className="text-xs">Chi tiết</Text>
                       </Button>
@@ -226,6 +221,10 @@ export default function ReservationsScreen() {
                           variant="outline" 
                           size="sm" 
                           className="flex-1"
+                          onPress={() => {
+                            // Handle cancel reservation
+                            console.log('Cancel reservation:', reservation.id);
+                          }}
                         >
                           <Text className="text-xs">Hủy</Text>
                         </Button>
@@ -235,6 +234,7 @@ export default function ReservationsScreen() {
                           variant="outline" 
                           size="sm" 
                           className="flex-1"
+                          onPress={() => router.push(`/(booking)/edit-reservation?id=${reservation.id}` as any)}
                         >
                           <Text className="text-xs">Chỉnh sửa</Text>
                         </Button>
@@ -242,26 +242,28 @@ export default function ReservationsScreen() {
                     </View>
                   </View>
                 </View>
-              </Card>
-            ))}
-          </View>
+              </CardContent>
+            </Card>
+          ))
         ) : (
-          <Card className="p-8 items-center">
-            <Calendar className="w-12 h-12 text-muted-foreground mb-4" />
-            <Text className="text-lg font-semibold text-foreground mb-2">
-              {activeTab === 'upcoming' ? 'Không có đặt bàn sắp tới' : 'Không có đặt bàn'}
-            </Text>
-            <Text className="text-muted-foreground text-center mb-4">
-              {activeTab === 'upcoming' 
-                ? 'Bạn chưa có đặt bàn nào sắp tới. Hãy đặt bàn mới!'
-                : 'Các đặt bàn sẽ xuất hiện ở đây'
-              }
-            </Text>
-            {activeTab === 'upcoming' && (
-              <Button onPress={() => router.push('/(reservations)/create')}>
-                <Text className="text-white font-semibold">Đặt bàn ngay</Text>
-              </Button>
-            )}
+          <Card className="mb-4">
+            <CardContent className="p-8 items-center">
+              <Calendar className="w-12 h-12 text-muted-foreground mb-4" />
+              <CardTitle className="text-lg mb-2">
+                {activeTab === 'upcoming' ? 'Không có đặt bàn sắp tới' : 'Không có đặt bàn'}
+              </CardTitle>
+              <CardDescription className="text-center mb-4">
+                {activeTab === 'upcoming' 
+                  ? 'Bạn chưa có đặt bàn nào sắp tới. Hãy đặt bàn mới!'
+                  : 'Các đặt bàn sẽ xuất hiện ở đây'
+                }
+              </CardDescription>
+              {activeTab === 'upcoming' && (
+                <Button onPress={() => router.push('/(booking)/create-reservation' as any)}>
+                  <Text className="text-white font-semibold">Đặt bàn ngay</Text>
+                </Button>
+              )}
+            </CardContent>
           </Card>
         )}
       </ScrollView>

@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image, TouchableOpacity, Linking } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   MapPin, 
@@ -13,7 +13,10 @@ import {
   Star,
   Car,
   Footprints,
-  Bike
+  Bike,
+  ExternalLink,
+  Users,
+  Heart
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
@@ -49,171 +52,246 @@ export default function LocationScreen() {
     }
   ];
 
+  const transportOptions = [
+    {
+      type: 'walk',
+      icon: Footprints,
+      duration: '12 phút',
+      distance: '1.2km',
+      color: 'text-green-600'
+    },
+    {
+      type: 'bike',
+      icon: Bike,
+      duration: '5 phút',
+      distance: '1.2km',
+      color: 'text-blue-600'
+    },
+    {
+      type: 'car',
+      icon: Car,
+      duration: '3 phút',
+      distance: '1.2km',
+      color: 'text-purple-600'
+    }
+  ];
+
+  const handleCall = () => {
+    Linking.openURL(`tel:${restaurantInfo.phone}`);
+  };
+
+  const handleDirection = () => {
+    const url = `https://maps.google.com/?q=${restaurantInfo.coordinates.latitude},${restaurantInfo.coordinates.longitude}`;
+    Linking.openURL(url);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView className="flex-1">
         {/* Header */}
-        <View className="px-6 pt-4 pb-6">
-          <Text className="text-2xl font-bold text-foreground mb-4">Địa điểm</Text>
-        </View>
-
-        {/* Restaurant Info */}
-        <View className="px-6 mb-6">
-          <Card className="p-6">
-            <View className="flex-row mb-4">
-              <Image
-                source={{ uri: restaurantInfo.image }}
-                className="w-20 h-20 rounded-lg mr-4"
-              />
-              <View className="flex-1">
-                <Text className="text-xl font-bold text-foreground mb-1">
-                  {restaurantInfo.name}
-                </Text>
-                <View className="flex-row items-center mb-2">
-                  <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                  <Text className="font-semibold text-foreground">{restaurantInfo.rating}</Text>
-                  <Text className="text-muted-foreground ml-1">({restaurantInfo.reviewCount} đánh giá)</Text>
-                </View>
-                <View className="flex-row items-center">
-                  <Clock className="w-4 h-4 text-muted-foreground mr-2" />
-                  <Text className="text-sm text-muted-foreground">{restaurantInfo.hours}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Address */}
-            <View className="mb-4">
-              <View className="flex-row items-start mb-3">
-                <MapPin className="w-5 h-5 text-primary mr-3 mt-0.5" />
-                <View className="flex-1">
-                  <Text className="font-semibold text-foreground mb-1">Địa chỉ</Text>
-                  <Text className="text-muted-foreground">{restaurantInfo.address}</Text>
-                </View>
-              </View>
-              
-              <View className="flex-row items-center mb-3">
-                <Phone className="w-5 h-5 text-primary mr-3" />
-                <View className="flex-1">
-                  <Text className="font-semibold text-foreground mb-1">Điện thoại</Text>
-                  <Text className="text-muted-foreground">{restaurantInfo.phone}</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <View className="flex-row space-x-3">
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onPress={() => router.push('../(location)/directions')}
-              >
-                <Navigation className="w-4 h-4 mr-2" />
-                <Text>Chỉ đường</Text>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onPress={() => router.push('../(location)/nearby')}
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                <Text>Gần đây</Text>
-              </Button>
-            </View>
+        <View className="px-4 mb-4">
+          <Card>
+            <CardContent className="px-4 py-6">
+              <Text className="text-3xl font-bold text-foreground mb-2">Địa điểm</Text>
+              <Text className="text-muted-foreground">Thông tin vị trí và đường đi</Text>
+            </CardContent>
           </Card>
         </View>
 
-        {/* Transportation Options */}
-        <View className="px-6 mb-6">
-          <Text className="text-lg font-bold text-foreground mb-4">Phương tiện di chuyển</Text>
-          <View className="space-y-3">
-            <Card className="p-4">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                  <View className="w-10 h-10 bg-blue-100 rounded-full items-center justify-center mr-3">
-                    <Car className="w-5 h-5 text-blue-600" />
+        {/* Restaurant Info Card */}
+        <View className="px-4 mb-4">
+          <Card>
+            <CardContent className="px-4 py-6">
+              <View className="flex-row mb-4">
+                <View className="w-20 h-20 rounded-lg overflow-hidden mr-4">
+                  <Image
+                    source={{ uri: restaurantInfo.image }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xl font-bold text-foreground mb-2">
+                    {restaurantInfo.name}
+                  </Text>
+                  <View className="flex-row items-center mb-2">
+                    <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                    <Text className="font-semibold text-foreground">{restaurantInfo.rating}</Text>
+                    <Text className="text-muted-foreground ml-1">({restaurantInfo.reviewCount} đánh giá)</Text>
                   </View>
-                  <View>
-                    <Text className="font-semibold text-foreground">Xe hơi</Text>
-                    <Text className="text-sm text-muted-foreground">5 phút • Có bãi đỗ xe</Text>
+                  <View className="flex-row items-center">
+                    <Clock className="w-4 h-4 text-green-600 mr-2" />
+                    <Text className="text-sm text-green-600 font-medium">Đang mở cửa</Text>
                   </View>
                 </View>
-                <Button variant="outline" size="sm">
-                  <Text className="text-xs">Chỉ đường</Text>
-                </Button>
               </View>
-            </Card>
 
-            <Card className="p-4">
-              <View className="flex-row items-center justify-between">
+              {/* Contact Info */}
+              <View className="space-y-3 mb-4">
                 <View className="flex-row items-center">
-                  <View className="w-10 h-10 bg-green-100 rounded-full items-center justify-center mr-3">
-                    <Footprints className="w-5 h-5 text-green-600" />
-                  </View>
-                  <View>
-                    <Text className="font-semibold text-foreground">Đi bộ</Text>
-                    <Text className="text-sm text-muted-foreground">8 phút • 0.4km</Text>
-                  </View>
+                  <MapPin className="w-5 h-5 text-primary mr-3" />
+                  <Text className="flex-1 text-foreground">{restaurantInfo.address}</Text>
                 </View>
-                <Button variant="outline" size="sm">
-                  <Text className="text-xs">Chỉ đường</Text>
-                </Button>
+                <View className="flex-row items-center">
+                  <Phone className="w-5 h-5 text-primary mr-3" />
+                  <Text className="flex-1 text-foreground">{restaurantInfo.phone}</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Clock className="w-5 h-5 text-primary mr-3" />
+                  <Text className="flex-1 text-foreground">{restaurantInfo.hours}</Text>
+                </View>
               </View>
-            </Card>
 
-            <Card className="p-4">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                  <View className="w-10 h-10 bg-orange-100 rounded-full items-center justify-center mr-3">
-                    <Bike className="w-5 h-5 text-orange-600" />
-                  </View>
-                  <View>
-                    <Text className="font-semibold text-foreground">Xe máy</Text>
-                    <Text className="text-sm text-muted-foreground">3 phút • 0.2km</Text>
-                  </View>
-                </View>
-                <Button variant="outline" size="sm">
-                  <Text className="text-xs">Chỉ đường</Text>
-                </Button>
+              {/* Action Buttons */}
+              <View className="flex-row space-x-3">
+                <TouchableOpacity 
+                  onPress={handleDirection}
+                  className="flex-1 bg-primary rounded-lg py-3 px-4 flex-row items-center justify-center"
+                >
+                  <Navigation className="w-5 h-5 text-white mr-2" />
+                  <Text className="text-white font-medium">Chỉ đường</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={handleCall}
+                  className="flex-1 bg-green-500 rounded-lg py-3 px-4 flex-row items-center justify-center"
+                >
+                  <Phone className="w-5 h-5 text-white mr-2" />
+                  <Text className="text-white font-medium">Gọi điện</Text>
+                </TouchableOpacity>
               </View>
-            </Card>
-          </View>
+            </CardContent>
+          </Card>
+        </View>
+
+        {/* Transport Options */}
+        <View className="px-4 mb-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Phương tiện di chuyển</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4">
+              <View className="space-y-3">
+                {transportOptions.map((option, index) => (
+                  <TouchableOpacity 
+                    key={index}
+                    className="flex-row items-center p-3 bg-muted/30 rounded-lg"
+                  >
+                    <View className={`w-10 h-10 rounded-full bg-background items-center justify-center mr-4`}>
+                      <option.icon className={`w-5 h-5 ${option.color}`} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-medium text-foreground capitalize">
+                        {option.type === 'walk' ? 'Đi bộ' : option.type === 'bike' ? 'Xe đạp' : 'Ô tô'}
+                      </Text>
+                      <Text className="text-sm text-muted-foreground">
+                        {option.duration} • {option.distance}
+                      </Text>
+                    </View>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </CardContent>
+          </Card>
+        </View>
+
+        {/* Map Placeholder */}
+        <View className="px-4 mb-4">
+          <Card>
+            <CardContent className="px-4 py-4">
+              <View className="h-48 bg-muted rounded-lg items-center justify-center">
+                <MapPin className="w-12 h-12 text-primary mb-2" />
+                <Text className="font-medium text-foreground mb-1">Bản đồ tương tác</Text>
+                <Text className="text-sm text-muted-foreground text-center">
+                  Nhấn "Chỉ đường" để mở Google Maps
+                </Text>
+              </View>
+            </CardContent>
+          </Card>
         </View>
 
         {/* Nearby Restaurants */}
-        <View className="px-6 mb-6">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-lg font-bold text-foreground">Nhà hàng gần đây</Text>
-            <Button variant="ghost" onPress={() => router.push('../(location)/nearby')}>
-              <Text className="text-primary">Xem tất cả</Text>
-            </Button>
-          </View>
-          
-          <View className="space-y-3">
-            {nearbyRestaurants.map((restaurant) => (
-              <Card key={restaurant.id} className="p-4">
-                <View className="flex-row items-center">
-                  <Image
-                    source={{ uri: restaurant.image }}
-                    className="w-16 h-16 rounded-lg mr-3"
-                  />
-                  <View className="flex-1">
-                    <Text className="font-semibold text-foreground">{restaurant.name}</Text>
-                    <View className="flex-row items-center mt-1">
-                      <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                      <Text className="text-sm font-semibold">{restaurant.rating}</Text>
-                      <Text className="text-sm text-muted-foreground ml-2">
-                        {restaurant.distance}
-                      </Text>
+        <View className="px-4 mb-4">
+          <Card>
+            <CardHeader>
+              <View className="flex-row items-center justify-between">
+                <CardTitle className="text-lg">Nhà hàng gần đây</CardTitle>
+                <TouchableOpacity>
+                  <Text className="text-primary text-sm">Xem tất cả</Text>
+                </TouchableOpacity>
+              </View>
+            </CardHeader>
+            <CardContent className="px-4">
+              <View className="space-y-3">
+                {nearbyRestaurants.map((restaurant) => (
+                  <TouchableOpacity 
+                    key={restaurant.id}
+                    className="flex-row items-center p-3 bg-muted/30 rounded-lg"
+                  >
+                    <View className="w-12 h-12 rounded-lg overflow-hidden mr-4">
+                      <Image
+                        source={{ uri: restaurant.image }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
                     </View>
-                  </View>
-                  <Button variant="outline" size="sm">
-                    <Text className="text-xs">Xem</Text>
-                  </Button>
-                </View>
-              </Card>
-            ))}
-          </View>
+                    <View className="flex-1">
+                      <Text className="font-medium text-foreground mb-1">
+                        {restaurant.name}
+                      </Text>
+                      <View className="flex-row items-center">
+                        <MapPin className="w-3 h-3 text-muted-foreground mr-1" />
+                        <Text className="text-sm text-muted-foreground mr-3">
+                          {restaurant.distance}
+                        </Text>
+                        <Star className="w-3 h-3 text-yellow-500 mr-1" />
+                        <Text className="text-sm text-muted-foreground">
+                          {restaurant.rating}
+                        </Text>
+                      </View>
+                    </View>
+                    <Heart className="w-5 h-5 text-muted-foreground" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </CardContent>
+          </Card>
         </View>
+
+        {/* Operating Hours Detail */}
+        <View className="px-4 mb-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Giờ hoạt động</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4">
+              <View className="space-y-2">
+                {[
+                  { day: 'Thứ 2 - Thứ 6', time: '07:00 - 22:00', isToday: false },
+                  { day: 'Thứ 7', time: '08:00 - 23:00', isToday: true },
+                  { day: 'Chủ nhật', time: '08:00 - 21:00', isToday: false }
+                ].map((schedule, index) => (
+                  <View 
+                    key={index} 
+                    className={`flex-row justify-between py-2 px-3 rounded-lg ${
+                      schedule.isToday ? 'bg-primary/10 border border-primary/20' : ''
+                    }`}
+                  >
+                    <Text className={`${schedule.isToday ? 'font-medium text-primary' : 'text-foreground'}`}>
+                      {schedule.day}
+                    </Text>
+                    <Text className={`${schedule.isToday ? 'font-medium text-primary' : 'text-muted-foreground'}`}>
+                      {schedule.time}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </CardContent>
+          </Card>
+        </View>
+
+        {/* Footer spacing */}
+        <View className="h-8" />
       </ScrollView>
     </SafeAreaView>
   );

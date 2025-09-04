@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   CreditCard, 
@@ -53,127 +52,132 @@ export default function PaymentsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="px-6 pt-4 pb-6">
-        <View className="flex-row items-center mb-4">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onPress={() => router.back()}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <Text className="text-xl font-bold text-foreground ml-2">Thanh toán</Text>
-        </View>
-      </View>
+      {/* Header Card */}
+      <Card className="mx-4 mt-4 mb-4">
+        <CardHeader>
+          <View className="flex-row items-center">
+            <TouchableOpacity 
+              className="p-2 rounded-md mr-3"
+              onPress={() => router.back()}
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </TouchableOpacity>
+            <CardTitle className="text-xl">Thanh toán</CardTitle>
+          </View>
+        </CardHeader>
+      </Card>
 
-      <ScrollView className="flex-1 px-6">
-        {/* Order Summary */}
-        <View className="mb-6">
-          <Text className="text-lg font-bold text-foreground mb-4">Tóm tắt đơn hàng</Text>
-          <Card className="p-4">
-            <View className="space-y-3">
+      <ScrollView className="flex-1 px-4">
+        {/* Order Summary Card */}
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Tóm tắt đơn hàng</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <View className="flex-row justify-between">
+              <Text className="text-muted-foreground">Tạm tính:</Text>
+              <Text className="font-semibold">{orderSummary.subtotal.toLocaleString()}đ</Text>
+            </View>
+            <View className="flex-row justify-between">
+              <Text className="text-muted-foreground">Giảm giá:</Text>
+              <Text className="font-semibold text-green-600">-{orderSummary.discount.toLocaleString()}đ</Text>
+            </View>
+            <View className="flex-row justify-between">
+              <Text className="text-muted-foreground">Thuế:</Text>
+              <Text className="font-semibold">{orderSummary.tax.toLocaleString()}đ</Text>
+            </View>
+            <View className="border-t border-border pt-3">
               <View className="flex-row justify-between">
-                <Text className="text-muted-foreground">Tạm tính:</Text>
-                <Text className="font-semibold">{orderSummary.subtotal.toLocaleString()}đ</Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-muted-foreground">Giảm giá:</Text>
-                <Text className="font-semibold text-green-600">-{orderSummary.discount.toLocaleString()}đ</Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-muted-foreground">Thuế:</Text>
-                <Text className="font-semibold">{orderSummary.tax.toLocaleString()}đ</Text>
-              </View>
-              <View className="border-t border-border pt-3">
-                <View className="flex-row justify-between">
-                  <Text className="text-lg font-bold text-foreground">Tổng cộng:</Text>
-                  <Text className="text-lg font-bold text-primary">{orderSummary.total.toLocaleString()}đ</Text>
-                </View>
+                <Text className="text-lg font-bold text-foreground">Tổng cộng:</Text>
+                <Text className="text-lg font-bold text-primary">{orderSummary.total.toLocaleString()}đ</Text>
               </View>
             </View>
-          </Card>
-        </View>
+          </CardContent>
+        </Card>
 
-        {/* Payment Methods */}
-        <View className="mb-6">
-          <Text className="text-lg font-bold text-foreground mb-4">Phương thức thanh toán</Text>
-          <View className="space-y-3">
+        {/* Payment Methods Card */}
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Phương thức thanh toán</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             {paymentMethods.map((method) => (
-              <Card 
-                key={method.id} 
-                className={`p-4 ${selectedMethod === method.id ? 'border-primary' : ''}`}
+              <TouchableOpacity 
+                key={method.id}
+                onPress={() => setSelectedMethod(method.id)}
               >
-                <View className="flex-row items-center">
-                  <View className={`w-12 h-12 ${method.color} rounded-full items-center justify-center mr-4`}>
-                    <method.icon className="w-6 h-6" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="font-semibold text-foreground">{method.title}</Text>
-                    <Text className="text-sm text-muted-foreground">{method.subtitle}</Text>
-                  </View>
-                  <Button 
-                    variant={selectedMethod === method.id ? "default" : "outline"}
-                    size="sm"
-                    onPress={() => setSelectedMethod(method.id)}
-                  >
-                    {selectedMethod === method.id && <CheckCircle className="w-4 h-4 mr-1" />}
-                    <Text className={selectedMethod === method.id ? "text-white" : ""}>
-                      {selectedMethod === method.id ? 'Đã chọn' : 'Chọn'}
-                    </Text>
-                  </Button>
-                </View>
-              </Card>
+                <Card className={`${selectedMethod === method.id ? 'border-primary' : ''}`}>
+                  <CardContent className="p-4">
+                    <View className="flex-row items-center">
+                      <View className={`w-12 h-12 ${method.color} rounded-full items-center justify-center mr-4`}>
+                        <method.icon className="w-6 h-6" />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="font-semibold text-foreground">{method.title}</Text>
+                        <Text className="text-sm text-muted-foreground">{method.subtitle}</Text>
+                      </View>
+                      <View className={`px-3 py-1.5 rounded-md ${selectedMethod === method.id ? 'bg-primary' : 'bg-muted'}`}>
+                        <View className="flex-row items-center">
+                          {selectedMethod === method.id && <CheckCircle className="w-4 h-4 mr-1 text-white" />}
+                          <Text className={selectedMethod === method.id ? "text-white" : "text-foreground"}>
+                            {selectedMethod === method.id ? 'Đã chọn' : 'Chọn'}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </CardContent>
+                </Card>
+              </TouchableOpacity>
             ))}
-          </View>
-        </View>
+          </CardContent>
+        </Card>
 
         {/* Card Details (if card selected) */}
         {selectedMethod === 'card' && (
-          <View className="mb-6">
-            <Text className="text-lg font-bold text-foreground mb-4">Thông tin thẻ</Text>
-            <Card className="p-4">
-              <View className="space-y-4">
-                <View>
-                  <Text className="text-sm font-semibold text-foreground mb-2">Số thẻ</Text>
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-lg">Thông tin thẻ</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <View>
+                <Text className="text-sm font-semibold text-foreground mb-2">Số thẻ</Text>
+                <Input 
+                  placeholder="1234 5678 9012 3456"
+                  className="border border-border"
+                />
+              </View>
+              
+              <View className="flex-row">
+                <View className="flex-1 mr-2">
+                  <Text className="text-sm font-semibold text-foreground mb-2">Ngày hết hạn</Text>
                   <Input 
-                    placeholder="1234 5678 9012 3456"
+                    placeholder="MM/YY"
                     className="border border-border"
                   />
                 </View>
-                
-                <View className="flex-row space-x-4">
-                  <View className="flex-1">
-                    <Text className="text-sm font-semibold text-foreground mb-2">Ngày hết hạn</Text>
-                    <Input 
-                      placeholder="MM/YY"
-                      className="border border-border"
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-semibold text-foreground mb-2">CVV</Text>
-                    <Input 
-                      placeholder="123"
-                      className="border border-border"
-                    />
-                  </View>
-                </View>
-                
-                <View>
-                  <Text className="text-sm font-semibold text-foreground mb-2">Tên chủ thẻ</Text>
+                <View className="flex-1">
+                  <Text className="text-sm font-semibold text-foreground mb-2">CVV</Text>
                   <Input 
-                    placeholder="NGUYEN VAN A"
+                    placeholder="123"
                     className="border border-border"
                   />
                 </View>
               </View>
-            </Card>
-          </View>
+              
+              <View>
+                <Text className="text-sm font-semibold text-foreground mb-2">Tên chủ thẻ</Text>
+                <Input 
+                  placeholder="NGUYEN VAN A"
+                  className="border border-border"
+                />
+              </View>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Security Info */}
-        <View className="mb-6">
-          <Card className="p-4 bg-green-50">
+        {/* Security Info Card */}
+        <Card className="mb-4 bg-green-50">
+          <CardContent className="p-4">
             <View className="flex-row items-center">
               <Shield className="w-5 h-5 text-green-600 mr-3" />
               <View className="flex-1">
@@ -183,22 +187,24 @@ export default function PaymentsScreen() {
                 </Text>
               </View>
             </View>
-          </Card>
-        </View>
+          </CardContent>
+        </Card>
 
-        {/* Payment Button */}
-        <View className="mb-6">
-          <Button 
-            size="lg"
-            className="w-full"
-            onPress={() => router.push('../(payments)/success')}
-          >
-            <Lock className="w-5 h-5 mr-2 text-white" />
-            <Text className="text-white font-semibold">
-              Thanh toán {orderSummary.total.toLocaleString()}đ
-            </Text>
-          </Button>
-        </View>
+        {/* Payment Button Card */}
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <Button 
+              size="lg"
+              className="w-full"
+              onPress={() => router.push('/(payments)/checkout')}
+            >
+              <Lock className="w-5 h-5 mr-2 text-white" />
+              <Text className="text-white font-semibold text-lg">
+                Thanh toán {orderSummary.total.toLocaleString()}đ
+              </Text>
+            </Button>
+          </CardContent>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );

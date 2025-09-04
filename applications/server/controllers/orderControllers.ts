@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/types/auth';
 import { z, ZodError } from 'zod';
 import {
-  ValidationError,
-  NotFoundError,
-  AuthError,
-  ForbiddenError,
+  createValidationError,
+  createNotFoundError,
+  createAuthError,
+  createForbiddenError,
   sendSuccess,
   sendPaginatedSuccess,
   asyncHandler,
@@ -38,39 +39,26 @@ import {
   getOrderAnalyticsData
 } from '@/services/orderServices';
 
-// AuthenticatedRequest interface
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-  restaurant?: {
-    id: string;
-    name: string;
-  };
-}
-
 // Universal error handler function
 const handleError = (error: any, res: Response) => {
   console.error('Order Controller Error:', error);
 
-  if (error instanceof ValidationError) {
+  if (error.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
       message: error.message,
-      errors: error.errors
+      errors: (error as any).errors
     });
   }
 
-  if (error instanceof NotFoundError) {
+  if (error.name === 'NotFoundError') {
     return res.status(404).json({
       success: false,
       message: error.message
     });
   }
 
-  if (error instanceof AuthError) {
+  if (error.name === 'AuthError') {
     return res.status(401).json({
       success: false,
       message: error.message
@@ -106,7 +94,7 @@ export const createOrderController = asyncHandler(async (req: AuthenticatedReque
     const result = await createOrder(validatedData);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendSuccess(res, result.data, 'Tạo đơn hàng thành công', 201);
@@ -124,7 +112,7 @@ export const getOrderByIdController = asyncHandler(async (req: AuthenticatedRequ
     const result = await getOrderById(id);
 
     if (!result.success) {
-      throw new NotFoundError(result.error!);
+      throw createNotFoundError(result.error!);
     }
 
     sendSuccess(res, result.data);
@@ -142,7 +130,7 @@ export const getOrderByCodeController = asyncHandler(async (req: AuthenticatedRe
     const result = await getOrderByCode(orderCode);
 
     if (!result.success) {
-      throw new NotFoundError(result.error!);
+      throw createNotFoundError(result.error!);
     }
 
     sendSuccess(res, result.data);
@@ -160,7 +148,7 @@ export const getOrdersController = asyncHandler(async (req: AuthenticatedRequest
     const result = await getOrders(validatedQuery);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendPaginatedSuccess(res, result.data?.orders || [], result.data?.pagination);
@@ -179,7 +167,7 @@ export const updateOrderController = asyncHandler(async (req: AuthenticatedReque
     const result = await updateOrder(id, validatedData);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendSuccess(res, result.data, 'Cập nhật đơn hàng thành công');
@@ -198,7 +186,7 @@ export const cancelOrderController = asyncHandler(async (req: AuthenticatedReque
     const result = await cancelOrder(id, validatedData);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendSuccess(res, result.data, 'Hủy đơn hàng thành công');
@@ -216,7 +204,7 @@ export const getOrderStatsController = asyncHandler(async (req: AuthenticatedReq
     const result = await getOrderStatistics(validatedQuery);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendSuccess(res, result.data);
@@ -234,7 +222,7 @@ export const getKitchenOrdersController = asyncHandler(async (req: Authenticated
     const result = await getKitchenOrderList(validatedQuery);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendPaginatedSuccess(res, result.data?.kitchen_orders || [], result.data?.pagination);
@@ -252,7 +240,7 @@ export const updateCookingStatusController = asyncHandler(async (req: Authentica
     const result = await updateCookingOrderStatus(validatedData);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendSuccess(res, result.data, 'Cập nhật trạng thái nấu ăn thành công');
@@ -270,7 +258,7 @@ export const bulkOrderActionsController = asyncHandler(async (req: Authenticated
     const result = await bulkUpdateOrders(validatedData);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendSuccess(res, result.data, 'Thực hiện hành động hàng loạt thành công');
@@ -288,7 +276,7 @@ export const getOrderAnalyticsController = asyncHandler(async (req: Authenticate
     const result = await getOrderAnalyticsData(validatedQuery);
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendSuccess(res, result.data);
@@ -307,7 +295,7 @@ export const getMyOrdersController = asyncHandler(async (req: AuthenticatedReque
     const result = await getOrders({ ...validatedQuery, customer_id: userId });
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendPaginatedSuccess(res, result.data?.orders || [], result.data?.pagination);
@@ -332,7 +320,7 @@ export const getCurrentOrderController = asyncHandler(async (req: AuthenticatedR
     });
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     const currentOrder = result.data?.orders && result.data.orders.length > 0 ? result.data.orders[0] : null;
@@ -347,16 +335,16 @@ export const getCurrentOrderController = asyncHandler(async (req: AuthenticatedR
  */
 export const getRestaurantOrdersController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const restaurantId = req.restaurant?.id;
+    const restaurantId = req.user?.restaurant_context?.restaurant_id;
     if (!restaurantId) {
-      throw new AuthError('Không có quyền truy cập nhà hàng');
+      throw createAuthError('Không có quyền truy cập nhà hàng');
     }
 
     const validatedQuery = validateQuery(req, OrderQuerySchema) as any;
     const result = await getOrders({ ...validatedQuery, restaurant_id: restaurantId });
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendPaginatedSuccess(res, result.data?.orders || [], result.data?.pagination);
@@ -370,9 +358,9 @@ export const getRestaurantOrdersController = asyncHandler(async (req: Authentica
  */
 export const getPendingOrdersController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const restaurantId = req.restaurant?.id;
+    const restaurantId = req.user?.restaurant_context?.restaurant_id;
     if (!restaurantId) {
-      throw new AuthError('Không có quyền truy cập nhà hàng');
+      throw createAuthError('Không có quyền truy cập nhà hàng');
     }
 
     const validatedQuery = validateQuery(req, OrderQuerySchema) as any;
@@ -383,7 +371,7 @@ export const getPendingOrdersController = asyncHandler(async (req: Authenticated
     });
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendPaginatedSuccess(res, result.data?.orders || [], result.data?.pagination);
@@ -397,16 +385,16 @@ export const getPendingOrdersController = asyncHandler(async (req: Authenticated
  */
 export const getRestaurantDashboardController = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const restaurantId = req.restaurant?.id;
+    const restaurantId = req.user?.restaurant_context?.restaurant_id;
     if (!restaurantId) {
-      throw new AuthError('Không có quyền truy cập nhà hàng');
+      throw createAuthError('Không có quyền truy cập nhà hàng');
     }
 
     const validatedQuery = validateQuery(req, OrderStatsSchema) as any;
     const result = await getOrderStatistics({ ...validatedQuery, restaurant_id: restaurantId });
 
     if (!result.success) {
-      throw new ValidationError(result.error!);
+      throw createValidationError(result.error!);
     }
 
     sendSuccess(res, result.data);

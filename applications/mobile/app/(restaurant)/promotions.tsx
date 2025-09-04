@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   Gift, 
@@ -14,7 +13,9 @@ import {
   Calendar,
   Percent,
   Tag,
-  ArrowRight
+  ArrowRight,
+  Copy,
+  CheckCircle2
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
@@ -93,153 +94,222 @@ export default function PromotionsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="px-6 pt-4 pb-6">
-        <Text className="text-2xl font-bold text-foreground mb-4">Khuyến mãi</Text>
-        
-        {/* Quick Stats */}
-        <View className="flex-row space-x-4 mb-6">
-          <Card className="flex-1 p-4">
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-primary">3</Text>
-              <Text className="text-sm text-muted-foreground">Khuyến mãi</Text>
-            </View>
-          </Card>
-          
-          <Card className="flex-1 p-4">
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-green-600">2</Text>
-              <Text className="text-sm text-muted-foreground">Mã giảm giá</Text>
-            </View>
+      <ScrollView className="flex-1">
+        {/* Header */}
+        <View className="px-4 mb-4">
+          <Card>
+            <CardContent className="px-4 py-6">
+              <Text className="text-3xl font-bold text-foreground mb-2">Khuyến mãi</Text>
+              <Text className="text-muted-foreground">Tiết kiệm hơn với các ưu đãi đặc biệt</Text>
+            </CardContent>
           </Card>
         </View>
-      </View>
-
-      {/* Tabs */}
-      <View className="px-6 mb-6">
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          items={[
-            { value: 'all', label: 'Tất cả' },
-            { value: 'food', label: 'Món ăn' },
-            { value: 'delivery', label: 'Vận chuyển' },
-            { value: 'drink', label: 'Đồ uống' }
-          ]}
-        />
-      </View>
-
-      {/* Promotions */}
-      <ScrollView className="flex-1 px-6">
-        <View className="space-y-4">
-          {filteredPromotions.map((promotion) => (
-            <Card key={promotion.id} className="p-4">
-              <View className="flex-row">
-                <Image
-                  source={{ uri: promotion.image }}
-                  className="w-20 h-20 rounded-lg mr-4"
-                />
-                <View className="flex-1">
-                  <View className="flex-row justify-between items-start mb-2">
-                    <View className="flex-1">
-                      <Text className="font-semibold text-foreground text-lg">
-                        {promotion.title}
-                      </Text>
-                      <Text className="text-sm text-muted-foreground">
-                        {promotion.subtitle}
-                      </Text>
-                    </View>
-                    <Badge className={promotion.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                      {promotion.isActive ? 'Đang diễn ra' : 'Đã kết thúc'}
-                    </Badge>
-                  </View>
-
-                  <View className="space-y-2 mb-3">
-                    <View className="flex-row items-center">
-                      <Percent className="w-4 h-4 text-primary mr-2" />
-                      <Text className="text-sm text-foreground">
-                        Giảm: <Text className="font-semibold text-primary">{promotion.discount}</Text>
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center">
-                      <Calendar className="w-4 h-4 text-muted-foreground mr-2" />
-                      <Text className="text-sm text-muted-foreground">
-                        Hạn sử dụng: {promotion.validUntil}
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center">
-                      <Tag className="w-4 h-4 text-muted-foreground mr-2" />
-                      <Text className="text-sm text-muted-foreground">
-                        Đơn tối thiểu: {promotion.minOrder.toLocaleString()}đ
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View className="flex-row justify-between items-center">
-                    <View className="flex-row items-center">
-                      <Users className="w-4 h-4 text-muted-foreground mr-1" />
-                      <Text className="text-xs text-muted-foreground">
-                        {promotion.usageCount} người đã sử dụng
-                      </Text>
-                    </View>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onPress={() => router.push(`../(promotions)/detail/${promotion.id}`)}
-                    >
-                      <Text className="text-xs">Chi tiết</Text>
-                      <ArrowRight className="w-3 h-3 ml-1" />
-                    </Button>
-                  </View>
-                </View>
-              </View>
+        
+        {/* Quick Stats */}
+        <View className="px-4 mb-4">
+          <View className="flex-row space-x-2">
+            <Card className="flex-1">
+              <CardContent className="px-4 py-4 items-center">
+                <Gift className="w-6 h-6 text-primary mb-2" />
+                <Text className="text-lg font-bold text-foreground">8</Text>
+                <Text className="text-xs text-muted-foreground">Khuyến mãi</Text>
+              </CardContent>
             </Card>
+            <Card className="flex-1">
+              <CardContent className="px-4 py-4 items-center">
+                <Percent className="w-6 h-6 text-green-500 mb-2" />
+                <Text className="text-lg font-bold text-foreground">2</Text>
+                <Text className="text-xs text-muted-foreground">Voucher</Text>
+              </CardContent>
+            </Card>
+            <Card className="flex-1">
+              <CardContent className="px-4 py-4 items-center">
+                <Users className="w-6 h-6 text-blue-500 mb-2" />
+                <Text className="text-lg font-bold text-foreground">479</Text>
+                <Text className="text-xs text-muted-foreground">Đã dùng</Text>
+              </CardContent>
+            </Card>
+          </View>
+        </View>
+
+        {/* Tabs */}
+        <View className="px-4 mb-4">
+          <Card>
+            <CardContent className="px-4 py-3">
+              <View className="flex-row bg-muted rounded-lg p-1">
+                {[
+                  { value: 'all', label: 'Tất cả' },
+                  { value: 'food', label: 'Món ăn' },
+                  { value: 'delivery', label: 'Ship' },
+                  { value: 'drink', label: 'Đồ uống' }
+                ].map((tab) => (
+                  <TouchableOpacity
+                    key={tab.value}
+                    className={`flex-1 py-2 rounded-md ${activeTab === tab.value ? 'bg-background shadow-sm' : ''}`}
+                    onPress={() => setActiveTab(tab.value)}
+                  >
+                    <Text className={`text-center font-medium text-sm ${
+                      activeTab === tab.value ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
+                      {tab.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </CardContent>
+          </Card>
+        </View>
+
+        {/* Promotions */}
+        <View className="px-4 mb-4">
+          {filteredPromotions.map((promotion) => (
+            <TouchableOpacity 
+              key={promotion.id}
+              className="mb-4"
+              onPress={() => console.log('View promotion details:', promotion.id)}
+            >
+              <Card className="bg-white dark:bg-card">
+                <CardContent className="px-4 py-4">
+                  <View className="flex-row">
+                    <View className="w-20 h-20 rounded-lg overflow-hidden mr-4">
+                      <Image
+                        source={{ uri: promotion.image }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    </View>
+                    
+                    <View className="flex-1">
+                      <View className="flex-row justify-between items-start mb-2">
+                        <View className="flex-1 mr-2">
+                          <Text className="font-semibold text-foreground text-base mb-1">
+                            {promotion.title}
+                          </Text>
+                          <Text className="text-sm text-muted-foreground">
+                            {promotion.subtitle}
+                          </Text>
+                        </View>
+                        <Badge variant={promotion.isActive ? 'default' : 'secondary'}>
+                          <Text className="text-xs">
+                            {promotion.isActive ? 'Đang diễn ra' : 'Đã kết thúc'}
+                          </Text>
+                        </Badge>
+                      </View>
+
+                      <View className="space-y-1 mb-3">
+                        <View className="flex-row items-center">
+                          <Percent className="w-4 h-4 text-primary mr-2" />
+                          <Text className="text-sm text-foreground">
+                            Giảm: <Text className="font-semibold text-primary">{promotion.discount}</Text>
+                          </Text>
+                        </View>
+                        <View className="flex-row items-center">
+                          <Calendar className="w-4 h-4 text-muted-foreground mr-2" />
+                          <Text className="text-sm text-muted-foreground">
+                            HSD: {promotion.validUntil}
+                          </Text>
+                        </View>
+                        <View className="flex-row items-center">
+                          <Tag className="w-4 h-4 text-muted-foreground mr-2" />
+                          <Text className="text-sm text-muted-foreground">
+                            Tối thiểu: {promotion.minOrder.toLocaleString()}đ
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-row items-center">
+                          <Users className="w-4 h-4 text-muted-foreground mr-1" />
+                          <Text className="text-xs text-muted-foreground">
+                            {promotion.usageCount} người đã dùng
+                          </Text>
+                        </View>
+                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                      </View>
+                    </View>
+                  </View>
+                </CardContent>
+              </Card>
+            </TouchableOpacity>
           ))}
         </View>
 
         {/* Vouchers Section */}
-        <View className="mt-8 mb-6">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-lg font-bold text-foreground">Mã giảm giá</Text>
-            <Button variant="ghost" onPress={() => router.push('../(promotions)/vouchers')}>
-              <Text className="text-primary">Xem tất cả</Text>
-            </Button>
-          </View>
-          
-          <View className="space-y-3">
-            {vouchers.map((voucher) => (
-              <Card key={voucher.id} className="p-4">
-                <View className="flex-row justify-between items-center">
-                  <View className="flex-1">
-                    <View className="flex-row items-center mb-1">
-                      <Text className="font-bold text-foreground text-lg mr-2">
-                        {voucher.code}
-                      </Text>
-                      <Badge className={voucher.isUsed ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'}>
-                        {voucher.isUsed ? 'Đã sử dụng' : 'Có thể sử dụng'}
-                      </Badge>
-                    </View>
-                    <Text className="text-sm text-muted-foreground mb-1">
-                      {voucher.title}
-                    </Text>
-                    <Text className="text-sm text-muted-foreground">
-                      Giảm {voucher.discount} • Đơn tối thiểu {voucher.minOrder.toLocaleString()}đ
-                    </Text>
-                  </View>
-                  <Button 
-                    variant={voucher.isUsed ? "outline" : "default"}
-                    size="sm"
-                    disabled={voucher.isUsed}
-                  >
-                    <Text className={voucher.isUsed ? "text-muted-foreground" : "text-white"}>
-                      {voucher.isUsed ? 'Đã dùng' : 'Sử dụng'}
-                    </Text>
-                  </Button>
+        <View className="px-4 mb-4">
+          <Card>
+            <CardHeader>
+              <View className="flex-row justify-between items-center">
+                <CardTitle className="text-lg">Mã giảm giá</CardTitle>
+                <TouchableOpacity onPress={() => console.log('View all vouchers')}>
+                  <Text className="text-primary text-sm">Xem tất cả</Text>
+                </TouchableOpacity>
+              </View>
+            </CardHeader>
+            <CardContent className="px-4">
+              {vouchers.map((voucher) => (
+                <View key={voucher.id} className="mb-4 last:mb-0">
+                  <Card className="bg-gradient-to-r from-primary/5 to-blue-500/5 border-dashed border-primary/20">
+                    <CardContent className="px-4 py-4">
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-1">
+                          <View className="flex-row items-center mb-1">
+                            <Text className="font-bold text-foreground text-base mr-2">
+                              {voucher.code}
+                            </Text>
+                            {voucher.isUsed ? (
+                              <Badge variant="secondary">
+                                <Text className="text-xs">Đã sử dụng</Text>
+                              </Badge>
+                            ) : (
+                              <Badge>
+                                <Text className="text-xs">Có thể dùng</Text>
+                              </Badge>
+                            )}
+                          </View>
+                          
+                          <Text className="text-sm text-muted-foreground mb-2">
+                            {voucher.title}
+                          </Text>
+                          
+                          <View className="flex-row items-center space-x-4">
+                            <View className="flex-row items-center">
+                              <Gift className="w-4 h-4 text-primary mr-1" />
+                              <Text className="text-sm font-medium text-primary">
+                                {voucher.discount}
+                              </Text>
+                            </View>
+                            <View className="flex-row items-center">
+                              <Clock className="w-4 h-4 text-muted-foreground mr-1" />
+                              <Text className="text-xs text-muted-foreground">
+                                {voucher.validUntil}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+
+                        <TouchableOpacity 
+                          className={`px-4 py-2 rounded-lg ${
+                            voucher.isUsed ? 'bg-muted' : 'bg-primary'
+                          }`}
+                          disabled={voucher.isUsed}
+                        >
+                          {voucher.isUsed ? (
+                            <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
+                          ) : (
+                            <Copy className="w-5 h-5 text-white" />
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </CardContent>
+                  </Card>
                 </View>
-              </Card>
-            ))}
-          </View>
+              ))}
+            </CardContent>
+          </Card>
         </View>
+
+        {/* Footer spacing */}
+        <View className="h-8" />
       </ScrollView>
     </SafeAreaView>
   );

@@ -24,6 +24,7 @@
   "dependencies": {
     "@clerk/express": "^1.7.28",
     "@prisma/client": "^6.15.0",
+    "@supabase/supabase-js": "^2.57.0",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
@@ -47,6 +48,7 @@
     "prisma": "^6.15.0",
     "sequelize": "^6.37.7",
     "socket.io": "^4.8.1",
+    "svix": "^1.76.1",
     "uuid": "^11.1.0",
     "zod": "^4.1.5"
   },
@@ -72,13 +74,6 @@
     "typescript": "^5.9.2"
   },
   "_moduleAliases": {
-    "@app": "dist/app",
-    "@config": "dist/config",
-    "@controllers": "dist/controllers",
-    "@middlewares": "dist/middlewares",
-    "@models": "dist/models",
-    "@routes": "dist/routes",
-    "@utils": "dist/utils",
-    "@types": "dist/types"
+    "@": ".express"
   }
 }

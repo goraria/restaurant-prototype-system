@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs } from '@/components/ui/tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   Clock, 
@@ -68,16 +67,16 @@ export default function HistoryScreen() {
     }
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'default';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'destructive';
       case 'upcoming':
-        return 'bg-blue-100 text-blue-800';
+        return 'secondary';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'outline';
     }
   };
 
@@ -96,169 +95,189 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="px-6 pt-4 pb-6">
-        <Text className="text-2xl font-bold text-foreground mb-4">Lịch sử</Text>
+      {/* Header Card */}
+      <Card className="mx-4 mt-4 mb-4">
+        <CardHeader>
+          <CardTitle className="text-2xl">Lịch sử</CardTitle>
+        </CardHeader>
+      </Card>
+
+      {/* Quick Stats Cards */}
+      <View className="flex-row px-4 mb-4">
+        <Card className="flex-1 mr-2">
+          <CardContent className="p-4 items-center">
+            <Text className="text-2xl font-bold text-primary">{reservations.length}</Text>
+            <Text className="text-sm text-muted-foreground">Đặt bàn</Text>
+          </CardContent>
+        </Card>
         
-        {/* Quick Stats */}
-        <View className="flex-row space-x-4 mb-6">
-          <Card className="flex-1 p-4">
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-primary">{reservations.length}</Text>
-              <Text className="text-sm text-muted-foreground">Đặt bàn</Text>
-            </View>
-          </Card>
-          
-          <Card className="flex-1 p-4">
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-green-600">{orders.length}</Text>
-              <Text className="text-sm text-muted-foreground">Đơn hàng</Text>
-            </View>
-          </Card>
-        </View>
+        <Card className="flex-1">
+          <CardContent className="p-4 items-center">
+            <Text className="text-2xl font-bold text-green-600">{orders.length}</Text>
+            <Text className="text-sm text-muted-foreground">Đơn hàng</Text>
+          </CardContent>
+        </Card>
       </View>
 
-      {/* Tabs */}
-      <View className="px-6 mb-6">
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          items={[
-            { value: 'reservations', label: 'Đặt bàn' },
-            { value: 'orders', label: 'Đơn hàng' }
-          ]}
-        />
-      </View>
+      {/* Tabs Card */}
+      <Card className="mx-4 mb-4">
+        <CardContent className="p-4">
+          <View className="flex-row bg-muted rounded-lg p-1">
+            <TouchableOpacity 
+              className={`flex-1 py-3 px-4 rounded-md ${activeTab === 'reservations' ? 'bg-background shadow-sm' : ''}`}
+              onPress={() => setActiveTab('reservations')}
+            >
+              <Text className={`text-center font-medium ${activeTab === 'reservations' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Đặt bàn
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              className={`flex-1 py-3 px-4 rounded-md ${activeTab === 'orders' ? 'bg-background shadow-sm' : ''}`}
+              onPress={() => setActiveTab('orders')}
+            >
+              <Text className={`text-center font-medium ${activeTab === 'orders' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Đơn hàng
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </CardContent>
+      </Card>
 
       {/* Content */}
-      <ScrollView className="flex-1 px-6">
+      <ScrollView className="flex-1 px-4">
         {activeTab === 'reservations' && (
-          <View className="space-y-4">
+          <View>
             {reservations.map((reservation) => (
-              <Card key={reservation.id} className="p-4">
-                <View className="flex-row">
-                  <Image
-                    source={{ uri: reservation.image }}
-                    className="w-20 h-20 rounded-lg mr-4"
-                  />
-                  <View className="flex-1">
-                    <View className="flex-row justify-between items-start mb-2">
-                      <Text className="font-semibold text-foreground text-lg">
-                        {reservation.restaurant}
-                      </Text>
-                      <Badge className={getStatusColor(reservation.status)}>
-                        {getStatusText(reservation.status)}
-                      </Badge>
-                    </View>
-
-                    <View className="space-y-1 mb-3">
-                      <View className="flex-row items-center">
-                        <Calendar className="w-4 h-4 text-muted-foreground mr-2" />
-                        <Text className="text-sm text-muted-foreground">
-                          {reservation.date} lúc {reservation.time}
+              <Card key={reservation.id} className="mb-4">
+                <CardContent className="p-4">
+                  <View className="flex-row">
+                    <Image
+                      source={{ uri: reservation.image }}
+                      className="w-20 h-20 rounded-lg mr-4"
+                      resizeMode="cover"
+                    />
+                    <View className="flex-1">
+                      <View className="flex-row justify-between items-start mb-2">
+                        <Text className="font-semibold text-foreground text-lg flex-1" numberOfLines={1}>
+                          {reservation.restaurant}
                         </Text>
+                        <Badge variant={getStatusVariant(reservation.status)}>
+                          <Text className="text-xs font-medium">{getStatusText(reservation.status)}</Text>
+                        </Badge>
                       </View>
-                      <View className="flex-row items-center">
-                        <Users className="w-4 h-4 text-muted-foreground mr-2" />
-                        <Text className="text-sm text-muted-foreground">
-                          {reservation.people} người
-                        </Text>
-                      </View>
-                    </View>
 
-                    <View className="flex-row justify-between items-center">
-                      {reservation.rating && (
+                      <View className="space-y-1 mb-3">
                         <View className="flex-row items-center">
-                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                          <Text className="text-sm font-semibold">{reservation.rating}/5</Text>
+                          <Calendar className="w-4 h-4 text-muted-foreground mr-2" />
+                          <Text className="text-sm text-muted-foreground">
+                            {reservation.date} lúc {reservation.time}
+                          </Text>
                         </View>
-                      )}
-                      <View className="flex-row space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onPress={() => router.push(`/(history)/reservation/${reservation.id}`)}
-                        >
-                          <Text className="text-xs">Chi tiết</Text>
-                        </Button>
-                        {reservation.status === 'completed' && !reservation.rating && (
-                          <Button 
+                        <View className="flex-row items-center">
+                          <Users className="w-4 h-4 text-muted-foreground mr-2" />
+                          <Text className="text-sm text-muted-foreground">
+                            {reservation.people} người
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View className="flex-row justify-between items-center">
+                        {reservation.rating && (
+                          <View className="flex-row items-center">
+                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                            <Text className="text-sm font-semibold">{reservation.rating}/5</Text>
+                          </View>
+                        )}
+                        <View className="flex-row gap-2">
+                          <Button
                             variant="outline" 
                             size="sm"
-                            onPress={() => router.push(`/(history)/review/${reservation.id}`)}
+                            onPress={() => router.push('/(booking)/reservations')}
                           >
-                            <Text className="text-xs">Đánh giá</Text>
+                            <Text className="text-xs">Chi tiết</Text>
                           </Button>
-                        )}
+                          {reservation.status === 'completed' && !reservation.rating && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onPress={() => router.push('/(account)/chat')}
+                            >
+                              <Text className="text-xs">Đánh giá</Text>
+                            </Button>
+                          )}
+                        </View>
                       </View>
                     </View>
                   </View>
-                </View>
+                </CardContent>
               </Card>
             ))}
           </View>
         )}
 
         {activeTab === 'orders' && (
-          <View className="space-y-4">
+          <View>
             {orders.map((order) => (
-              <Card key={order.id} className="p-4">
-                <View className="flex-row">
-                  <Image
-                    source={{ uri: order.image }}
-                    className="w-20 h-20 rounded-lg mr-4"
-                  />
-                  <View className="flex-1">
-                    <View className="flex-row justify-between items-start mb-2">
-                      <Text className="font-semibold text-foreground text-lg">
-                        {order.restaurant}
-                      </Text>
-                      <Badge className={getStatusColor(order.status)}>
-                        {getStatusText(order.status)}
-                      </Badge>
-                    </View>
+              <Card key={order.id} className="mb-4">
+                <CardContent className="p-4">
+                  <View className="flex-row">
+                    <Image
+                      source={{ uri: order.image }}
+                      className="w-20 h-20 rounded-lg mr-4"
+                      resizeMode="cover"
+                    />
+                    <View className="flex-1">
+                      <View className="flex-row justify-between items-start mb-2">
+                        <Text className="font-semibold text-foreground text-lg flex-1" numberOfLines={1}>
+                          {order.restaurant}
+                        </Text>
+                        <Badge variant={getStatusVariant(order.status)}>
+                          <Text className="text-xs font-medium">{getStatusText(order.status)}</Text>
+                        </Badge>
+                      </View>
 
-                    <View className="space-y-1 mb-3">
-                      <View className="flex-row items-center">
-                        <Calendar className="w-4 h-4 text-muted-foreground mr-2" />
-                        <Text className="text-sm text-muted-foreground">
-                          {order.date}
+                      <View className="space-y-1 mb-3">
+                        <View className="flex-row items-center">
+                          <Calendar className="w-4 h-4 text-muted-foreground mr-2" />
+                          <Text className="text-sm text-muted-foreground">
+                            {order.date}
+                          </Text>
+                        </View>
+                        <Text className="text-sm text-muted-foreground" numberOfLines={2}>
+                          {order.items.join(', ')}
+                        </Text>
+                        <Text className="font-semibold text-foreground">
+                          {order.total.toLocaleString()}đ
                         </Text>
                       </View>
-                      <Text className="text-sm text-muted-foreground">
-                        {order.items.join(', ')}
-                      </Text>
-                      <Text className="font-semibold text-foreground">
-                        {order.total.toLocaleString()}đ
-                      </Text>
-                    </View>
 
-                    <View className="flex-row justify-between items-center">
-                      {order.rating && (
-                        <View className="flex-row items-center">
-                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                          <Text className="text-sm font-semibold">{order.rating}/5</Text>
+                      <View className="flex-row justify-between items-center">
+                        {order.rating && (
+                          <View className="flex-row items-center">
+                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                            <Text className="text-sm font-semibold">{order.rating}/5</Text>
+                          </View>
+                        )}
+                        <View className="flex-row gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onPress={() => router.push('/(booking)/food')}
+                          >
+                            <Text className="text-xs">Chi tiết</Text>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onPress={() => router.push('/(booking)/cart')}
+                          >
+                            <Text className="text-xs">Đặt lại</Text>
+                          </Button>
                         </View>
-                      )}
-                      <View className="flex-row space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onPress={() => router.push(`/(history)/order/${order.id}`)}
-                        >
-                          <Text className="text-xs">Chi tiết</Text>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onPress={() => router.push(`/(history)/reorder/${order.id}`)}
-                        >
-                          <Text className="text-xs">Đặt lại</Text>
-                        </Button>
                       </View>
                     </View>
                   </View>
-                </View>
+                </CardContent>
               </Card>
             ))}
           </View>

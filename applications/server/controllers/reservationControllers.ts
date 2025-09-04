@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '@/types/auth';
 import {
   CreateReservationSchema,
   UpdateReservationSchema,
@@ -21,15 +22,6 @@ import {
   createWalkIn,
   getReservationAnalytics
 } from '@/services/reservationServices';
-
-// Interface for authenticated requests
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-    restaurantId?: string;
-  };
-}
 
 // ================================
 // 🎯 RESERVATION CONTROLLERS
@@ -88,8 +80,8 @@ export async function getReservationsController(req: AuthenticatedRequest, res: 
     const validatedQuery = ReservationQuerySchema.parse(queryParams);
     
     // Nếu user không phải admin, chỉ xem được reservations của restaurant mình
-    if (req.user?.role !== 'admin' && req.user?.restaurantId) {
-      validatedQuery.restaurant_id = req.user.restaurantId;
+    if (req.user?.role !== 'admin' && req.user?.restaurant_context?.restaurant_id) {
+      validatedQuery.restaurant_id = req.user.restaurant_context.restaurant_id;
     }
 
     const result = await getReservations(validatedQuery);
@@ -140,7 +132,7 @@ export async function getReservationByIdController(req: AuthenticatedRequest, re
 
     if (result.success) {
       // Kiểm tra quyền truy cập
-      if (req.user?.role !== 'admin' && req.user?.restaurantId !== result.data?.tables.restaurant_id) {
+      if (req.user?.role !== 'admin' && req.user?.restaurant_context?.restaurant_id !== result.data?.tables.restaurant_id) {
         return res.status(403).json({
           success: false,
           error: 'Không có quyền truy cập'
@@ -190,7 +182,7 @@ export async function updateReservationController(req: AuthenticatedRequest, res
       });
     }
 
-    if (req.user?.role !== 'admin' && req.user?.restaurantId !== existingReservation.data?.tables.restaurant_id) {
+    if (req.user?.role !== 'admin' && req.user?.restaurant_context?.restaurant_id !== existingReservation.data?.tables.restaurant_id) {
       return res.status(403).json({
         success: false,
         error: 'Không có quyền cập nhật'
@@ -252,7 +244,7 @@ export async function updateReservationStatusController(req: AuthenticatedReques
       });
     }
 
-    if (req.user?.role !== 'admin' && req.user?.restaurantId !== existingReservation.data?.tables.restaurant_id) {
+    if (req.user?.role !== 'admin' && req.user?.restaurant_context?.restaurant_id !== existingReservation.data?.tables.restaurant_id) {
       return res.status(403).json({
         success: false,
         error: 'Không có quyền cập nhật'
@@ -313,7 +305,7 @@ export async function deleteReservationController(req: AuthenticatedRequest, res
       });
     }
 
-    if (req.user?.role !== 'admin' && req.user?.restaurantId !== existingReservation.data?.tables.restaurant_id) {
+    if (req.user?.role !== 'admin' && req.user?.restaurant_context?.restaurant_id !== existingReservation.data?.tables.restaurant_id) {
       return res.status(403).json({
         success: false,
         error: 'Không có quyền xóa'
@@ -471,8 +463,8 @@ export async function getReservationAnalyticsController(req: AuthenticatedReques
     const validatedData = ReservationAnalyticsSchema.parse(req.body);
 
     // Nếu không phải admin, chỉ xem analytics của restaurant mình
-    if (req.user?.role !== 'admin' && req.user?.restaurantId) {
-      validatedData.restaurant_id = req.user.restaurantId;
+    if (req.user?.role !== 'admin' && req.user?.restaurant_context?.restaurant_id) {
+      validatedData.restaurant_id = req.user.restaurant_context?.restaurant_id;
     }
 
     const result = await getReservationAnalytics(validatedData);
@@ -515,7 +507,7 @@ export async function getTodayReservationsController(req: AuthenticatedRequest, 
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
     const queryParams = {
-      restaurant_id: req.user?.restaurantId,
+      restaurant_id: req.user?.restaurant_context?.restaurant_id,
       date_from: startOfDay.toISOString(),
       date_to: endOfDay.toISOString(),
       page: 1,
@@ -555,7 +547,7 @@ export async function getUpcomingReservationsController(req: AuthenticatedReques
     const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
     const queryParams = {
-      restaurant_id: req.user?.restaurantId,
+      restaurant_id: req.user?.restaurant_context?.restaurant_id,
       date_from: now.toISOString(),
       date_to: twoHoursLater.toISOString(),
       status: 'confirmed' as const,

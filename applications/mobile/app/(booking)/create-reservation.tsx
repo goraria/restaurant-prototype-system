@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -70,177 +71,184 @@ export default function CreateReservationScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScrollView className="flex-1">
+      <ScrollView className="flex-1 px-4">
         {/* Header */}
-        <View className="px-6 pt-4 pb-6">
-          <View className="flex-row items-center mb-4">
-            <Button 
-              variant="ghost" 
-              className="w-10 h-10 p-0 mr-3"
-              onPress={() => router.back()}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <Text className="text-2xl font-bold text-foreground">Đặt bàn mới</Text>
-          </View>
-        </View>
+        <Card className="mt-4 mb-4">
+          <CardHeader>
+            <View className="flex-row items-center">
+              <TouchableOpacity 
+                className="w-10 h-10 items-center justify-center mr-3"
+                onPress={() => router.back()}
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </TouchableOpacity>
+              <CardTitle className="text-2xl">Đặt bàn mới</CardTitle>
+            </View>
+          </CardHeader>
+        </Card>
 
         {/* Restaurant Selection */}
-        <View className="px-6 mb-6">
-          <Text className="text-lg font-bold text-foreground mb-4">Chọn nhà hàng</Text>
-          <Card className="p-4">
-            <View className="space-y-4">
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Chọn nhà hàng</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View className="relative mb-4">
+              <Input
+                placeholder="Tìm kiếm nhà hàng..."
+                className="pl-10"
+              />
+              <Search className="w-5 h-5 text-muted-foreground absolute left-3 top-3" />
+            </View>
+            
+            <View>
+              <Label className="mb-2">Nhà hàng gần đây</Label>
               <View>
-                <Label className="mb-2">Tìm kiếm nhà hàng</Label>
-                <View className="relative">
-                  <Input
-                    placeholder="Nhập tên nhà hàng..."
-                    className="pl-10"
-                  />
-                  <Search className="w-5 h-5 text-muted-foreground absolute left-3 top-3" />
-                </View>
-              </View>
-              
-              <View>
-                <Label className="mb-2">Nhà hàng gần đây</Label>
-                <View className="space-y-3">
-                  {restaurants.map((restaurant) => (
-                    <Card 
-                      key={restaurant.id} 
-                      className={`p-3 ${selectedRestaurant === restaurant.id ? 'border-primary' : ''}`}
-                    >
-                      <View className="flex-row items-center">
-                        <Image
-                          source={{ uri: restaurant.image }}
-                          className="w-16 h-16 rounded-lg mr-3"
-                        />
-                        <View className="flex-1">
-                          <Text className="font-semibold text-foreground">{restaurant.name}</Text>
-                          <Text className="text-sm text-muted-foreground">{restaurant.cuisine}</Text>
-                          <View className="flex-row items-center mt-1">
-                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                            <Text className="text-sm font-semibold">{restaurant.rating}</Text>
-                            <Text className="text-sm text-muted-foreground ml-1">({restaurant.address})</Text>
-                          </View>
+                {restaurants.map((restaurant) => (
+                  <TouchableOpacity
+                    key={restaurant.id} 
+                    onPress={() => setSelectedRestaurant(restaurant.id)}
+                    className={`mb-2 p-3 rounded-lg border ${selectedRestaurant === restaurant.id ? 'border-primary bg-primary/5' : 'border-border'}`}
+                  >
+                    <View className="flex-row items-center">
+                      <Image
+                        source={{ uri: restaurant.image }}
+                        className="w-16 h-16 rounded-lg mr-4"
+                      />
+                      <View className="flex-1">
+                        <Text className="font-semibold text-foreground">{restaurant.name}</Text>
+                        <Text className="text-sm text-muted-foreground">{restaurant.cuisine}</Text>
+                        <View className="flex-row items-center mt-1">
+                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                          <Text className="text-sm font-semibold">{restaurant.rating}</Text>
                         </View>
-                        <Button 
-                          variant={selectedRestaurant === restaurant.id ? "default" : "outline"}
-                          size="sm"
-                          disabled={!restaurant.available}
-                          onPress={() => setSelectedRestaurant(restaurant.id)}
-                        >
-                          <Text className={selectedRestaurant === restaurant.id ? "text-white" : "text-foreground"}>
-                            {restaurant.available ? 'Chọn' : 'Hết chỗ'}
-                          </Text>
-                        </Button>
+                        <Text className="text-xs text-muted-foreground mt-1">{restaurant.address}</Text>
                       </View>
-                    </Card>
-                  ))}
-                </View>
+                      <Badge variant={restaurant.available ? 'default' : 'destructive'}>
+                        <Text className="text-xs font-medium">
+                          {restaurant.available ? 'Còn chỗ' : 'Hết chỗ'}
+                        </Text>
+                      </Badge>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          </Card>
-        </View>
+          </CardContent>
+        </Card>
 
         {/* Date & Time Selection */}
-        <View className="px-6 mb-6">
-          <Text className="text-lg font-bold text-foreground mb-4">Chọn ngày và giờ</Text>
-          <Card className="p-4">
-            <View className="space-y-4">
-              <View>
-                <Label className="mb-2">Ngày</Label>
-                <View className="flex-row justify-between items-center p-3 border rounded-lg">
-                  <View className="flex-row items-center">
-                    <Calendar className="w-5 h-5 text-primary mr-2" />
-                    <Text className="font-semibold text-foreground">15 Tháng 2, 2024</Text>
-                  </View>
-                  <Button variant="outline" size="sm">
-                    <Text className="text-primary">Thay đổi</Text>
-                  </Button>
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Chọn ngày và giờ</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View className="mb-4">
+              <Label className="mb-2">Ngày</Label>
+              <TouchableOpacity className="flex-row justify-between items-center p-3 border rounded-lg">
+                <View className="flex-row items-center">
+                  <Calendar className="w-5 h-5 text-primary mr-2" />
+                  <Text className="font-semibold text-foreground">15 Tháng 2, 2024</Text>
                 </View>
-              </View>
-              
-              <View>
-                <Label className="mb-2">Giờ</Label>
-                <View className="flex-row flex-wrap justify-between">
-                  {timeSlots.map((time) => (
-                    <Button
-                      key={time}
-                      variant={selectedTime === time ? "default" : "outline"}
-                      size="sm"
-                      className="w-[30%] mb-3"
-                      onPress={() => setSelectedTime(time)}
-                    >
-                      <Text className={selectedTime === time ? "text-white" : "text-foreground"}>
+                <Text className="text-primary">Thay đổi</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View>
+              <Label className="mb-2">Giờ</Label>
+              <View className="flex-row flex-wrap gap-2">
+                {timeSlots.map((time) => (
+                  <TouchableOpacity
+                    key={time}
+                    onPress={() => setSelectedTime(time)}
+                    className={`px-3 py-2 rounded-lg border mr-2 mb-2 ${selectedTime === time ? 'bg-primary border-primary' : 'border-border'}`}
+                    style={{ minWidth: '30%' }}
+                  >
+                    <View className="flex-row items-center justify-center">
+                      <Text className={`text-sm font-medium ${selectedTime === time ? "text-white" : "text-foreground"}`}>
                         {time}
                       </Text>
                       {popularTimes.includes(time) && (
-                        <Text className={`text-xs ml-1 ${selectedTime === time ? "text-white/70" : "text-muted-foreground"}`}>
+                        <Text className={`text-xs ml-1 ${selectedTime === time ? "text-white/70" : "text-yellow-500"}`}>
                           ★
                         </Text>
                       )}
-                    </Button>
-                  ))}
-                </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          </Card>
-        </View>
+          </CardContent>
+        </Card>
 
         {/* Party Size */}
-        <View className="px-6 mb-6">
-          <Text className="text-lg font-bold text-foreground mb-4">Số lượng khách</Text>
-          <Card className="p-4">
-            <View className="space-y-4">
-              <View>
-                <Label className="mb-2">Số người</Label>
-                <Select
-                  value={selectedPartySize}
-                  onValueChange={setSelectedPartySize}
-                  items={partySizes.map(size => ({ value: size, label: `${size} người` }))}
-                />
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Số lượng khách</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View className="mb-4">
+              <Label className="mb-2">Số người</Label>
+              <View className="flex-row flex-wrap gap-2">
+                {partySizes.map((size) => (
+                  <TouchableOpacity
+                    key={size}
+                    onPress={() => setSelectedPartySize(size)}
+                    className={`px-4 py-2 rounded-lg border mr-2 mb-2 ${selectedPartySize === size ? 'bg-primary border-primary' : 'border-border'}`}
+                  >
+                    <Text className={`text-sm font-medium ${selectedPartySize === size ? "text-white" : "text-foreground"}`}>
+                      {size} người
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              
-              <View className="bg-blue-50 p-3 rounded-lg">
+            </View>
+            
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-3">
                 <View className="flex-row items-center">
                   <Users className="w-5 h-5 text-blue-600 mr-2" />
                   <Text className="text-sm text-blue-800">
                     Gợi ý: Bàn {selectedPartySize} người sẽ được ưu tiên
                   </Text>
                 </View>
-              </View>
-            </View>
-          </Card>
-        </View>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
 
         {/* Special Requests */}
-        <View className="px-6 mb-6">
-          <Text className="text-lg font-bold text-foreground mb-4">Yêu cầu đặc biệt</Text>
-          <Card className="p-4">
-            <View className="space-y-4">
-              <View>
-                <Label className="mb-2">Ghi chú</Label>
-                <Textarea
-                  placeholder="Ví dụ: Bàn gần cửa sổ, không gian yên tĩnh, chỗ ngồi cho trẻ em..."
-                  value={specialRequests}
-                  onChangeText={setSpecialRequests}
-                  className="min-h-[80px]"
-                />
-              </View>
-              
-              <View className="bg-yellow-50 p-3 rounded-lg">
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Yêu cầu đặc biệt</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <View className="mb-4">
+              <Label className="mb-2">Ghi chú</Label>
+              <Textarea
+                placeholder="Ví dụ: Bàn gần cửa sổ, không gian yên tĩnh, chỗ ngồi cho trẻ em..."
+                value={specialRequests}
+                onChangeText={setSpecialRequests}
+                className="min-h-[80px]"
+              />
+            </View>
+            
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardContent className="p-3">
                 <Text className="text-sm text-yellow-800">
                   💡 Mẹo: Ghi rõ yêu cầu để nhà hàng phục vụ tốt hơn
                 </Text>
-              </View>
-            </View>
-          </Card>
-        </View>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
 
         {/* Summary */}
-        <View className="px-6 mb-6">
-          <Text className="text-lg font-bold text-foreground mb-4">Tóm tắt</Text>
-          <Card className="p-4">
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-lg">Tóm tắt</CardTitle>
+          </CardHeader>
+          <CardContent>
             <View className="space-y-3">
               <View className="flex-row justify-between">
                 <Text className="text-muted-foreground">Nhà hàng:</Text>
@@ -269,18 +277,19 @@ export default function CreateReservationScreen() {
                 </View>
               )}
             </View>
-          </Card>
-        </View>
+          </CardContent>
+        </Card>
 
         {/* Submit Button */}
-        <View className="px-6 pb-8">
+        <View className="mb-8">
           <Button 
             size="lg" 
             disabled={!selectedRestaurant}
             onPress={() => {
               // Handle reservation creation
-              router.push('../(reservations)/');
+              router.push('/(booking)/reservations');
             }}
+            className="flex-row items-center justify-center"
           >
             <Text className="text-white font-semibold">Xác nhận đặt bàn</Text>
             <ChevronRight className="w-5 h-5 ml-2 text-white" />
@@ -289,4 +298,5 @@ export default function CreateReservationScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
 }
