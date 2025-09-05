@@ -4,9 +4,9 @@ import {
   userCanAccessConversation,
   createMessage,
   markMessagesAsRead
-} from '@/services/chatService';
+} from '@/services/chatServices';
 import { clerkConfigClient } from '@/config/clerk';
-import { verifyTokenAndGetUser } from '@/middlewares/authMiddleware';
+import { verifyTokenAndGetUser } from '@/middlewares/authMiddlewares';
 import {
   joinConversationSchema,
   sendMessageSchema,

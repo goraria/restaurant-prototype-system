@@ -11,7 +11,7 @@ import {
 	updateMessageController,
 	deleteMessageController,
 	markMessagesAsReadController
-} from '@/controllers/chatController';
+} from '@/controllers/chatControllers';
 
 const router = Router();
 

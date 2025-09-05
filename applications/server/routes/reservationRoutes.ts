@@ -20,7 +20,7 @@ import {
   requireManager,
   requireAdmin,
   requireRestaurantAccess
-} from '@/middlewares/authMiddleware';
+} from '@/middlewares/authMiddlewares';
 
 const router = Router();
 

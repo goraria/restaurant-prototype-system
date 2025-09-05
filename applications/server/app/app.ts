@@ -33,7 +33,8 @@ import orderRoutes from "@/routes/orderRoutes";
 import menuRoutes from "@/routes/menuRoutes";
 import uploadRoutes from "@/routes/uploadRoutes";
 import chatRoutes from "@/routes/chatRoutes";
-import { errorHandler } from '@/middlewares/errorMiddleware';
+import rlsTestRoutes from "@/routes/rlsTestRoutes";
+import { errorHandler } from '@/middlewares/errorMiddlewares';
 
 /* CONFIGURATIONS */
 dotenv.config();
@@ -207,6 +208,7 @@ app.use('/orders', requireAuth(), orderRoutes);
 app.use('/menus', menuRoutes); //, requireAuth()
 app.use('/upload', uploadRoutes);
 app.use('/chat', requireAuth(), chatRoutes);
+app.use('/rls', rlsTestRoutes); // RLS testing and management routes
 
 // Debug route to test voucher endpoints
 // app.get('/debug/voucher', (req, res) => {

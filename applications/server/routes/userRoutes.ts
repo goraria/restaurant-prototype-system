@@ -14,7 +14,7 @@ import {
   requireAuth,
   requireCustomer,
   requireRestaurantAccess
-} from '@/middlewares/authMiddleware';
+} from '@/middlewares/authMiddlewares';
 import { getOrdersController, getRestaurantOrdersController } from '@/controllers/orderControllers';
 
 const router = Router();

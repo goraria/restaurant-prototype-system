@@ -33,9 +33,9 @@ import {
   clerkMiddleware,
   requireAuth,
 } from '@clerk/express';
-import { clerkAuthMiddleware, requireAuthentication } from '@/middlewares/authMiddleware';
+import { clerkAuthMiddleware, requireAuthentication } from '@/middlewares/authMiddlewares';
 import prisma from '@/config/prisma';
-import * as chatService from '@/services/chatService';
+import * as chatService from '@/services/chatServices';
 
 // Import types and interfaces
 import {
@@ -79,7 +79,9 @@ import menuRoutes from "@/routes/menuRoutes";
 import uploadRoutes from "@/routes/uploadRoutes";
 import chatRoutes from "@/routes/chatRoutes";
 import clerkRoutes from "@/routes/clerkRoutes";
-import { errorHandler } from '@/middlewares/errorMiddleware';
+import rlsTestRoutes from "@/routes/rlsTestRoutes";
+// import aiRoutes from "@/ai/routes/aiRoutes";
+import { errorHandler } from '@/middlewares/errorMiddlewares';
 
 // ================================
 // 🌐 EXPRESS SERVER CONFIGURATION
@@ -93,7 +95,33 @@ const app: Express = express();
 // const PORT = process.env.PORT || 5000;
 // Disable ETag for dynamic API responses to avoid 304 on auth/me
 app.set('etag', false);
+
+// Configure webhook raw body parsing BEFORE express.json()
+// Raw body parser for webhook verification (MUST be before express.json)
+// app.use('/clerk/webhooks', express.raw({ type: 'application/json' })); // Temporary removed for debugging
+
 app.use(express.json());
+
+// Debug middleware - FIRST to catch all requests
+app.use((req, res, next) => {
+  console.log(`🚨 VERY FIRST DEBUG: ${req.method} ${req.path} ${req.url}`);
+  next();
+});
+
+// Test route trực tiếp trước tất cả middleware
+app.get('/test-direct', (req, res) => {
+  console.log("🎯 DIRECT ROUTE WORKS!");
+  res.json({ success: true, message: "Direct route working!", timestamp: new Date().toISOString() });
+});
+
+app.use(express.json());
+
+// Debug middleware - first in line
+app.use((req, res, next) => {
+  console.log(`🚨 FIRST DEBUG: ${req.method} ${req.path} ${req.url}`);
+  next();
+});
+
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
@@ -116,6 +144,7 @@ app.use(session({
     // path: '/', // Phạm vi cookie (thường là gốc)
   }
 }));
+// Configure CORS
 // app.use(cors());
 app.use(cors({
   origin: [
@@ -125,11 +154,11 @@ app.use(cors({
   credentials: true,
 }));
 
-// Cấu hình Clerk middleware
-app.use(clerkAuthMiddleware);
+// Cấu hình Clerk middleware - EXCLUDE webhook paths sẽ được đặt sau routes
 
-// Configure specific routes that need raw body for webhooks
-app.use('/api/clerk/webhooks', express.raw({ type: 'application/json' }));
+/* SOCKET.IO CHAT CONFIG */
+const server = http.createServer(app);
+const io = initializeRealtimeChat(server);
 
 /* STATIC FILES */
 /* UPLOAD MULTER CONFIG */
@@ -220,6 +249,8 @@ const isProduction = process.env.EXPRESS_ENV === 'production';
 // ================================
 // 📡 GRAPHQL ENDPOINT SETUP
 // ================================
+// ROUTES
+// ================================
 app.use('/graphql', createGraphQLMiddleware());
 
 // ================================
@@ -227,7 +258,34 @@ app.use('/graphql', createGraphQLMiddleware());
 // ================================
 
 // Clerk routes (webhooks và auth)
-app.use("/api/clerk", clerkRoutes);
+// Clerk webhook routes (must be before global auth middleware)
+app.use('/clerk', clerkRoutes);
+
+// ================================
+// 🔐 GLOBAL AUTH MIDDLEWARE (after webhook routes)
+// ================================
+// app.use((req, res, next) => {
+//   console.log(`🔍 Auth middleware: ${req.method} ${req.path}`);
+//   // Skip auth for ALL clerk routes (webhooks + health + status)
+//   if (req.path.startsWith('/clerk/')) {
+//     console.log(`⚡ Skipping auth for clerk route: ${req.path}`);
+//     return next();
+//   }
+//   // Skip auth for public routes
+//   if (req.path.startsWith('/auth') || 
+//       req.path.startsWith('/payment') || 
+//       req.path.startsWith('/category') ||
+//       req.path.startsWith('/menus') ||
+//       req.path.startsWith('/upload')) {
+//     console.log(`📂 Skipping auth for public route: ${req.path}`);
+//     return next();
+//   }
+//   // Apply auth middleware for all other routes
+//   console.log(`🔐 Applying auth for: ${req.path}`);
+//   clerkAuthMiddleware(req, res, next);
+// });
+
+app.use(clerkAuthMiddleware)
 
 // Public routes (no auth required)
 app.use("/auth", authRoutes); // Keep for backwards compatibility
@@ -244,6 +302,10 @@ app.use('/users', requireAuthentication, userRoutes);
 app.use('/restaurants', requireAuthentication, restaurantRoutes);
 app.use('/orders', requireAuthentication, orderRoutes);
 app.use('/chat', requireAuthentication, chatRoutes);
+app.use('/rls', rlsTestRoutes); // RLS testing routes (simple)
+
+// AI routes (require authentication) - TEMPORARILY DISABLED
+// app.use('/ai', requireAuthentication, aiRoutes);
 
 // Debug route to test voucher endpoints
 // app.get('/debug/voucher', (req, res) => {
@@ -264,9 +326,18 @@ app.get('/', (
 ) => {
   res.json({
     success: true,
-    message: 'Waddles Restaurant API v2.0.0 🚀',
+    message: 'Server đang hoạt động! 🚀',
     timestamp: new Date().toISOString(),
-    features: {
+    routes: [
+      'GET / - Root endpoint',
+      'POST /clerk/webhooks - Clerk webhook handler',
+      'GET /clerk/webhooks - Webhook status',
+      'POST /clerk/webhooks/test - Test webhook handler',
+      'GET /clerk/webhooks/test - Test webhook status',
+      'GET /graphql - GraphQL endpoint',
+      '... và nhiều routes khác'
+    ],
+    originalFeatures: {
       'REST API': '✅ Enabled',
       'GraphQL': '✅ Enabled',
       'Socket.IO Chat': '✅ Enabled',
@@ -441,6 +512,10 @@ const httpServer = http.createServer(app);
 
 // Initialize Socket.IO service for realtime chat + Supabase Realtime
 const realtimeServices = initializeRealtimeChat(httpServer);
+
+// Initialize AI training jobs - TEMPORARILY DISABLED
+// import { setupAITrainingJobs } from '@/ai/utils/aiScheduler';
+// setupAITrainingJobs();
 
 // Export services for use in other parts of the application
 export const socketService = realtimeServices.chatSocketService;

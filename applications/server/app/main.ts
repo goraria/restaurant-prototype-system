@@ -29,7 +29,7 @@ import {
   requireAuth,
 } from '@clerk/express';
 import prisma from '@/config/prisma';
-import * as chatService from '@/services/chatService';
+import * as chatService from '@/services/chatServices';
 
 // Import types and interfaces
 import {
@@ -72,7 +72,7 @@ import orderRoutes from "@/routes/orderRoutes";
 import menuRoutes from "@/routes/menuRoutes";
 import uploadRoutes from "@/routes/uploadRoutes";
 import chatRoutes from "@/routes/chatRoutes";
-import { errorHandler } from '@/middlewares/errorMiddleware';
+import { errorHandler } from '@/middlewares/errorMiddlewares';
 
 // ================================
 // 🌐 EXPRESS SERVER CONFIGURATION
