@@ -35,7 +35,7 @@ import {
   deleteMessage,
   markMessagesAsRead,
   userCanAccessConversation
-} from '@/services/chatService';
+} from '@/services/chatServices';
 
 // Universal error handler function
 const handleError = (error: any, res: Response) => {

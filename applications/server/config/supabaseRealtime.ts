@@ -5,13 +5,14 @@ import { Server as SocketIOServer } from 'socket.io';
 let supabaseClient: SupabaseClient;
 let realtimeChannels: Map<string, RealtimeChannel> = new Map();
 let socketIO: SocketIOServer;
+let isSubscriptionInitialized = false;
 
 /**
  * Initialize Supabase realtime connection
  */
 export const initializeSupabaseRealtime = (io: SocketIOServer) => {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.EXPRESS_SUPABASE_REALTIME;
+  const supabaseKey = process.env.EXPRESS_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
     console.error('❌ Supabase URL or Key missing');
@@ -50,6 +51,8 @@ export const subscribeToTableChanges = (tableName: string, schema: string = 'pub
     return realtimeChannels.get(channelName);
   }
 
+  console.log(`🔄 Attempting to subscribe to ${tableName}...`);
+
   const channel = supabaseClient
     .channel(channelName)
     .on(
@@ -63,11 +66,18 @@ export const subscribeToTableChanges = (tableName: string, schema: string = 'pub
         handleDatabaseChange(tableName, payload);
       }
     )
-    .subscribe((status) => {
+    .subscribe((status, err) => {
       if (status === 'SUBSCRIBED') {
         console.log(`✅ Subscribed to ${tableName} changes`);
       } else if (status === 'CHANNEL_ERROR') {
-        console.error(`❌ Error subscribing to ${tableName}`);
+        console.error(`❌ Error subscribing to ${tableName}:`, err);
+        // Remove from channels map on error to allow retry
+        realtimeChannels.delete(channelName);
+      } else if (status === 'CLOSED') {
+        console.log(`🔒 Connection closed for ${tableName}`);
+        realtimeChannels.delete(channelName);
+      } else {
+        console.log(`📡 ${tableName} subscription status:`, status);
       }
     });
 
@@ -112,6 +122,7 @@ export const broadcastSpecificEvents = (
 ) => {
   if (!socketIO) return;
 
+  // Handle existing specific handlers
   switch (tableName) {
     case 'users':
       handleUserChanges(eventType, newRecord, oldRecord);
@@ -138,8 +149,122 @@ export const broadcastSpecificEvents = (
       handlePaymentChanges(eventType, newRecord, oldRecord);
       break;
     default:
-      console.log(`📊 Unhandled table change: ${tableName}`);
+      // Generic handler for all other tables
+      handleGenericTableChange(tableName, eventType, newRecord, oldRecord);
+      break;
   }
+};
+
+/**
+ * Generic handler for all table changes
+ */
+export const handleGenericTableChange = (
+  tableName: string, 
+  eventType: string, 
+  newRecord: any, 
+  oldRecord: any
+) => {
+  if (!socketIO) return;
+
+  const recordId = newRecord?.id || oldRecord?.id;
+
+  // Broadcast generic events
+  socketIO.emit(`${tableName}_${eventType.toLowerCase()}`, {
+    eventType,
+    tableName,
+    data: newRecord || oldRecord,
+    recordId,
+    timestamp: new Date().toISOString()
+  });
+
+  // Broadcast to specific rooms based on table type
+  switch (tableName) {
+    case 'addresses':
+    case 'user_statistics':
+      // User-specific data
+      if (newRecord?.user_id || oldRecord?.user_id) {
+        const userId = newRecord?.user_id || oldRecord?.user_id;
+        socketIO.to(`user_${userId}`).emit(`${tableName}_change`, {
+          eventType,
+          data: newRecord || oldRecord,
+          timestamp: new Date().toISOString()
+        });
+      }
+      break;
+
+    case 'restaurant_staffs':
+    case 'staff_schedules':
+    case 'staff_attendance':
+    case 'menus':
+    case 'tables':
+    case 'revenue_reports':
+      // Restaurant-specific data
+      if (newRecord?.restaurant_id || oldRecord?.restaurant_id) {
+        const restaurantId = newRecord?.restaurant_id || oldRecord?.restaurant_id;
+        socketIO.to(`restaurant_${restaurantId}`).emit(`${tableName}_change`, {
+          eventType,
+          data: newRecord || oldRecord,
+          timestamp: new Date().toISOString()
+        });
+      }
+      break;
+
+    case 'conversations':
+      // Broadcast to conversation participants
+      if (newRecord?.customer_id || oldRecord?.customer_id) {
+        const customerId = newRecord?.customer_id || oldRecord?.customer_id;
+        socketIO.to(`user_${customerId}`).emit('conversation_change', {
+          eventType,
+          data: newRecord || oldRecord,
+          timestamp: new Date().toISOString()
+        });
+      }
+      if (newRecord?.staff_id || oldRecord?.staff_id) {
+        const staffId = newRecord?.staff_id || oldRecord?.staff_id;
+        socketIO.to(`user_${staffId}`).emit('conversation_change', {
+          eventType,
+          data: newRecord || oldRecord,
+          timestamp: new Date().toISOString()
+        });
+      }
+      break;
+
+    case 'table_orders':
+      // Broadcast to table and restaurant
+      if (newRecord?.table_id || oldRecord?.table_id) {
+        const tableId = newRecord?.table_id || oldRecord?.table_id;
+        socketIO.to(`table_${tableId}`).emit('table_order_change', {
+          eventType,
+          data: newRecord || oldRecord,
+          timestamp: new Date().toISOString()
+        });
+      }
+      break;
+
+    case 'voucher_usages':
+      // Broadcast to user who used voucher
+      if (newRecord?.user_id || oldRecord?.user_id) {
+        const userId = newRecord?.user_id || oldRecord?.user_id;
+        socketIO.to(`user_${userId}`).emit('voucher_usage_change', {
+          eventType,
+          data: newRecord || oldRecord,
+          timestamp: new Date().toISOString()
+        });
+      }
+      break;
+
+    default:
+      // Generic broadcast for other tables
+      socketIO.emit(`${tableName}_change`, {
+        eventType,
+        tableName,
+        data: newRecord || oldRecord,
+        timestamp: new Date().toISOString()
+      });
+      break;
+  }
+
+  console.log(`📊 Generic handler processed ${tableName} ${eventType} for record ${recordId}`);
 };
 
 /**
@@ -412,25 +537,86 @@ export const handlePaymentChanges = (eventType: string, newRecord: any, oldRecor
  * Subscribe to multiple tables at once
  */
 export const subscribeToAllTables = () => {
+  if (isSubscriptionInitialized) {
+    console.log('📡 Table subscriptions already initialized');
+    return;
+  }
+
   const tables = [
+    // ================================
+    // 🏢 ORGANIZATION & USER MANAGEMENT
+    // ================================
+    'addresses',
+    'categories', 
+    'organizations',
+    'restaurant_chains',
     'users',
-    'orders',
-    'menu_items',
-    'restaurants',
-    'inventory_items',
+    'user_statistics',
+    
+    // ================================
+    // 💬 REAL-TIME COMMUNICATION
+    // ================================
+    'conversations',
     'messages',
+    
+    // ================================
+    // 🍕 RESTAURANT & MENU MANAGEMENT
+    // ================================
+    'restaurants',
+    'menus',
+    'menu_items',
+    'tables',
+    
+    // ================================
+    // 📅 RESERVATIONS & TABLE ORDERS
+    // ================================
     'reservations',
-    'payments',
+    'table_orders',
+    
+    // ================================
+    // 🛒 ORDERS & PAYMENTS
+    // ================================
+    'orders',
     'order_items',
+    'order_status_history',
+    'payments',
+    
+    // ================================
+    // 👥 STAFF MANAGEMENT
+    // ================================
+    'restaurant_staffs',
+    'staff_schedules',
+    'staff_attendance',
+    
+    // ================================
+    // 📦 INVENTORY & RECIPES
+    // ================================
+    'inventory_items',
+    'inventory_transactions',
+    'recipes',
+    'recipe_ingredients',
+    
+    // ================================
+    // 🎟️ PROMOTIONS & VOUCHERS
+    // ================================
     'vouchers',
+    'voucher_usages',
     'promotions',
-    'reviews'
+    
+    // ================================
+    // ⭐ REVIEWS & ANALYTICS
+    // ================================
+    'reviews',
+    'revenue_reports'
   ];
+
+  console.log(`🔄 Initializing subscriptions for ${tables.length} tables...`);
 
   tables.forEach(table => {
     subscribeToTableChanges(table);
   });
 
+  isSubscriptionInitialized = true;
   console.log(`✅ Subscribed to ${tables.length} tables for realtime updates`);
 };
 
@@ -456,6 +642,7 @@ export const unsubscribeFromAllTables = () => {
     supabaseClient.removeChannel(channel);
   });
   realtimeChannels.clear();
+  isSubscriptionInitialized = false;
   console.log('✅ Unsubscribed from all tables');
 };
 

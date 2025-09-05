@@ -11,7 +11,7 @@ export const clerkConfigClient = createClerkClient({
 export const clerkConfig = {
   secretKey: process.env.CLERK_SECRET_KEY!,
   publishableKey: process.env.EXPRESS_PUBLIC_CLERK_PUBLISHABLE_KEY!,
-  webhookSecret: process.env.CLERK_WEBHOOK_SECRET!,
+  webhookSecret: process.env.EXPRESS_CLERK_WEBHOOK_SECRET!,
   apiUrl: process.env.CLERK_API_URL || 'https://api.clerk.com',
   apiVersion: 'v1',
 };

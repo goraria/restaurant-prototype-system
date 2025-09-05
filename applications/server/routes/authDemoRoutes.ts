@@ -10,7 +10,7 @@ import {
   staffOrManagerApiController,
   restaurantSpecificApiController,
   userProfileApiController
-} from '@/controllers/authDemoController';
+} from '@/controllers/authDemoControllers';
 import {
   requireAuth,
   requireCustomer,
@@ -20,7 +20,7 @@ import {
   requireCustomerOrStaff,
   requireStaffOrManager,
   requireRestaurantAccess
-} from '@/middlewares/authMiddleware';
+} from '@/middlewares/authMiddlewares';
 
 const router = Router();
 

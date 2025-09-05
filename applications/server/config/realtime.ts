@@ -228,3 +228,30 @@ export const getChatSocketService = () => chatSocketService;
  * @returns Supabase realtime service instance
  */
 export const getSupabaseRealtimeService = () => supabaseRealtimeService;
+
+/**
+ * Publish realtime update to all connected clients
+ * @param event - Event name
+ * @param data - Event data
+ * @param channel - Optional channel/room name
+ */
+export const publishRealtimeUpdate = (event: string, data: any, channel?: string) => {
+  if (!io) {
+    console.warn('⚠️ Socket.IO not initialized, cannot publish realtime update');
+    return;
+  }
+
+  const payload = {
+    ...data,
+    timestamp: new Date().toISOString(),
+    source: 'webhook'
+  };
+
+  if (channel) {
+    io.to(channel).emit(event, payload);
+    console.log(`📡 Realtime update published to channel "${channel}":`, event);
+  } else {
+    io.emit(event, payload);
+    console.log(`📡 Realtime update published globally:`, event);
+  }
+};

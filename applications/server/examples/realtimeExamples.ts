@@ -14,7 +14,7 @@ import {
   updatePaymentStatusRealtime,
   bulkUpdateMenuItemsRealtime,
   getRealtimeStatistics
-} from '../services/realtimeService';
+} from '../services/realtimeServices';
 
 // ================================
 // 🔄 Example Usage Functions

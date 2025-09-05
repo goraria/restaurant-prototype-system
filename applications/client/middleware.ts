@@ -15,6 +15,7 @@ const isPublicRoute = createRouteMatcher([
   '/features',             // Trang tính năng
   '/blog(.*)',             // Blog posts
   '/news(.*)',             // Tin tức
+  '/api/clerk',            // Clerk webhook endpoint - phải public
 ])
 
 export default clerkMiddleware(async (auth, req) => {

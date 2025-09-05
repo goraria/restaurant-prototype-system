@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { AuthenticatedRequest } from '@/types/auth';
 import { user_role_enum } from '@prisma/client';
 import { verifyToken } from '@clerk/backend';
+import { OrganizationHelper } from '@/services/organizationHelpers';
 
 const prisma = new PrismaClient();
 
@@ -223,7 +224,42 @@ export const requireStaffOrManager = requireAuth(['staff', 'manager', 'admin']);
 export const requireManagerOrAdmin = requireAuth(['manager', 'admin']);
 
 /**
- * Restaurant context middleware - yêu cầu staff làm việc trong restaurant cụ thể
+ * Organization access middleware - kiểm tra user có quyền truy cập organization
+ */
+export const requireOrganizationAccess = (organizationIdParam: string = 'organizationId') => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    // Super admin có quyền truy cập tất cả
+    if (user.role === 'super_admin') {
+      next();
+      return;
+    }
+
+    // Get organization ID from request params
+    const requestedOrgId = req.params[organizationIdParam];
+    if (!requestedOrgId) {
+      res.status(400).json({ error: 'Organization ID required' });
+      return;
+    }
+
+    // Check access using helper
+    const hasAccess = await OrganizationHelper.canUserAccessOrganization(user.id, requestedOrgId);
+    if (!hasAccess) {
+      res.status(403).json({ error: 'Access denied to this organization' });
+      return;
+    }
+
+    next();
+  };
+};
+
+/**
+ * Restaurant access middleware - kiểm tra user có quyền truy cập restaurant
  */
 export const requireRestaurantAccess = (restaurantIdParam: string = 'restaurantId') => {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -233,8 +269,8 @@ export const requireRestaurantAccess = (restaurantIdParam: string = 'restaurantI
       return;
     }
 
-    // Admin có quyền truy cập tất cả restaurants
-    if (user.role === 'admin' || user.role === 'super_admin') {
+    // Super admin có quyền truy cập tất cả
+    if (user.role === 'super_admin') {
       next();
       return;
     }
@@ -246,17 +282,54 @@ export const requireRestaurantAccess = (restaurantIdParam: string = 'restaurantI
       return;
     }
 
-    // Check if staff has access to this restaurant
-    if (['staff', 'manager'].includes(user.role)) {
-      if (!user.restaurant_context || user.restaurant_context.restaurant_id !== requestedRestaurantId) {
-        res.status(403).json({ error: 'Access denied to this restaurant' });
-        return;
-      }
+    // Check access using helper
+    const hasAccess = await OrganizationHelper.canUserAccessRestaurant(user.id, requestedRestaurantId);
+    if (!hasAccess) {
+      res.status(403).json({ error: 'Access denied to this restaurant' });
+      return;
     }
 
     next();
   };
 };
+
+/**
+ * Combined organization and restaurant access middleware
+ */
+export const requireOrgAndRestaurantAccess = (
+  organizationIdParam: string = 'organizationId',
+  restaurantIdParam: string = 'restaurantId'
+) => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    // Run organization access check first
+    try {
+      await new Promise<void>((resolve, reject) => {
+        requireOrganizationAccess(organizationIdParam)(req, res, (error) => {
+          if (error) reject(error);
+          else resolve();
+        });
+      });
+
+      // Then run restaurant access check
+      await new Promise<void>((resolve, reject) => {
+        requireRestaurantAccess(restaurantIdParam)(req, res, (error) => {
+          if (error) reject(error);
+          else resolve();
+        });
+      });
+
+      next();
+    } catch (error) {
+      // Error already handled by nested middleware
+      return;
+    }
+  };
+};
+
+/**
+ * Legacy restaurant context middleware (updated)
+ */
+export const requireRestaurantContext = requireRestaurantAccess();
 
 /**
  * Legacy middleware for backward compatibility

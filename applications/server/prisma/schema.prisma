@@ -698,6 +698,7 @@ model users {
   clerk_id          String?          @unique @db.VarChar(255) // Clerk Auth ID
   username          String           @unique @db.VarChar(50)
   email             String           @unique @db.VarChar(255)
+  password_hash     String?          @db.VarChar(255) // For staff-only accounts
   phone_code        String?          @db.VarChar(8)
   phone_number      String?          @db.VarChar(20)
   first_name        String           @db.VarChar(100)
@@ -789,6 +790,7 @@ enum user_status_enum {
 
 enum user_role_enum {
   customer
+  deliver
   staff
   manager
   admin
