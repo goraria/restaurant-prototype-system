@@ -12,22 +12,22 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cookieParser from "cookie-parser";
 import session from "express-session";
-import http from "http";
+import http, { createServer } from "http";
 import fs from 'fs';
 
 // Config imports
-import { createGraphQLMiddleware } from '../config/graphql';
+import { createGraphQLMiddleware } from '@/config/graphql';
 import { 
   initializeRealtimeChat, 
   sendRealtimeNotification, 
   broadcastToConversation 
-} from '../config/realtime';
+} from '@/config/realtime';
 import { 
   imageUpload, 
   fileUpload,
   getUploadDirectory,
   createFileUrl 
-} from '../config/upload';
+} from '@/config/upload';
 
 import {
   clerkMiddleware,
@@ -63,7 +63,7 @@ import {
   ISocketMessage,
   ITypingIndicator,
   IUserStatusChange
-} from '../constants/interfaces';
+} from '@/constants/interfaces';
 
 /* OLD ROUTE IMPORTS */
 import authRoutes from "@/routes/authRoutes";
@@ -500,9 +500,9 @@ app.use((req: Request, res: Response) => {
 // Error handling middleware (phải đặt cuối cùng)
 app.use(errorHandler);
 
-/* MONGOOSE */
-
-// connectDB();
+// ================================
+// 🚀 INITIALIZE REALTIME SERVER
+// ================================
 
 const httpServer = http.createServer(app);
 
