@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { dark } from "@clerk/themes";
+import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input";
 import {
@@ -35,7 +37,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { appGlobal } from "@/constants/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { QuickSetting } from "@/components/elements/quick-setting";
 import { ModeToggle } from "@/components/elements/mode-toggle";
@@ -63,11 +64,10 @@ import {
   ShoppingCart,
   Heart
 } from "lucide-react";
-import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/nextjs";
 import { ClerkSignIn, ClerkSignUp } from "@/components/elements/clerk-buttons";
-import { dark } from "@clerk/themes";
-import { navigation } from "@/constants/constants";
-import { SearchBarHolder } from "../elements/search-bar";
+import { SearchBarHolder } from "@/components/elements/search-bar";
+import { NavUser } from "@/components/dashboard/nav-user";
+import { navigation, appGlobal } from "@/constants/constants";
 
 export function Navbar() {
   const { user } = useUser();
@@ -84,8 +84,6 @@ export function Navbar() {
       router.push('/');
     }
   };
-
-  console.log("Navbar rendered", user);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -390,9 +388,9 @@ export function Navbar() {
                       size="icon"
                       className="h-9 p-0 cursor-pointer"
                     >
-                      <Avatar className="h-9 w-9 rounded-lg">
+                      <Avatar className="h-9 w-9 rounded-md">
                         <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
-                        <AvatarFallback className="rounded-lg">JG</AvatarFallback>
+                        <AvatarFallback className="rounded-md">JG</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
@@ -434,9 +432,9 @@ export function Navbar() {
                   >
                     <DropdownMenuLabel className="p-0 font-normal">
                       <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                        <Avatar className="h-8 w-8 rounded-lg">
+                        <Avatar className="h-8 w-8 rounded-md">
                           <AvatarImage src={user?.imageUrl} alt={`${user?.fullName}`} />
-                          <AvatarFallback className="rounded-lg">JG</AvatarFallback>
+                          <AvatarFallback className="rounded-md">JG</AvatarFallback>
                         </Avatar>
                         <div className="grid flex-1 text-left text-sm leading-tight">
                           <span className="truncate font-medium">{user?.username || user?.fullName}</span>

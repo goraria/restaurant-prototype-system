@@ -8,10 +8,6 @@ datasource db {
   directUrl = env("EXPRESS_DIRECT_URL")
 }
 
-// ================================
-// 🏢 ORGANIZATION & USER MANAGEMENT
-// ================================
-
 /// Customer addresses for delivery
 model addresses {
   id              String   @id @default(uuid()) @db.Uuid
@@ -23,9 +19,9 @@ model addresses {
   district        String   @db.VarChar(100)
   city            String   @db.VarChar(100)
   country         String   @default("Vietnam") @db.VarChar(100)
-  is_default      Boolean  @default(false)
   created_at      DateTime @default(now()) @db.Timestamptz(6)
   updated_at      DateTime @updatedAt @db.Timestamptz(6)
+  is_default      Boolean  @default(false)
   users           users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
   orders          orders[]
 
@@ -36,14 +32,14 @@ model addresses {
 /// Categories for menu items
 model categories {
   id               String       @id @default(uuid()) @db.Uuid
-  parent_id        String?      @db.Uuid
   name             String       @db.VarChar(100)
   slug             String       @unique @db.VarChar(120)
-  description      String?      @db.Text
-  image_url        String?      @db.VarChar(255)
-  display_order    Int          @default(0)
-  is_active        Boolean      @default(true)
+  description      String?
   created_at       DateTime     @default(now()) @db.Timestamptz(6)
+  display_order    Int          @default(0)
+  image_url        String?      @db.VarChar(255)
+  is_active        Boolean      @default(true)
+  parent_id        String?      @db.Uuid
   updated_at       DateTime     @default(now()) @db.Timestamptz(6)
   parent_category  categories?  @relation("CategoryHierarchy", fields: [parent_id], references: [id])
   child_categories categories[] @relation("CategoryHierarchy")
@@ -54,24 +50,20 @@ model categories {
   @@index([is_active], map: "idx_categories_active")
 }
 
-// ================================
-// 💬 REAL-TIME COMMUNICATION
-// ================================
-
 /// Real-time conversations for customer support
 model conversations {
   id              String                   @id @default(uuid()) @db.Uuid
-  restaurant_id   String?                  @db.Uuid
-  customer_id     String?                  @db.Uuid
-  staff_id        String?                  @db.Uuid
   type            conversation_type_enum   @default(support)
-  status          conversation_status_enum @default(active)
-  title           String?                  @db.VarChar(255)
-  last_message_at DateTime?                @db.Timestamptz(6)
   created_at      DateTime                 @default(now()) @db.Timestamptz(6)
   updated_at      DateTime                 @default(now()) @db.Timestamptz(6)
-  restaurants     restaurants?             @relation(fields: [restaurant_id], references: [id])
+  customer_id     String?                  @db.Uuid
+  last_message_at DateTime?                @db.Timestamptz(6)
+  restaurant_id   String?                  @db.Uuid
+  staff_id        String?                  @db.Uuid
+  status          conversation_status_enum @default(active)
+  title           String?                  @db.VarChar(255)
   customers       users?                   @relation("conversations_customer", fields: [customer_id], references: [id])
+  restaurants     restaurants?             @relation(fields: [restaurant_id], references: [id])
   staff           users?                   @relation("conversations_staff", fields: [staff_id], references: [id])
   messages        messages[]
 
@@ -86,11 +78,11 @@ model messages {
   id              String            @id @default(uuid()) @db.Uuid
   conversation_id String            @db.Uuid
   sender_id       String            @db.Uuid
-  content         String            @db.Text
+  content         String
   message_type    message_type_enum @default(text)
-  attachments     String[] // URLs of attached files
-  is_read         Boolean           @default(false)
   created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  attachments     String[]
+  is_read         Boolean           @default(false)
   conversations   conversations     @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
   senders         users             @relation(fields: [sender_id], references: [id])
 
@@ -99,20 +91,16 @@ model messages {
   @@index([created_at], map: "idx_messages_created")
 }
 
-// ================================
-// 🏢 ORGANIZATION HIERARCHY
-// ================================
-
 /// Top-level organization (company)
 model organizations {
   id          String              @id @default(uuid()) @db.Uuid
   name        String              @db.VarChar(100)
   code        String              @unique @db.VarChar(30)
-  description String?             @db.Text
-  logo_url    String?             @db.VarChar(255)
+  description String?
   owner_id    String              @db.Uuid
   created_at  DateTime            @default(now()) @db.Timestamptz(6)
   updated_at  DateTime            @default(now()) @db.Timestamptz(6)
+  logo_url    String?             @db.VarChar(255)
   owner       users               @relation("organizations_owner", fields: [owner_id], references: [id])
   chains      restaurant_chains[]
   restaurants restaurants[]
@@ -124,12 +112,12 @@ model organizations {
 /// Restaurant chains within organization
 model restaurant_chains {
   id              String        @id @default(uuid()) @db.Uuid
-  organization_id String        @db.Uuid
   name            String        @db.VarChar(100)
-  description     String?       @db.Text
-  logo_url        String?       @db.VarChar(255)
+  description     String?
   created_at      DateTime      @default(now()) @db.Timestamptz(6)
   updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+  logo_url        String?       @db.VarChar(255)
+  organization_id String        @db.Uuid
   organizations   organizations @relation(fields: [organization_id], references: [id])
   restaurants     restaurants[]
 
@@ -138,39 +126,37 @@ model restaurant_chains {
 
 /// Individual restaurants
 model restaurants {
-  id              String                 @id @default(uuid()) @db.Uuid
-  organization_id String                 @db.Uuid
-  chain_id        String?                @db.Uuid
-  code            String                 @db.VarChar(30)
-  name            String                 @db.VarChar(100)
-  address         String                 @db.VarChar(255)
-  phone_number    String?                @db.VarChar(20)
-  email           String?                @db.VarChar(255)
-  description     String?                @db.Text
-  logo_url        String?                @db.VarChar(255)
-  cover_url       String?                @db.VarChar(255)
-  opening_hours   Json? // {"mon": {"open": "08:00", "close": "22:00"}, ...}
-  status          restaurant_status_enum @default(active)
-  manager_id      String?                @db.Uuid
-  created_at      DateTime               @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime               @default(now()) @db.Timestamptz(6)
-  organizations   organizations          @relation(fields: [organization_id], references: [id])
-  chains          restaurant_chains?     @relation(fields: [chain_id], references: [id])
-  manager         users?                 @relation("restaurants_manager", fields: [manager_id], references: [id])
-
-  // Restaurant-specific relations
-  tables           tables[]
-  menus            menus[]
-  staffs           restaurant_staffs[]
-  inventory_items  inventory_items[]
-  vouchers         vouchers[]
-  promotions       promotions[]
-  reviews          reviews[]
-  revenue_reports  revenue_reports[]
-  staff_schedules  staff_schedules[]
-  staff_attendance staff_attendance[]
+  id               String                 @id @default(uuid()) @db.Uuid
+  organization_id  String                 @db.Uuid
+  chain_id         String?                @db.Uuid
+  code             String                 @db.VarChar(30)
+  name             String                 @db.VarChar(100)
+  address          String                 @db.VarChar(255)
+  phone_number     String?                @db.VarChar(20)
+  description      String?
+  created_at       DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime               @default(now()) @db.Timestamptz(6)
+  manager_id       String?                @db.Uuid
+  cover_url        String?                @db.VarChar(255)
+  email            String?                @db.VarChar(255)
+  logo_url         String?                @db.VarChar(255)
+  opening_hours    Json?
+  status           restaurant_status_enum @default(active)
   conversations    conversations[]
+  inventory_items  inventory_items[]
+  menus            menus[]
   orders           orders[]
+  promotions       promotions[]
+  staffs           restaurant_staffs[]
+  chains           restaurant_chains?     @relation(fields: [chain_id], references: [id])
+  manager          users?                 @relation("restaurants_manager", fields: [manager_id], references: [id])
+  organizations    organizations          @relation(fields: [organization_id], references: [id])
+  revenue_reports  revenue_reports[]
+  reviews          reviews[]
+  staff_attendance staff_attendance[]
+  staff_schedules  staff_schedules[]
+  tables           tables[]
+  vouchers         vouchers[]
 
   @@unique([organization_id, code], map: "uq_restaurant_org_code")
   @@index([organization_id], map: "idx_restaurants_organization")
@@ -179,23 +165,19 @@ model restaurants {
   @@index([status], map: "idx_restaurants_status")
 }
 
-// ================================
-// 🍽️ MENU MANAGEMENT
-// ================================
-
 /// Restaurant menus
 model menus {
   id            String       @id @default(uuid()) @db.Uuid
   restaurant_id String       @db.Uuid
   name          String       @db.VarChar(100)
-  description   String?      @db.Text
-  image_url     String?      @db.VarChar(255)
+  description   String?
   is_active     Boolean      @default(true)
-  display_order Int          @default(0)
   created_at    DateTime     @default(now()) @db.Timestamptz(6)
   updated_at    DateTime     @default(now()) @db.Timestamptz(6)
-  restaurants   restaurants  @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
+  display_order Int          @default(0)
+  image_url     String?      @db.VarChar(255)
   menu_items    menu_items[]
+  restaurants   restaurants  @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
 
   @@index([restaurant_id], map: "idx_menus_restaurant")
   @@index([is_active], map: "idx_menus_active")
@@ -203,29 +185,27 @@ model menus {
 
 /// Menu items (dishes/drinks)
 model menu_items {
-  id               String      @id @default(uuid()) @db.Uuid
-  menu_id          String      @db.Uuid
-  category_id      String?     @db.Uuid
-  name             String      @db.VarChar(255)
-  description      String?     @db.Text
-  price            Decimal     @db.Decimal(12, 2)
-  image_url        String?     @db.VarChar(255)
-  is_available     Boolean     @default(true)
-  is_featured      Boolean     @default(false)
-  preparation_time Int? // minutes
+  id               String        @id @default(uuid()) @db.Uuid
+  menu_id          String        @db.Uuid
+  name             String        @db.VarChar(255)
+  description      String?
+  price            Decimal       @db.Decimal(12, 2)
+  image_url        String?       @db.VarChar(255)
+  is_available     Boolean       @default(true)
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime      @default(now()) @db.Timestamptz(6)
+  category_id      String?       @db.Uuid
+  allergens        String[]
   calories         Int?
-  allergens        String[] // ["gluten", "dairy", "nuts"]
-  dietary_info     String[] // ["vegetarian", "vegan", "halal"]
-  display_order    Int         @default(0)
-  created_at       DateTime    @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime    @default(now()) @db.Timestamptz(6)
-  menus            menus       @relation(fields: [menu_id], references: [id], onDelete: Cascade)
-  categories       categories? @relation(fields: [category_id], references: [id])
-
-  // Related data
-  order_items order_items[]
-  recipes     recipes[]
-  reviews     reviews[]
+  dietary_info     String[]
+  display_order    Int           @default(0)
+  is_featured      Boolean       @default(false)
+  preparation_time Int?
+  categories       categories?   @relation(fields: [category_id], references: [id])
+  menus            menus         @relation(fields: [menu_id], references: [id], onDelete: Cascade)
+  order_items      order_items[]
+  recipes          recipes[]
+  reviews          reviews[]
 
   @@index([menu_id], map: "idx_menu_items_menu")
   @@index([category_id], map: "idx_menu_items_category")
@@ -234,24 +214,20 @@ model menu_items {
   @@index([price], map: "idx_menu_items_price")
 }
 
-// ================================
-// 🪑 TABLE & RESERVATION MANAGEMENT
-// ================================
-
 /// Restaurant tables
 model tables {
   id            String            @id @default(uuid()) @db.Uuid
   restaurant_id String            @db.Uuid
   table_number  String            @db.VarChar(20)
   capacity      Int               @default(4)
-  location      String?           @db.VarChar(50) // "Tầng 1", "Ngoài trời"...
+  location      String?           @db.VarChar(50)
   status        table_status_enum @default(available)
   qr_code       String?           @unique @db.VarChar(255)
   created_at    DateTime          @default(now()) @db.Timestamptz(6)
   updated_at    DateTime          @default(now()) @db.Timestamptz(6)
-  restaurants   restaurants       @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
   reservations  reservations[]
   table_orders  table_orders[]
+  restaurants   restaurants       @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
 
   @@unique([restaurant_id, table_number])
   @@index([restaurant_id], map: "idx_tables_restaurant")
@@ -270,12 +246,12 @@ model reservations {
   reservation_date DateTime                @db.Timestamptz(6)
   duration_hours   Decimal                 @default(2) @db.Decimal(4, 2)
   status           reservation_status_enum @default(pending)
-  special_requests String?                 @db.Text
-  notes            String?                 @db.Text
+  special_requests String?
+  notes            String?
   created_at       DateTime                @default(now()) @db.Timestamptz(6)
   updated_at       DateTime                @default(now()) @db.Timestamptz(6)
-  tables           tables                  @relation(fields: [table_id], references: [id])
   customers        users?                  @relation("reservations_customer", fields: [customer_id], references: [id])
+  tables           tables                  @relation(fields: [table_id], references: [id])
 
   @@index([table_id], map: "idx_reservations_table")
   @@index([customer_id], map: "idx_reservations_customer")
@@ -294,50 +270,43 @@ model table_orders {
   closed_at    DateTime?               @db.Timestamptz(6)
   total_amount Decimal?                @db.Decimal(14, 2)
   staff_id     String?                 @db.Uuid
-  tables       tables                  @relation(fields: [table_id], references: [id])
   orders       orders?                 @relation(fields: [order_id], references: [id])
   staff        users?                  @relation("table_orders_staff", fields: [staff_id], references: [id])
+  tables       tables                  @relation(fields: [table_id], references: [id])
 
   @@index([table_id], map: "idx_table_orders_table")
   @@index([session_code], map: "idx_table_orders_session")
   @@index([status], map: "idx_table_orders_status")
 }
 
-// ================================
-// 🛒 ORDER MANAGEMENT
-// ================================
-
 /// Customer orders
 model orders {
-  id              String              @id @default(uuid()) @db.Uuid
-  restaurant_id   String              @db.Uuid
-  customer_id     String              @db.Uuid
-  address_id      String?             @db.Uuid
-  order_code      String              @unique @db.VarChar(20)
-  order_type      order_type_enum     @default(dine_in)
-  total_amount    Decimal             @db.Decimal(14, 2)
-  delivery_fee    Decimal             @default(0) @db.Decimal(10, 2)
-  discount_amount Decimal             @default(0) @db.Decimal(10, 2)
-  tax_amount      Decimal             @default(0) @db.Decimal(10, 2)
-  final_amount    Decimal             @db.Decimal(14, 2)
-  status          order_status_enum   @default(pending)
-  payment_status  payment_status_enum @default(pending)
-  notes           String?             @db.Text
-  estimated_time  Int? // minutes
-  created_at      DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime            @default(now()) @db.Timestamptz(6)
-
-  restaurants restaurants @relation(fields: [restaurant_id], references: [id])
-  customers   users       @relation("orders_customer", fields: [customer_id], references: [id])
-  addresses   addresses?  @relation(fields: [address_id], references: [id])
-
-  // Related data
-  order_items    order_items[]
-  order_history  order_status_history[]
-  payments       payments[]
-  reviews        reviews[]
-  voucher_usages voucher_usages[]
-  table_orders   table_orders[]
+  id              String                 @id @default(uuid()) @db.Uuid
+  order_code      String                 @unique @db.VarChar(20)
+  total_amount    Decimal                @db.Decimal(14, 2)
+  discount_amount Decimal                @default(0) @db.Decimal(10, 2)
+  final_amount    Decimal                @db.Decimal(14, 2)
+  status          order_status_enum      @default(pending)
+  payment_status  payment_status_enum    @default(pending)
+  notes           String?
+  created_at      DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime               @default(now()) @db.Timestamptz(6)
+  address_id      String?                @db.Uuid
+  customer_id     String                 @db.Uuid
+  delivery_fee    Decimal                @default(0) @db.Decimal(10, 2)
+  estimated_time  Int?
+  order_type      order_type_enum        @default(dine_in)
+  restaurant_id   String                 @db.Uuid
+  tax_amount      Decimal                @default(0) @db.Decimal(10, 2)
+  order_items     order_items[]
+  order_history   order_status_history[]
+  addresses       addresses?             @relation(fields: [address_id], references: [id])
+  customers       users                  @relation("orders_customer", fields: [customer_id], references: [id])
+  restaurants     restaurants            @relation(fields: [restaurant_id], references: [id])
+  payments        payments[]
+  reviews         reviews[]
+  table_orders    table_orders[]
+  voucher_usages  voucher_usages[]
 
   @@index([restaurant_id], map: "idx_orders_restaurant")
   @@index([customer_id], map: "idx_orders_customer")
@@ -350,17 +319,17 @@ model orders {
 model order_items {
   id                   String              @id @default(uuid()) @db.Uuid
   order_id             String              @db.Uuid
-  menu_item_id         String              @db.Uuid
   quantity             Int
-  unit_price           Decimal             @db.Decimal(12, 2)
-  total_price          Decimal             @db.Decimal(12, 2)
-  special_instructions String?             @db.Text
+  created_at           DateTime            @default(now()) @db.Timestamptz(6)
+  menu_item_id         String              @db.Uuid
   cooking_status       cooking_status_enum @default(pending)
   prepared_at          DateTime?           @db.Timestamptz(6)
   served_at            DateTime?           @db.Timestamptz(6)
-  created_at           DateTime            @default(now()) @db.Timestamptz(6)
-  orders               orders              @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  special_instructions String?
+  total_price          Decimal             @db.Decimal(12, 2)
+  unit_price           Decimal             @db.Decimal(12, 2)
   menu_items           menu_items          @relation(fields: [menu_item_id], references: [id])
+  orders               orders              @relation(fields: [order_id], references: [id], onDelete: Cascade)
 
   @@index([order_id], map: "idx_order_items_order")
   @@index([menu_item_id], map: "idx_order_items_menu_item")
@@ -373,18 +342,14 @@ model order_status_history {
   order_id           String            @db.Uuid
   status             order_status_enum
   changed_by_user_id String?           @db.Uuid
-  notes              String?           @db.Text
+  notes              String?
   created_at         DateTime          @default(now()) @db.Timestamptz(6)
-  orders             orders            @relation(fields: [order_id], references: [id], onDelete: Cascade)
   users              users?            @relation(fields: [changed_by_user_id], references: [id])
+  orders             orders            @relation(fields: [order_id], references: [id], onDelete: Cascade)
 
   @@index([order_id], map: "idx_order_status_history_order")
   @@index([created_at], map: "idx_order_status_history_created")
 }
-
-// ================================
-// 💳 PAYMENT MANAGEMENT
-// ================================
 
 /// Payment transactions
 model payments {
@@ -393,7 +358,7 @@ model payments {
   amount           Decimal             @db.Decimal(14, 2)
   method           payment_method_enum
   status           payment_status_enum @default(pending)
-  provider         String?             @db.VarChar(50) // "momo", "zalopay", "vnpay"
+  provider         String?             @db.VarChar(50)
   transaction_id   String?             @unique @db.VarChar(255)
   gateway_response Json?
   processed_at     DateTime?           @db.Timestamptz(6)
@@ -407,10 +372,6 @@ model payments {
   @@index([transaction_id], map: "idx_payments_transaction")
 }
 
-// ================================
-// 👨‍💼 STAFF MANAGEMENT
-// ================================
-
 /// Restaurant staff assignments
 model restaurant_staffs {
   id            String                     @id @default(uuid()) @db.Uuid
@@ -418,9 +379,9 @@ model restaurant_staffs {
   user_id       String                     @db.Uuid
   role          restaurant_staff_role_enum
   status        staff_status_enum          @default(active)
-  hourly_rate   Decimal?                   @db.Decimal(10, 2)
   joined_at     DateTime                   @default(now()) @db.Timestamptz(6)
   left_at       DateTime?                  @db.Timestamptz(6)
+  hourly_rate   Decimal?                   @db.Decimal(10, 2)
   restaurants   restaurants                @relation(fields: [restaurant_id], references: [id], onDelete: Cascade)
   users         users                      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -437,15 +398,15 @@ model staff_schedules {
   restaurant_id String                     @db.Uuid
   shift_date    DateTime                   @db.Date
   shift_type    staff_shift_type_enum
-  start_time    DateTime                   @db.Time
-  end_time      DateTime                   @db.Time
+  start_time    DateTime                   @db.Time(6)
+  end_time      DateTime                   @db.Time(6)
   status        staff_schedule_status_enum @default(scheduled)
-  notes         String?                    @db.Text
+  notes         String?
   created_at    DateTime                   @default(now()) @db.Timestamptz(6)
   updated_at    DateTime                   @default(now()) @db.Timestamptz(6)
-  staff         users                      @relation("staff_schedules_staff", fields: [staff_id], references: [id])
-  restaurants   restaurants                @relation(fields: [restaurant_id], references: [id])
   attendance    staff_attendance[]
+  restaurants   restaurants                @relation(fields: [restaurant_id], references: [id])
+  staff         users                      @relation("staff_schedules_staff", fields: [staff_id], references: [id])
 
   @@unique([staff_id, shift_date, shift_type])
   @@index([restaurant_id], map: "idx_staff_schedules_restaurant")
@@ -462,40 +423,36 @@ model staff_attendance {
   work_date      DateTime         @db.Date
   check_in_time  DateTime?        @db.Timestamptz(6)
   check_out_time DateTime?        @db.Timestamptz(6)
-  break_duration Int? // minutes
+  break_duration Int?
   overtime_hours Decimal?         @db.Decimal(4, 2)
   total_hours    Decimal?         @db.Decimal(4, 2)
-  notes          String?          @db.Text
+  notes          String?
   created_at     DateTime         @default(now()) @db.Timestamptz(6)
   updated_at     DateTime         @default(now()) @db.Timestamptz(6)
-  staff          users            @relation("staff_attendance_staff", fields: [staff_id], references: [id])
   restaurants    restaurants      @relation(fields: [restaurant_id], references: [id])
   schedules      staff_schedules? @relation(fields: [schedule_id], references: [id])
+  staff          users            @relation("staff_attendance_staff", fields: [staff_id], references: [id])
 
   @@unique([staff_id, work_date])
   @@index([restaurant_id], map: "idx_staff_attendance_restaurant")
   @@index([work_date], map: "idx_staff_attendance_date")
 }
 
-// ================================
-// 🏪 INVENTORY MANAGEMENT
-// ================================
-
 /// Inventory items
 model inventory_items {
   id                 String                   @id @default(uuid()) @db.Uuid
   restaurant_id      String                   @db.Uuid
   name               String                   @db.VarChar(100)
-  description        String?                  @db.Text
-  unit               String                   @db.VarChar(20) // kg, lít, cái...
+  description        String?
+  unit               String                   @db.VarChar(20)
   quantity           Decimal                  @db.Decimal(12, 2)
   min_quantity       Decimal?                 @db.Decimal(12, 2)
   max_quantity       Decimal?                 @db.Decimal(12, 2)
-  unit_cost          Decimal?                 @db.Decimal(10, 2)
-  supplier           String?                  @db.VarChar(100)
-  expiry_date        DateTime?                @db.Date
   created_at         DateTime                 @default(now()) @db.Timestamptz(6)
   updated_at         DateTime                 @default(now()) @db.Timestamptz(6)
+  expiry_date        DateTime?                @db.Date
+  supplier           String?                  @db.VarChar(100)
+  unit_cost          Decimal?                 @db.Decimal(10, 2)
   restaurants        restaurants              @relation(fields: [restaurant_id], references: [id])
   transactions       inventory_transactions[]
   recipe_ingredients recipe_ingredients[]
@@ -511,12 +468,12 @@ model inventory_transactions {
   inventory_item_id String                          @db.Uuid
   type              inventory_transaction_type_enum
   quantity          Decimal                         @db.Decimal(12, 2)
-  unit_cost         Decimal?                        @db.Decimal(10, 2)
-  total_cost        Decimal?                        @db.Decimal(12, 2)
-  supplier          String?                         @db.VarChar(100)
-  invoice_number    String?                         @db.VarChar(50)
-  notes             String?                         @db.Text
   created_at        DateTime                        @default(now()) @db.Timestamptz(6)
+  invoice_number    String?                         @db.VarChar(50)
+  notes             String?
+  supplier          String?                         @db.VarChar(100)
+  total_cost        Decimal?                        @db.Decimal(12, 2)
+  unit_cost         Decimal?                        @db.Decimal(10, 2)
   inventory_items   inventory_items                 @relation(fields: [inventory_item_id], references: [id])
 
   @@index([inventory_item_id], map: "idx_inventory_transactions_item")
@@ -529,15 +486,15 @@ model recipes {
   id           String               @id @default(uuid()) @db.Uuid
   menu_item_id String               @db.Uuid
   name         String               @db.VarChar(100)
-  description  String?              @db.Text
-  instructions String?              @db.Text
-  prep_time    Int? // minutes
-  cook_time    Int? // minutes
-  serving_size Int?
+  description  String?
   created_at   DateTime             @default(now()) @db.Timestamptz(6)
   updated_at   DateTime             @default(now()) @db.Timestamptz(6)
-  menu_items   menu_items           @relation(fields: [menu_item_id], references: [id])
+  cook_time    Int?
+  instructions String?
+  prep_time    Int?
+  serving_size Int?
   ingredients  recipe_ingredients[]
+  menu_items   menu_items           @relation(fields: [menu_item_id], references: [id])
 
   @@index([menu_item_id], map: "idx_recipes_menu_item")
 }
@@ -549,38 +506,34 @@ model recipe_ingredients {
   inventory_item_id String          @db.Uuid
   quantity          Decimal         @db.Decimal(12, 2)
   unit              String          @db.VarChar(20)
-  notes             String?         @db.Text
-  recipes           recipes         @relation(fields: [recipe_id], references: [id])
+  notes             String?
   inventory_items   inventory_items @relation(fields: [inventory_item_id], references: [id])
+  recipes           recipes         @relation(fields: [recipe_id], references: [id])
 
   @@index([recipe_id], map: "idx_recipe_ingredients_recipe")
   @@index([inventory_item_id], map: "idx_recipe_ingredients_item")
 }
 
-// ================================
-// 🎟️ PROMOTIONS & VOUCHERS
-// ================================
-
 /// Vouchers and discount codes
 model vouchers {
   id              String                     @id @default(uuid()) @db.Uuid
-  restaurant_id   String?                    @db.Uuid
   code            String                     @unique @db.VarChar(50)
-  name            String                     @db.VarChar(100)
-  description     String?                    @db.Text
+  description     String?
   discount_type   voucher_discount_type_enum
   discount_value  Decimal                    @db.Decimal(12, 2)
   min_order_value Decimal?                   @db.Decimal(12, 2)
   max_discount    Decimal?                   @db.Decimal(12, 2)
-  usage_limit     Int?
-  used_count      Int                        @default(0)
   start_date      DateTime                   @db.Timestamptz(6)
   end_date        DateTime                   @db.Timestamptz(6)
+  usage_limit     Int?
+  used_count      Int                        @default(0)
   is_active       Boolean                    @default(true)
+  restaurant_id   String?                    @db.Uuid
   created_at      DateTime                   @default(now()) @db.Timestamptz(6)
+  name            String                     @db.VarChar(100)
   updated_at      DateTime                   @default(now()) @db.Timestamptz(6)
-  restaurants     restaurants?               @relation(fields: [restaurant_id], references: [id])
   usages          voucher_usages[]
+  restaurants     restaurants?               @relation(fields: [restaurant_id], references: [id])
 
   @@index([restaurant_id], map: "idx_vouchers_restaurant")
   @@index([code], map: "idx_vouchers_code")
@@ -595,9 +548,9 @@ model voucher_usages {
   user_id    String   @db.Uuid
   order_id   String?  @db.Uuid
   used_at    DateTime @default(now()) @db.Timestamptz(6)
-  vouchers   vouchers @relation(fields: [voucher_id], references: [id])
-  users      users    @relation(fields: [user_id], references: [id])
   orders     orders?  @relation(fields: [order_id], references: [id])
+  users      users    @relation(fields: [user_id], references: [id])
+  vouchers   vouchers @relation(fields: [voucher_id], references: [id])
 
   @@index([voucher_id], map: "idx_voucher_usages_voucher")
   @@index([user_id], map: "idx_voucher_usages_user")
@@ -609,12 +562,12 @@ model promotions {
   id                String              @id @default(uuid()) @db.Uuid
   restaurant_id     String              @db.Uuid
   name              String              @db.VarChar(100)
-  description       String?             @db.Text
+  description       String?
   type              promotion_type_enum
   discount_value    Decimal             @db.Decimal(12, 2)
-  conditions        Json? // Conditions for application
-  applicable_items  String[] // Menu item IDs
-  time_restrictions Json? // Time-based restrictions
+  conditions        Json?
+  applicable_items  String[]
+  time_restrictions Json?
   start_date        DateTime            @db.Timestamptz(6)
   end_date          DateTime            @db.Timestamptz(6)
   is_active         Boolean             @default(true)
@@ -627,10 +580,6 @@ model promotions {
   @@index([is_active], map: "idx_promotions_active")
 }
 
-// ================================
-// ⭐ REVIEWS & RATINGS
-// ================================
-
 /// Customer reviews
 model reviews {
   id            String             @id @default(uuid()) @db.Uuid
@@ -638,19 +587,19 @@ model reviews {
   restaurant_id String?            @db.Uuid
   order_id      String?            @db.Uuid
   menu_item_id  String?            @db.Uuid
-  rating        Int // 1-5 stars
+  rating        Int
   title         String?            @db.VarChar(255)
-  content       String?            @db.Text
-  photos        String[] // Photo URLs
+  content       String?
+  photos        String[]
   status        review_status_enum @default(active)
-  response      String?            @db.Text // Restaurant response
+  response      String?
   responded_at  DateTime?          @db.Timestamptz(6)
   created_at    DateTime           @default(now()) @db.Timestamptz(6)
   updated_at    DateTime           @default(now()) @db.Timestamptz(6)
   customers     users              @relation("reviews_customer", fields: [customer_id], references: [id])
-  restaurants   restaurants?       @relation(fields: [restaurant_id], references: [id])
-  orders        orders?            @relation(fields: [order_id], references: [id])
   menu_items    menu_items?        @relation(fields: [menu_item_id], references: [id])
+  orders        orders?            @relation(fields: [order_id], references: [id])
+  restaurants   restaurants?       @relation(fields: [restaurant_id], references: [id])
 
   @@index([customer_id], map: "idx_reviews_customer")
   @@index([restaurant_id], map: "idx_reviews_restaurant")
@@ -658,10 +607,6 @@ model reviews {
   @@index([status], map: "idx_reviews_status")
   @@index([created_at], map: "idx_reviews_created")
 }
-
-// ================================
-// 📊 ANALYTICS & REPORTING
-// ================================
 
 /// Revenue reports
 model revenue_reports {
@@ -676,9 +621,9 @@ model revenue_reports {
   dine_in_revenue           Decimal?                 @db.Decimal(14, 2)
   takeaway_revenue          Decimal?                 @db.Decimal(14, 2)
   delivery_revenue          Decimal?                 @db.Decimal(14, 2)
-  popular_items             Json? // Top selling items
-  payment_methods_breakdown Json? // Payment method analysis
-  hourly_breakdown          Json? // Revenue by hour
+  popular_items             Json?
+  payment_methods_breakdown Json?
+  hourly_breakdown          Json?
   created_at                DateTime                 @default(now()) @db.Timestamptz(6)
   restaurants               restaurants              @relation(fields: [restaurant_id], references: [id])
 
@@ -688,55 +633,50 @@ model revenue_reports {
   @@index([report_type], map: "idx_revenue_reports_type")
 }
 
-// ================================
-// 👤 USER MANAGEMENT
-// ================================
-
 /// Users (customers, staff, admins)
 model users {
-  id                String           @id @default(uuid()) @db.Uuid
-  clerk_id          String?          @unique @db.VarChar(255) // Clerk Auth ID
-  username          String           @unique @db.VarChar(50)
-  email             String           @unique @db.VarChar(255)
-  password_hash     String?          @db.VarChar(255) // For staff-only accounts
-  phone_code        String?          @db.VarChar(8)
-  phone_number      String?          @db.VarChar(20)
-  first_name        String           @db.VarChar(100)
-  last_name         String           @db.VarChar(100)
-  full_name         String           @db.VarChar(200)
-  avatar_url        String?          @db.VarChar(255)
-  date_of_birth     DateTime?        @db.Date
-  gender            String?          @db.VarChar(10)
-  status            user_status_enum @default(active)
-  role              user_role_enum   @default(customer)
-  email_verified_at DateTime?        @db.Timestamptz(6)
-  phone_verified_at DateTime?        @db.Timestamptz(6)
-
-  // Customer statistics
-  total_orders   Int     @default(0)
-  total_spent    Decimal @default(0) @db.Decimal(14, 2)
-  loyalty_points Int     @default(0)
-
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
-
-  // Relations
+  id                        String                    @id @default(uuid()) @db.Uuid
+  username                  String                    @unique @db.VarChar(50)
+  email                     String                    @unique @db.VarChar(255)
+  first_name                String                    @db.VarChar(100)
+  last_name                 String                    @db.VarChar(100)
+  full_name                 String                    @db.VarChar(200)
+  phone_code                String?                   @db.VarChar(8)
+  phone_number              String?                   @db.VarChar(20)
+  avatar_url                String?                   @db.VarChar(255)
+  email_verified_at         DateTime?                 @db.Timestamptz(6)
+  phone_verified_at         DateTime?                 @db.Timestamptz(6)
+  status                    user_status_enum          @default(active)
+  role                      user_role_enum            @default(customer)
+  created_at                DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                  @updatedAt @db.Timestamptz(6)
+  clerk_id                  String?                   @unique @db.VarChar(255)
+  date_of_birth             DateTime?                 @db.Date
+  gender                    String?                   @db.VarChar(10)
+  loyalty_points            Int                       @default(0)
+  total_orders              Int                       @default(0)
+  total_spent               Decimal                   @default(0) @db.Decimal(14, 2)
+  password_hash             String?                   @db.VarChar(255)
+  activity_status           user_activity_status_enum @default(available)
+  is_online                 Boolean?                  @default(false)
+  last_activity_at          DateTime?                 @db.Timestamptz(6)
+  last_seen_at              DateTime?                 @db.Timestamptz(6)
   addresses                 addresses[]
-  organizations_owned       organizations[]        @relation("organizations_owner")
-  restaurants_managed       restaurants[]          @relation("restaurants_manager")
-  restaurant_staffs         restaurant_staffs[]
-  staff_schedules           staff_schedules[]      @relation("staff_schedules_staff")
-  staff_attendance          staff_attendance[]     @relation("staff_attendance_staff")
-  orders                    orders[]               @relation("orders_customer")
-  order_status_history      order_status_history[]
-  reservations              reservations[]         @relation("reservations_customer")
-  table_orders_staffed      table_orders[]         @relation("table_orders_staff")
-  reviews_written           reviews[]              @relation("reviews_customer")
-  voucher_usages            voucher_usages[]
-  conversations_as_customer conversations[]        @relation("conversations_customer")
-  conversations_as_staff    conversations[]        @relation("conversations_staff")
+  conversations_as_customer conversations[]           @relation("conversations_customer")
+  conversations_as_staff    conversations[]           @relation("conversations_staff")
   messages_sent             messages[]
+  order_status_history      order_status_history[]
+  orders                    orders[]                  @relation("orders_customer")
+  organizations_owned       organizations[]           @relation("organizations_owner")
+  reservations              reservations[]            @relation("reservations_customer")
+  restaurant_staffs         restaurant_staffs[]
+  restaurants_managed       restaurants[]             @relation("restaurants_manager")
+  reviews_written           reviews[]                 @relation("reviews_customer")
+  staff_attendance          staff_attendance[]        @relation("staff_attendance_staff")
+  staff_schedules           staff_schedules[]         @relation("staff_schedules_staff")
+  table_orders_staffed      table_orders[]            @relation("table_orders_staff")
   user_statistics           user_statistics?
+  voucher_usages            voucher_usages[]
 
   @@index([clerk_id], map: "idx_users_clerk")
   @@index([email], map: "idx_users_email")
@@ -744,11 +684,11 @@ model users {
   @@index([role], map: "idx_users_role")
   @@index([status], map: "idx_users_status")
   @@index([total_orders], map: "idx_users_total_orders")
+  @@index([is_online], map: "idx_users_online")
+  @@index([activity_status], map: "idx_users_activity_status")
+  @@index([last_seen_at], map: "idx_users_last_seen")
+  @@index([last_activity_at], map: "idx_users_last_activity")
 }
-
-// ================================
-// 📊 USER STATISTICS  
-// ================================
 
 /// User activity statistics
 model user_statistics {
@@ -775,26 +715,32 @@ model user_statistics {
   @@index([total_spent], map: "idx_user_statistics_spent")
 }
 
-
-
-// ================================
-// 📋 ENUMS
-// ================================
-
 enum user_status_enum {
   active
   inactive
-  suspended
   banned
+  suspended
+  pending_verification
+  locked
+  on_leave
+}
+
+enum user_activity_status_enum {
+  available
+  busy
+  do_not_disturb
+  away
+  offline
+  invisible
 }
 
 enum user_role_enum {
   customer
-  deliver
   staff
   manager
   admin
   super_admin
+  deliver
 }
 
 enum restaurant_status_enum {
@@ -866,24 +812,24 @@ enum payment_method_enum {
 
 enum payment_status_enum {
   pending
-  processing
   completed
   failed
+  processing
   cancelled
   refunded
 }
 
 enum restaurant_staff_role_enum {
   staff
-  supervisor
   manager
   chef
-  sous_chef
   cashier
+  security
+  cleaner
+  supervisor
+  sous_chef
   waiter
   host
-  cleaner
-  security
 }
 
 enum staff_status_enum {

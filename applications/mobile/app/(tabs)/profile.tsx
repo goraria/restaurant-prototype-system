@@ -243,12 +243,12 @@ export default function ProfileScreen() {
           </CardHeader>
           <CardContent className="p-0">
             <TouchableOpacity 
-              onPress={() => router.push("/(settings)/help")}
+              onPress={() => router.push("/(settings)/about")}
               className="flex-row items-center p-4 border-b border-border"
             >
               <HelpCircle className="w-5 h-5 text-gray-600 mr-3" />
               <View className="flex-1">
-                <Text className="font-medium">Trợ giúp</Text>
+                <Text className="font-medium">Giới thiệu</Text>
                 <Text className="text-sm text-muted-foreground">FAQ & Hướng dẫn sử dụng</Text>
               </View>
               <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -325,218 +325,220 @@ export default function ProfileScreen() {
       </ScrollView>
     </SafeAreaView>
   );
-                    <Text className="text-xs text-muted-foreground text-center">Lượt đặt bàn</Text>
-                  </CardContent>
-                </Card>
-                <Card className="flex-1 border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-                  <CardContent className="p-4 items-center">
-                    <Text className="text-2xl font-bold text-blue-500 mb-1">{userStats.favoriteRestaurants}</Text>
-                    <Text className="text-xs text-muted-foreground text-center">Yêu thích</Text>
-                  </CardContent>
-                </Card>
-                <Card className="flex-1 border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-                  <CardContent className="p-4 items-center">
-                    <Text className="text-lg font-bold text-amber-500 mb-1">{userStats.loyaltyPoints}</Text>
-                    <Text className="text-xs text-muted-foreground text-center">Điểm tích lũy</Text>
-                  </CardContent>
-                </Card>
-              </View>
-            </View>
-
-            {/* Recent Bookings với thiết kế iOS 18 */}
-            <View className="px-4 mb-8">
-              <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-                  📅 Lịch sử gần đây
-                </Text>
-                <TouchableOpacity onPress={() => console.log('Navigate to history')}>
-                  <Text className="text-primary text-sm font-medium">Xem tất cả</Text>
-                </TouchableOpacity>
-              </View>
-
-              <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-0">
-                  {recentBookings.slice(0, 3).map((booking, index) => (
-                    <View key={booking.id}>
-                      <View className="p-5">
-                        <View className="flex-row items-start justify-between mb-3">
-                          <View className="flex-1">
-                            <Text className="text-base font-semibold text-foreground mb-1">{booking.restaurantName}</Text>
-                            <View className="flex-row items-center mb-1">
-                              <Text className="text-lg mr-2">📅</Text>
-                              <Text className="text-sm text-muted-foreground">
-                                {booking.date} • {booking.time}
-                              </Text>
-                            </View>
-                            <View className="flex-row items-center">
-                              <Text className="text-lg mr-2">👥</Text>
-                              <Text className="text-sm text-muted-foreground">
-                                {booking.guests} người
-                              </Text>
-                            </View>
-                          </View>
-                          <View className="items-end">
-                            {getStatusBadge(booking.status)}
-                            {booking.total > 0 && (
-                              <Text className="text-sm font-medium mt-1 text-foreground">
-                                {formatCurrency(booking.total)}
-                              </Text>
-                            )}
-                          </View>
-                        </View>
-                        {booking.rating && (
-                          <View className="flex-row items-center">
-                            <Text className="text-sm text-muted-foreground mr-2">Đánh giá:</Text>
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                size={14}
-                                fill={i < booking.rating! ? "#F59E0B" : "transparent"}
-                                color="#F59E0B"
-                              />
-                            ))}
-                          </View>
-                        )}
-                      </View>
-                      {index < 2 && <View className="border-b border-border/50 ml-5" />}
-                    </View>
-                  ))}
-                </CardContent>
-              </Card>
-            </View>
-
-            {/* Menu Options với thiết kế iOS 18 */}
-            <View className="px-4 mb-8">
-              <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-                🎯 Hoạt động
-              </Text>
-              <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-0">
-                  <MenuSection
-                    icon="📅"
-                    title="Đặt bàn của tôi"
-                    subtitle="Xem và quản lý đặt bàn"
-                    onPress={() => console.log('Navigate to reservations')}
-                  />
-                  <View className="border-b border-border/50 ml-14" />
-                  <MenuSection
-                    icon="❤️"
-                    title="Yêu thích"
-                    subtitle="Nhà hàng và món ăn yêu thích"
-                    onPress={() => console.log('Navigate to promotions')}
-                  />
-                  <View className="border-b border-border/50 ml-14" />
-                  <MenuSection
-                    icon="🏆"
-                    title="Điểm thưởng"
-                    subtitle={`${userStats.loyaltyPoints} điểm có thể sử dụng`}
-                    onPress={() => console.log('Navigate to promotions')}
-                  />
-                  <View className="border-b border-border/50 ml-14" />
-                  <MenuSection
-                    icon="🧾"
-                    title="Lịch sử thanh toán"
-                    subtitle="Xem chi tiết hóa đơn"
-                    onPress={() => console.log('Navigate to history')}
-                  />
-                </CardContent>
-              </Card>
-            </View>
-
-            {/* Settings với thiết kế iOS 18 */}
-            <View className="px-4 mb-8">
-              <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-                ⚙️ Cài đặt
-              </Text>
-              <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-0">
-                  <MenuSection
-                    icon="⚙️"
-                    title="Cài đặt tài khoản"
-                    subtitle="Thông tin cá nhân, bảo mật"
-                    onPress={() => router.push("/(settings)" as any)}
-                  />
-                  <View className="border-b border-border/50 ml-14" />
-                  <MenuSection
-                    icon="🔔"
-                    title="Thông báo"
-                    subtitle="Cài đặt thông báo"
-                    onPress={() => router.push("/(settings)/notifications")}
-                  />
-                  <View className="border-b border-border/50 ml-14" />
-                  <MenuSection
-                    icon="💳"
-                    title="Phương thức thanh toán"
-                    subtitle="Quản lý thẻ và ví điện tử"
-                    onPress={() => { }}
-                  />
-                  <View className="border-b border-border/50 ml-14" />
-                  <MenuSection
-                    icon="📍"
-                    title="Địa chỉ"
-                    subtitle="Quản lý địa chỉ giao hàng"
-                    onPress={() => { }}
-                  />
-                  <View className="border-b border-border/50 ml-14" />
-                  <MenuSection
-                    icon="❓"
-                    title="Trợ giúp & Hỗ trợ"
-                    subtitle="FAQ, liên hệ hỗ trợ"
-                    onPress={() => router.push("/(settings)/about")}
-                  />
-                </CardContent>
-              </Card>
-            </View>
-
-            {/* Sign Out với thiết kế iOS 18 */}
-            <View className="px-4 mb-8">
-              <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-                ⚠️ Tài khoản
-              </Text>
-              <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-0">
-                  <TouchableOpacity 
-                    onPress={handleSignOut}
-                    className="flex-row items-center py-4 px-5 active:bg-red-50"
-                  >
-                    <View className="w-10 h-10 bg-red-100 rounded-xl items-center justify-center mr-4">
-                      <Text className="text-lg">🚪</Text>
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-medium text-red-600">Đăng xuất</Text>
-                    </View>
-                  </TouchableOpacity>
-                </CardContent>
-              </Card>
-            </View>
-
-            {/* App Info */}
-            <View className="px-4 pb-8">
-              <Text className="text-center text-xs text-muted-foreground">
-                Waddles Restaurant v1.0.0
-              </Text>
-              <Text className="text-center text-xs text-muted-foreground mt-1">
-                © 2024 Waddles. All rights reserved.
-              </Text>
-            </View>
-          </ScrollView>
-        </>
-      ) : (
-        <>
-          <TouchableOpacity
-            className="m-4 bg-primary py-3 px-6 rounded-lg"
-            onPress={() => router.push('/sign-in')}
-          >
-            <Text className="text-white text-center font-medium">Đăng nhập</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="m-4 border border-border py-3 px-6 rounded-lg"
-            onPress={() => router.push('/sign-up')}
-          >
-            <Text className="text-foreground text-center font-medium">Đăng ký</Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </>
-  );
 }
+
+
+  //                   <Text className="text-xs text-muted-foreground text-center">Lượt đặt bàn</Text>
+  //                 </CardContent>
+  //               </Card>
+  //               <Card className="flex-1 border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+  //                 <CardContent className="p-4 items-center">
+  //                   <Text className="text-2xl font-bold text-blue-500 mb-1">{userStats.favoriteRestaurants}</Text>
+  //                   <Text className="text-xs text-muted-foreground text-center">Yêu thích</Text>
+  //                 </CardContent>
+  //               </Card>
+  //               <Card className="flex-1 border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+  //                 <CardContent className="p-4 items-center">
+  //                   <Text className="text-lg font-bold text-amber-500 mb-1">{userStats.loyaltyPoints}</Text>
+  //                   <Text className="text-xs text-muted-foreground text-center">Điểm tích lũy</Text>
+  //                 </CardContent>
+  //               </Card>
+  //             </View>
+  //           </View>
+
+  //           {/* Recent Bookings với thiết kế iOS 18 */}
+  //           <View className="px-4 mb-8">
+  //             <View className="flex-row items-center justify-between mb-3">
+  //               <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
+  //                 📅 Lịch sử gần đây
+  //               </Text>
+  //               <TouchableOpacity onPress={() => console.log('Navigate to history')}>
+  //                 <Text className="text-primary text-sm font-medium">Xem tất cả</Text>
+  //               </TouchableOpacity>
+  //             </View>
+
+  //             <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+  //               <CardContent className="p-0">
+  //                 {recentBookings.slice(0, 3).map((booking, index) => (
+  //                   <View key={booking.id}>
+  //                     <View className="p-5">
+  //                       <View className="flex-row items-start justify-between mb-3">
+  //                         <View className="flex-1">
+  //                           <Text className="text-base font-semibold text-foreground mb-1">{booking.restaurantName}</Text>
+  //                           <View className="flex-row items-center mb-1">
+  //                             <Text className="text-lg mr-2">📅</Text>
+  //                             <Text className="text-sm text-muted-foreground">
+  //                               {booking.date} • {booking.time}
+  //                             </Text>
+  //                           </View>
+  //                           <View className="flex-row items-center">
+  //                             <Text className="text-lg mr-2">👥</Text>
+  //                             <Text className="text-sm text-muted-foreground">
+  //                               {booking.guests} người
+  //                             </Text>
+  //                           </View>
+  //                         </View>
+  //                         <View className="items-end">
+  //                           {getStatusBadge(booking.status)}
+  //                           {booking.total > 0 && (
+  //                             <Text className="text-sm font-medium mt-1 text-foreground">
+  //                               {formatCurrency(booking.total)}
+  //                             </Text>
+  //                           )}
+  //                         </View>
+  //                       </View>
+  //                       {booking.rating && (
+  //                         <View className="flex-row items-center">
+  //                           <Text className="text-sm text-muted-foreground mr-2">Đánh giá:</Text>
+  //                           {[...Array(5)].map((_, i) => (
+  //                             <Star
+  //                               key={i}
+  //                               size={14}
+  //                               fill={i < booking.rating! ? "#F59E0B" : "transparent"}
+  //                               color="#F59E0B"
+  //                             />
+  //                           ))}
+  //                         </View>
+  //                       )}
+  //                     </View>
+  //                     {index < 2 && <View className="border-b border-border/50 ml-5" />}
+  //                   </View>
+  //                 ))}
+  //               </CardContent>
+  //             </Card>
+  //           </View>
+
+  //           {/* Menu Options với thiết kế iOS 18 */}
+  //           <View className="px-4 mb-8">
+  //             <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+  //               🎯 Hoạt động
+  //             </Text>
+  //             <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+  //               <CardContent className="p-0">
+  //                 <MenuSection
+  //                   icon="📅"
+  //                   title="Đặt bàn của tôi"
+  //                   subtitle="Xem và quản lý đặt bàn"
+  //                   onPress={() => console.log('Navigate to reservations')}
+  //                 />
+  //                 <View className="border-b border-border/50 ml-14" />
+  //                 <MenuSection
+  //                   icon="❤️"
+  //                   title="Yêu thích"
+  //                   subtitle="Nhà hàng và món ăn yêu thích"
+  //                   onPress={() => console.log('Navigate to promotions')}
+  //                 />
+  //                 <View className="border-b border-border/50 ml-14" />
+  //                 <MenuSection
+  //                   icon="🏆"
+  //                   title="Điểm thưởng"
+  //                   subtitle={`${userStats.loyaltyPoints} điểm có thể sử dụng`}
+  //                   onPress={() => console.log('Navigate to promotions')}
+  //                 />
+  //                 <View className="border-b border-border/50 ml-14" />
+  //                 <MenuSection
+  //                   icon="🧾"
+  //                   title="Lịch sử thanh toán"
+  //                   subtitle="Xem chi tiết hóa đơn"
+  //                   onPress={() => console.log('Navigate to history')}
+  //                 />
+  //               </CardContent>
+  //             </Card>
+  //           </View>
+
+  //           {/* Settings với thiết kế iOS 18 */}
+  //           <View className="px-4 mb-8">
+  //             <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+  //               ⚙️ Cài đặt
+  //             </Text>
+  //             <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+  //               <CardContent className="p-0">
+  //                 <MenuSection
+  //                   icon="⚙️"
+  //                   title="Cài đặt tài khoản"
+  //                   subtitle="Thông tin cá nhân, bảo mật"
+  //                   onPress={() => router.push("/(settings)" as any)}
+  //                 />
+  //                 <View className="border-b border-border/50 ml-14" />
+  //                 <MenuSection
+  //                   icon="🔔"
+  //                   title="Thông báo"
+  //                   subtitle="Cài đặt thông báo"
+  //                   onPress={() => router.push("/(settings)/notifications")}
+  //                 />
+  //                 <View className="border-b border-border/50 ml-14" />
+  //                 <MenuSection
+  //                   icon="💳"
+  //                   title="Phương thức thanh toán"
+  //                   subtitle="Quản lý thẻ và ví điện tử"
+  //                   onPress={() => { }}
+  //                 />
+  //                 <View className="border-b border-border/50 ml-14" />
+  //                 <MenuSection
+  //                   icon="📍"
+  //                   title="Địa chỉ"
+  //                   subtitle="Quản lý địa chỉ giao hàng"
+  //                   onPress={() => { }}
+  //                 />
+  //                 <View className="border-b border-border/50 ml-14" />
+  //                 <MenuSection
+  //                   icon="❓"
+  //                   title="Trợ giúp & Hỗ trợ"
+  //                   subtitle="FAQ, liên hệ hỗ trợ"
+  //                   onPress={() => router.push("/(settings)/about")}
+  //                 />
+  //               </CardContent>
+  //             </Card>
+  //           </View>
+
+  //           {/* Sign Out với thiết kế iOS 18 */}
+  //           <View className="px-4 mb-8">
+  //             <Text className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+  //               ⚠️ Tài khoản
+  //             </Text>
+  //             <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm">
+  //               <CardContent className="p-0">
+  //                 <TouchableOpacity 
+  //                   onPress={handleSignOut}
+  //                   className="flex-row items-center py-4 px-5 active:bg-red-50"
+  //                 >
+  //                   <View className="w-10 h-10 bg-red-100 rounded-xl items-center justify-center mr-4">
+  //                     <Text className="text-lg">🚪</Text>
+  //                   </View>
+  //                   <View className="flex-1">
+  //                     <Text className="text-base font-medium text-red-600">Đăng xuất</Text>
+  //                   </View>
+  //                 </TouchableOpacity>
+  //               </CardContent>
+  //             </Card>
+  //           </View>
+
+  //           {/* App Info */}
+  //           <View className="px-4 pb-8">
+  //             <Text className="text-center text-xs text-muted-foreground">
+  //               Waddles Restaurant v1.0.0
+  //             </Text>
+  //             <Text className="text-center text-xs text-muted-foreground mt-1">
+  //               © 2024 Waddles. All rights reserved.
+  //             </Text>
+  //           </View>
+  //         </ScrollView>
+  //       </>
+  //     ) : (
+  //       <>
+  //         <TouchableOpacity
+  //           className="m-4 bg-primary py-3 px-6 rounded-lg"
+  //           onPress={() => router.push('/sign-in')}
+  //         >
+  //           <Text className="text-white text-center font-medium">Đăng nhập</Text>
+  //         </TouchableOpacity>
+  //         <TouchableOpacity
+  //           className="m-4 border border-border py-3 px-6 rounded-lg"
+  //           onPress={() => router.push('/sign-up')}
+  //         >
+  //           <Text className="text-foreground text-center font-medium">Đăng ký</Text>
+  //         </TouchableOpacity>
+  //       </>
+  //     )}
+  //   </>
+  // );

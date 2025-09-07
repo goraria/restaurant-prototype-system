@@ -25,7 +25,11 @@ export interface AppSidebarUser {
 }
 
 export interface AppSidebarUserProps {
-  user: AppSidebarUser;
+  user?: AppSidebarUser;
+  type?: "sidebar" | "navbar";
+  size?: "icon" | "sm" | "md" | "lg";
+  side?: "top" | "bottom" | "left" | "right";
+  align?: "start" | "center" | "end";
 }
 
 export interface AppSidebarProps extends ComponentProps<typeof Sidebar> {

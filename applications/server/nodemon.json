@@ -1,6 +1,6 @@
 {
   "watch": ["."],
   "ext": "ts,json",
-  "ignore": ["node_modules", "dist", ".git", "src /* nếu có */"],
-  "exec": "ts-node -r tsconfig-paths/register app/index.ts"
+  "ignore": ["node_modules", ".express", "dist", ".git", "src /* nếu có */"],
+  "exec": "ts-node -r tsconfig-paths/register app/test.ts"
 }
