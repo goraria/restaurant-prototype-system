@@ -93,20 +93,44 @@ model messages {
 
 /// Top-level organization (company)
 model organizations {
-  id          String              @id @default(uuid()) @db.Uuid
-  name        String              @db.VarChar(100)
-  code        String              @unique @db.VarChar(30)
-  description String?
-  owner_id    String              @db.Uuid
-  created_at  DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime            @default(now()) @db.Timestamptz(6)
-  logo_url    String?             @db.VarChar(255)
-  owner       users               @relation("organizations_owner", fields: [owner_id], references: [id])
-  chains      restaurant_chains[]
-  restaurants restaurants[]
+  id              String                     @id @default(uuid()) @db.Uuid
+  name            String                     @db.VarChar(100)
+  code            String                     @unique @db.VarChar(30)
+  description     String?
+  owner_id        String                     @db.Uuid
+  created_at      DateTime                   @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime                   @updatedAt @db.Timestamptz(6)
+  logo_url        String?                    @db.VarChar(255)
+  clerk_id        String?                    @unique @db.VarChar(255)
+  clerk_slug      String?                    @unique @db.VarChar(255)
+  owner           users                      @relation("organizations_owner", fields: [owner_id], references: [id])
+  chains          restaurant_chains[]
+  restaurants     restaurants[]
+  memberships     organization_memberships[]
 
   @@index([owner_id], map: "idx_organizations_owner")
   @@index([code], map: "idx_organizations_code")
+  @@index([clerk_id], map: "idx_organizations_clerk")
+}
+
+/// Organization memberships from Clerk
+model organization_memberships {
+  id              String                  @id @default(uuid()) @db.Uuid
+  clerk_id        String                  @unique @db.VarChar(255)
+  organization_id String                  @db.Uuid
+  user_id         String                  @db.Uuid
+  role            organization_role_enum  @default(member)
+  created_at      DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime                @updatedAt @db.Timestamptz(6)
+  joined_at       DateTime?               @db.Timestamptz(6)
+  invited_at      DateTime?               @db.Timestamptz(6)
+  organization    organizations           @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  user            users                   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([organization_id, user_id], map: "uq_org_membership_org_user")
+  @@index([organization_id], map: "idx_org_memberships_org")
+  @@index([user_id], map: "idx_org_memberships_user")
+  @@index([clerk_id], map: "idx_org_memberships_clerk")
 }
 
 /// Restaurant chains within organization
@@ -666,9 +690,10 @@ model users {
   conversations_as_staff    conversations[]           @relation("conversations_staff")
   messages_sent             messages[]
   order_status_history      order_status_history[]
-  orders                    orders[]                  @relation("orders_customer")
-  organizations_owned       organizations[]           @relation("organizations_owner")
-  reservations              reservations[]            @relation("reservations_customer")
+  orders                    orders[]                     @relation("orders_customer")
+  organizations_owned       organizations[]              @relation("organizations_owner")
+  organization_memberships  organization_memberships[]
+  reservations              reservations[]               @relation("reservations_customer")
   restaurant_staffs         restaurant_staffs[]
   restaurants_managed       restaurants[]             @relation("restaurants_manager")
   reviews_written           reviews[]                 @relation("reviews_customer")
@@ -741,6 +766,12 @@ enum user_role_enum {
   admin
   super_admin
   deliver
+}
+
+enum organization_role_enum {
+  admin
+  member
+  guest
 }
 
 enum restaurant_status_enum {

@@ -21,7 +21,6 @@ export const setupAITrainingJobs = () => {
       console.error('❌ AI model retraining failed:', error);
     }
   }, {
-    scheduled: true,
     timezone: "Asia/Ho_Chi_Minh"
   });
 
@@ -35,7 +34,6 @@ export const setupAITrainingJobs = () => {
       console.error('❌ Customer analytics update failed:', error);
     }
   }, {
-    scheduled: true,
     timezone: "Asia/Ho_Chi_Minh"
   });
 
@@ -49,7 +47,6 @@ export const setupAITrainingJobs = () => {
       console.error('❌ Demand forecast update failed:', error);
     }
   }, {
-    scheduled: true,
     timezone: "Asia/Ho_Chi_Minh"
   });
 
@@ -61,7 +58,6 @@ export const setupAITrainingJobs = () => {
       console.error('❌ Real-time insights refresh failed:', error);
     }
   }, {
-    scheduled: true,
     timezone: "Asia/Ho_Chi_Minh"
   });
 
