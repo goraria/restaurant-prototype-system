@@ -53,7 +53,7 @@ export const getOrganizations = async (req: AuthenticatedRequest, res: Response)
                 id: true,
                 name: true,
                 address: true,
-                phone: true,
+                phone_number: true,
                 status: true
               }
             }
@@ -102,7 +102,7 @@ export const getOrganizations = async (req: AuthenticatedRequest, res: Response)
               id: true,
               name: true,
               address: true,
-              phone: true,
+              phone_number: true,
               status: true
             }
           }
@@ -256,10 +256,10 @@ export const updateOrganization = async (req: AuthenticatedRequest, res: Respons
 
     // Check if user has permission to update this organization
     try {
-      const membership = await clerkConfigClient.organizations.getOrganizationMembership({
-        organizationId,
-        userId
+      const membershipList = await clerkConfigClient.organizations.getOrganizationMembershipList({
+        organizationId
       });
+      const membership = membershipList.data.find(m => m.publicUserData?.userId === userId);
 
       if (!membership || (membership.role !== 'org:admin' && membership.role !== 'org:member')) {
         res.status(403).json({
@@ -283,13 +283,15 @@ export const updateOrganization = async (req: AuthenticatedRequest, res: Respons
     };
 
     // 1. Update organization in Clerk
-    const clerkOrg = await clerkConfigClient.organizations.updateOrganization({
+    const clerkOrg = await clerkConfigClient.organizations.updateOrganization(
       organizationId,
-      name,
-      slug,
-      publicMetadata: enhancedPublicMetadata,
-      privateMetadata
-    });
+      {
+        name,
+        slug,
+        publicMetadata: enhancedPublicMetadata,
+        privateMetadata
+      }
+    );
 
     // 2. Update organization in local database
     const dbOrg = await prisma.organizations.update({
@@ -317,7 +319,7 @@ export const updateOrganization = async (req: AuthenticatedRequest, res: Respons
             id: true,
             name: true,
             address: true,
-            phone: true,
+            phone_number: true,
             status: true
           }
         }
@@ -382,10 +384,10 @@ export const deleteOrganization = async (req: AuthenticatedRequest, res: Respons
 
     // Check if user is admin of this organization
     try {
-      const membership = await clerkConfigClient.organizations.getOrganizationMembership({
-        organizationId,
-        userId
+      const membershipList = await clerkConfigClient.organizations.getOrganizationMembershipList({
+        organizationId
       });
+      const membership = membershipList.data.find(m => m.publicUserData?.userId === userId);
 
       if (!membership || membership.role !== 'org:admin') {
         res.status(403).json({

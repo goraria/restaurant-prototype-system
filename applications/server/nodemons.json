@@ -2,5 +2,5 @@
   "watch": ["."],
   "ext": "ts,json",
   "ignore": ["node_modules", ".express", "dist", ".git", "src /* nếu có */"],
-  "exec": "ts-node -r tsconfig-paths/register app/test.ts"
+  "exec": "ts-node -r tsconfig-paths/register app/index.ts"
 }
