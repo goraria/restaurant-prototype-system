@@ -1,31 +1,39 @@
 "use client"
 
-import { useTheme } from 'next-themes';
 import { SignUp } from '@clerk/nextjs'
-import { dark } from '@clerk/themes';
+import { useClerkTheme } from '@/hooks/use-clerk-theme';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ChartLine, Clock, ShieldCheck, Sparkles } from 'lucide-react'
 
 export default function SignUpPage() {
-  const { theme } = useTheme();
+  const { mounted, clerkBaseTheme } = useClerkTheme();
 
   return (
     <>
-      <div className="bg-muted flex w-full h-screen flex-1 items-center justify-center p-6 md:p-10">
-        <SignUp 
-          appearance={{
-            baseTheme: theme === "dark" ? dark : undefined,
-            elements: {
-              rootBox: {},
-              cardBox: {
-              },
-              headerTitle: {
-                
-              }
-            },
-          }}
+      {mounted ? (
+        <>
+          <SignUp
+            appearance={{
+              baseTheme: clerkBaseTheme,
+              elements: {
+                rootBox: {},
+                cardBox: "bg-card text-card-foreground flex flex-col rounded-xl border !shadow-sm",
+                headerTitle: {
 
-        />
-      </div>
+                },
+                formButtonPrimary: "!bg-foreground !inset-none",
+                footer: "!bg-card",
+              },
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <div className="flex flex-col">
+            <Skeleton className="w-[400px] h-[800px] bg-gray-200 rounded-lg animate-pulse"/>
+          </div>
+        </>
+      )}
       {/* <div className="bg-muted grid flex-1 lg:grid-cols-2">
         <div className="hidden flex-1 items-center justify-end p-6 md:p-10 lg:flex">
           <ul className="max-w-sm space-y-8">

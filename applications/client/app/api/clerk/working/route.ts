@@ -14,7 +14,7 @@ export async function GET() {
     console.log("🔑 Testing service role key:", process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20) + '...');
     console.log("🔗 Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
     
-    // Test insert với admin client - sử dụng schema mới
+    // Test insert với admin client
     const testUserId = uuidv4();
     const { data: insertData, error: insertError } = await supabase
       .from('users')
@@ -26,25 +26,10 @@ export async function GET() {
         first_name: 'Test',
         last_name: 'User',
         full_name: 'Test User',
-        role: 'customer',
-        status: 'active',
         activity_status: 'available',
         is_online: false,
-        loyalty_points: 0,
-        total_orders: 0,
-        total_spent: 0,
         last_seen_at: new Date().toISOString(),
-        last_activity_at: new Date().toISOString(),
-        // Clerk integration fields
-        has_image: false,
-        password_enabled: false,
-        two_factor_enabled: false,
-        totp_enabled: false,
-        backup_code_enabled: false,
-        banned: false,
-        locked: false,
-        delete_self_enabled: true,
-        create_organization_enabled: false
+        last_activity_at: new Date().toISOString()
       })
       .select();
 
@@ -232,58 +217,23 @@ export async function POST(request: Request) {
         // Tạo admin client với service role để bypass RLS
         const adminSupabase = createAdminSupabaseClient();
 
-        // Chuẩn bị dữ liệu user với tất cả fields mới
-        const userData = {
-          id: uuidv4(),  // Generate UUID cho primary key
+        const { error } = await adminSupabase.from("users").insert({
+          id: uuidv4(),  // Generate UUID cho primary key bằng uuid package
           clerk_id: user.id,  // Lưu Clerk ID vào trường clerk_id
           username: username,
           email: email,
-          first_name: user.first_name || null,
-          last_name: user.last_name || null,
-          full_name: fullName || null,
+          first_name: user.first_name || '',
+          last_name: user.last_name || '',
+          full_name: fullName,
           avatar_url: user.image_url || null,
           email_verified_at: user.email_addresses?.length > 0 ? new Date().toISOString() : null,
-          role: 'customer',  // Default role
-          status: 'active',  // Default status
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),  // Phải thêm vì @updatedAt chỉ hoạt động với Prisma Client
           activity_status: 'available',  // Default activity status
           is_online: false,  // Default offline
-          loyalty_points: 0,
-          total_orders: 0,
-          total_spent: 0,
           last_seen_at: new Date().toISOString(),
-          last_activity_at: new Date().toISOString(),
-          
-          // Clerk integration fields
-          has_image: !!user.image_url,
-          primary_email_address_id: user.primary_email_address_id || null,
-          password_enabled: user.password_enabled || false,
-          two_factor_enabled: user.two_factor_enabled || false,
-          totp_enabled: user.totp_enabled || false,
-          backup_code_enabled: user.backup_code_enabled || false,
-          banned: user.banned || false,
-          locked: user.locked || false,
-          lockout_expires_in_seconds: user.lockout_expires_in_seconds || null,
-          delete_self_enabled: user.delete_self_enabled ?? true,
-          create_organization_enabled: user.create_organization_enabled || false,
-          create_organizations_limit: user.create_organizations_limit || null,
-          legal_accepted_at: user.legal_accepted_at ? new Date(user.legal_accepted_at).toISOString() : null,
-          last_sign_in_at: user.last_sign_in_at ? new Date(user.last_sign_in_at).toISOString() : null,
-          
-          // JSON fields for Clerk metadata and settings
-          public_metadata: user.public_metadata || {},
-          private_metadata: user.private_metadata || {},
-          unsafe_metadata: user.unsafe_metadata || {},
-          
-          // Arrays for Clerk related data
-          email_addresses: user.email_addresses || [],
-          phone_numbers: user.phone_numbers || [],
-          web3_wallets: user.web3_wallets || [],
-          external_accounts: user.external_accounts || [],
-          enterprise_accounts: [], // Not available in UserJSON
-          passkeys: [] // Not available in UserJSON
-        };
-
-        const { error } = await adminSupabase.from("users").insert(userData);
+          last_activity_at: new Date().toISOString()
+        });
 
         if (error) {
           console.error("❌ Lỗi khi lưu user:", error);
@@ -324,45 +274,15 @@ export async function POST(request: Request) {
         // Tạo admin client với service role để bypass RLS
         const adminSupabase = createAdminSupabaseClient();
 
-        // Chuẩn bị dữ liệu update với tất cả fields mới
-        const updateData = {
+        const { error } = await adminSupabase.from("users").update({
           email: primaryEmail?.email_address || null,
-          first_name: user.first_name || null,
-          last_name: user.last_name || null,
+          first_name: user.first_name || '',
+          last_name: user.last_name || '',
           full_name: fullName || null,
           avatar_url: user.image_url || null,
-          email_verified_at: user.email_addresses?.length > 0 ? new Date().toISOString() : null,
-          last_activity_at: new Date().toISOString(),
-          
-          // Clerk integration fields
-          has_image: !!user.image_url,
-          primary_email_address_id: user.primary_email_address_id || null,
-          password_enabled: user.password_enabled || false,
-          two_factor_enabled: user.two_factor_enabled || false,
-          totp_enabled: user.totp_enabled || false,
-          backup_code_enabled: user.backup_code_enabled || false,
-          banned: user.banned || false,
-          locked: user.locked || false,
-          lockout_expires_in_seconds: user.lockout_expires_in_seconds || null,
-          delete_self_enabled: user.delete_self_enabled ?? true,
-          create_organization_enabled: user.create_organization_enabled || false,
-          create_organizations_limit: user.create_organizations_limit || null,
-          legal_accepted_at: user.legal_accepted_at ? new Date(user.legal_accepted_at).toISOString() : null,
-          last_sign_in_at: user.last_sign_in_at ? new Date(user.last_sign_in_at).toISOString() : null,
-          
-          // JSON fields for Clerk metadata and settings
-          public_metadata: user.public_metadata || {},
-          private_metadata: user.private_metadata || {},
-          unsafe_metadata: user.unsafe_metadata || {},
-          
-          // Arrays for Clerk related data
-          email_addresses: user.email_addresses || [],
-          phone_numbers: user.phone_numbers || [],
-          web3_wallets: user.web3_wallets || [],
-          external_accounts: user.external_accounts || []
-        };
-
-        const { error } = await adminSupabase.from("users").update(updateData).eq("clerk_id", user.id);
+          updated_at: new Date().toISOString(),  // Phải thêm manual khi dùng Supabase client
+          last_activity_at: new Date().toISOString()
+        }).eq("clerk_id", user.id);  // Sử dụng clerk_id để tìm user
 
         if (error) {
           console.error("❌ Lỗi khi update user:", error);
@@ -398,7 +318,7 @@ export async function POST(request: Request) {
         // Kiểm tra user có tồn tại trong database không
         const { data: existingUser } = await supabase
           .from("users")
-          .select("id, username, email, status")
+          .select("id, username, email")
           .eq("clerk_id", user.id)
           .single();
 
@@ -414,27 +334,15 @@ export async function POST(request: Request) {
           });
         }
 
-        console.log("👤 Đang soft delete user:", existingUser.username, existingUser.email);
+        console.log("👤 Đang xóa user:", existingUser.username, existingUser.email);
         
-        // Tạo admin client để bypass RLS
-        const adminSupabase = createAdminSupabaseClient();
-        
-        // Soft delete: cập nhật status và deleted_at thay vì xóa hoàn toàn
-        const { error } = await adminSupabase
-          .from("users")
-          .update({
-            status: 'inactive' as const,
-            activity_status: 'offline' as const,
-            deleted_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            last_activity_at: new Date().toISOString()
-          })
-          .eq("clerk_id", user.id);
+        // Hard delete: xóa hoàn toàn user khỏi database
+        const { error } = await supabase.from("users").delete().eq("clerk_id", user.id);
         
         if (error) {
-          console.error("❌ Lỗi khi soft delete user:", error);
+          console.error("❌ Lỗi khi xóa user:", error);
           return new Response(JSON.stringify({
-            error: "Database soft delete failed", 
+            error: "Database delete failed", 
             message: error.message,
             code: error.code,
             clerkId: user.id
@@ -444,19 +352,18 @@ export async function POST(request: Request) {
           });
         }
 
-        console.log("✅ User đã được soft deleted thành công!");
-        console.log("🕒 Thời gian soft delete:", new Date().toISOString());
+        console.log("✅ User đã được xóa khỏi database thành công!");
+        console.log("🕒 Thời gian xóa:", new Date().toISOString());
         
         return new Response(JSON.stringify({
-          message: "✅ User soft deleted thành công!",
+          message: "✅ User deleted thành công!",
           clerkId: user.id,
           deletedUser: {
             username: existingUser.username,
-            email: existingUser.email,
-            previousStatus: existingUser.status
+            email: existingUser.email
           },
           deletedAt: new Date().toISOString(),
-          note: "User đã được soft deleted (status = inactive, deleted_at đã set)"
+          note: "User đã được xóa hoàn toàn khỏi database"
         }), { 
           status: 200,
           headers: { 'Content-Type': 'application/json' }

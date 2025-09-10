@@ -301,7 +301,7 @@ export async function zalopayCheckStatus(
 
   let postConfig = {
     method: 'post',
-    url: gateway_endpoint,
+    url: gateway_endpoint!,
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
@@ -309,6 +309,7 @@ export async function zalopayCheckStatus(
   };
 
   try {
+    // const result = await axios(postConfig);
     const result = await axios(postConfig);
     console.log(result.data);
     return res.status(200).json(result.data);
@@ -400,7 +401,7 @@ export async function vnpayPayment(
       // signData cho signature (raw values)
       signData.push(key + '=' + value);
       // hashData cho URL (encoded values)  
-      hashData.push(key + '=' + encodeURIComponent(value));
+      hashData.push(key + '=' + encodeURIComponent(value!));
     }
 
     // Tạo chữ ký với raw data (không encode)

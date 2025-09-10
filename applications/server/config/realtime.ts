@@ -4,11 +4,11 @@
 
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import { initializeSocketService } from './socket';
+import { initializeSocketService } from '@/config/socket';
 import { 
   initializeSupabaseRealtime, 
   subscribeToAllTables
-} from './supabaseRealtime';
+} from '@/config/supabase';
 
 let io: SocketIOServer;
 let chatSocketService: any;
@@ -104,6 +104,39 @@ export const setupEnhancedSocketHandlers = () => {
       console.log(`📋 Socket ${socket.id} unsubscribed from menu ${menuId}`);
     });
 
+    // Notification events - Thêm các sự kiện cho thông báo
+    socket.on('join_user_notifications', (userId) => {
+      socket.join(`user_${userId}`);
+      console.log(`🔔 Socket ${socket.id} tham gia nhận thông báo cho user ${userId}`);
+    });
+
+    socket.on('join_restaurant_notifications', (restaurantId) => {
+      socket.join(`restaurant_${restaurantId}`);
+      console.log(`🏪 Socket ${socket.id} tham gia nhận thông báo nhà hàng ${restaurantId}`);
+    });
+
+    socket.on('join_organization_notifications', (organizationId) => {
+      socket.join(`organization_${organizationId}`);
+      console.log(`🏢 Socket ${socket.id} tham gia nhận thông báo tổ chức ${organizationId}`);
+    });
+
+    socket.on('mark_notification_read', (data) => {
+      const { notificationId, userId } = data;
+      socket.to(`user_${userId}`).emit('notification_read', {
+        notificationId,
+        timestamp: new Date().toISOString()
+      });
+      console.log(`✅ Đánh dấu thông báo ${notificationId} đã đọc cho user ${userId}`);
+    });
+
+    socket.on('mark_all_notifications_read', (userId) => {
+      socket.to(`user_${userId}`).emit('all_notifications_read', {
+        userId,
+        timestamp: new Date().toISOString()
+      });
+      console.log(`✅ Đánh dấu tất cả thông báo đã đọc cho user ${userId}`);
+    });
+
     socket.on('disconnect', () => {
       console.log(`👤 User disconnected: ${socket.id}`);
     });
@@ -122,6 +155,68 @@ export const sendRealtimeNotification = (userId: string, data: any) => {
   
   // Also use Supabase realtime for backup
   sendRealtimeEvent('user_notification', data, `user_${userId}`);
+};
+
+/**
+ * Gửi thông báo realtime đến user cụ thể
+ * @param userId - ID người dùng
+ * @param notification - Dữ liệu thông báo
+ */
+export const sendNotificationToUser = (userId: string, notification: any) => {
+  if (io) {
+    io.to(`user_${userId}`).emit('new_notification', {
+      notification,
+      timestamp: new Date().toISOString()
+    });
+    console.log(`🔔 Đã gửi thông báo realtime đến user ${userId}`);
+  }
+};
+
+/**
+ * Gửi thông báo đến tất cả nhân viên nhà hàng
+ * @param restaurantId - ID nhà hàng
+ * @param notification - Dữ liệu thông báo
+ */
+export const sendNotificationToRestaurant = (restaurantId: string, notification: any) => {
+  if (io) {
+    io.to(`restaurant_${restaurantId}`).emit('restaurant_notification', {
+      notification,
+      timestamp: new Date().toISOString()
+    });
+    console.log(`🏪 Đã gửi thông báo đến nhà hàng ${restaurantId}`);
+  }
+};
+
+/**
+ * Gửi thông báo đến tất cả thành viên tổ chức
+ * @param organizationId - ID tổ chức
+ * @param notification - Dữ liệu thông báo
+ */
+export const sendNotificationToOrganization = (organizationId: string, notification: any) => {
+  if (io) {
+    io.to(`organization_${organizationId}`).emit('organization_notification', {
+      notification,
+      timestamp: new Date().toISOString()
+    });
+    console.log(`🏢 Đã gửi thông báo đến tổ chức ${organizationId}`);
+  }
+};
+
+/**
+ * Phát sóng cập nhật trạng thái thông báo
+ * @param userId - ID người dùng
+ * @param notificationId - ID thông báo
+ * @param status - Trạng thái mới
+ */
+export const broadcastNotificationStatusUpdate = (userId: string, notificationId: string, status: string) => {
+  if (io) {
+    io.to(`user_${userId}`).emit('notification_status_updated', {
+      notificationId,
+      status,
+      timestamp: new Date().toISOString()
+    });
+    console.log(`🔄 Đã cập nhật trạng thái thông báo ${notificationId} thành ${status}`);
+  }
 };
 
 /**

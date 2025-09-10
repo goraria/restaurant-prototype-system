@@ -660,11 +660,11 @@ model revenue_reports {
 /// Users (customers, staff, admins)
 model users {
   id                        String                    @id @default(uuid()) @db.Uuid
-  username                  String                    @unique @db.VarChar(50)
+  username                  String?                   @unique @db.VarChar(50)
   email                     String                    @unique @db.VarChar(255)
-  first_name                String                    @db.VarChar(100)
-  last_name                 String                    @db.VarChar(100)
-  full_name                 String                    @db.VarChar(200)
+  first_name                String?                   @db.VarChar(100)
+  last_name                 String?                   @db.VarChar(100)
+  full_name                 String?                   @db.VarChar(200)
   phone_code                String?                   @db.VarChar(8)
   phone_number              String?                   @db.VarChar(20)
   avatar_url                String?                   @db.VarChar(255)
@@ -685,6 +685,33 @@ model users {
   is_online                 Boolean?                  @default(false)
   last_activity_at          DateTime?                 @db.Timestamptz(6)
   last_seen_at              DateTime?                 @db.Timestamptz(6)
+  // Clerk integration fields
+  has_image                 Boolean?                  @default(false)
+  primary_email_address_id  String?                   @db.VarChar(255)
+  password_enabled          Boolean?                  @default(false)
+  two_factor_enabled        Boolean?                  @default(false)
+  totp_enabled              Boolean?                  @default(false)
+  backup_code_enabled       Boolean?                  @default(false)
+  banned                    Boolean?                  @default(false)
+  locked                    Boolean?                  @default(false)
+  lockout_expires_in_seconds Int?
+  delete_self_enabled       Boolean?                  @default(true)
+  create_organization_enabled Boolean?                @default(false)
+  create_organizations_limit Int?
+  legal_accepted_at         DateTime?                 @db.Timestamptz(6)
+  last_sign_in_at           DateTime?                 @db.Timestamptz(6)
+  // JSON fields for Clerk metadata and settings
+  public_metadata           Json?
+  private_metadata          Json?
+  unsafe_metadata           Json?
+  // Arrays for Clerk related data
+  email_addresses           Json?                     // Store email addresses array from Clerk
+  phone_numbers             Json?                     // Store phone numbers array from Clerk
+  web3_wallets              Json?                     // Store web3 wallets array from Clerk
+  external_accounts         Json?                     // Store external accounts array from Clerk
+  enterprise_accounts       Json?                     // Store enterprise accounts array from Clerk
+  passkeys                  Json?                     // Store passkeys array from Clerk
+  
   addresses                 addresses[]
   conversations_as_customer conversations[]           @relation("conversations_customer")
   conversations_as_staff    conversations[]           @relation("conversations_staff")
@@ -702,6 +729,7 @@ model users {
   table_orders_staffed      table_orders[]            @relation("table_orders_staff")
   user_statistics           user_statistics?
   voucher_usages            voucher_usages[]
+  notifications             notifications[]
 
   @@index([clerk_id], map: "idx_users_clerk")
   @@index([email], map: "idx_users_email")
@@ -713,6 +741,10 @@ model users {
   @@index([activity_status], map: "idx_users_activity_status")
   @@index([last_seen_at], map: "idx_users_last_seen")
   @@index([last_activity_at], map: "idx_users_last_activity")
+  @@index([username], map: "idx_users_username")
+  @@index([banned], map: "idx_users_banned")
+  @@index([locked], map: "idx_users_locked")
+  @@index([last_sign_in_at], map: "idx_users_last_sign_in")
 }
 
 /// User activity statistics
@@ -738,6 +770,35 @@ model user_statistics {
   @@index([user_id], map: "idx_user_statistics_user")
   @@index([total_orders], map: "idx_user_statistics_orders")
   @@index([total_spent], map: "idx_user_statistics_spent")
+}
+
+/// User notifications system
+model notifications {
+  id           String                      @id @default(uuid()) @db.Uuid
+  title        String                      @db.VarChar(255)
+  message      String                      @db.Text
+  type         notification_type_enum
+  priority     notification_priority_enum  @default(medium)
+  status       notification_status_enum    @default(unread)
+  user_id      String                      @db.Uuid
+  related_id   String?                     @db.Uuid
+  related_type String?                     @db.VarChar(50)
+  action_url   String?                     @db.VarChar(500)
+  metadata     Json?
+  read_at      DateTime?                   @db.Timestamptz(6)
+  scheduled_at DateTime?                   @db.Timestamptz(6)
+  expires_at   DateTime?                   @db.Timestamptz(6)
+  created_at   DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime                    @updatedAt @db.Timestamptz(6)
+  
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "idx_notifications_user")
+  @@index([status], map: "idx_notifications_status")
+  @@index([type], map: "idx_notifications_type")
+  @@index([priority], map: "idx_notifications_priority")
+  @@index([created_at], map: "idx_notifications_created")
+  @@index([expires_at], map: "idx_notifications_expires")
 }
 
 enum user_status_enum {
@@ -945,4 +1006,50 @@ enum message_type_enum {
   image
   file
   system
+}
+
+enum notification_type_enum {
+  order_created
+  order_confirmed
+  order_preparing
+  order_ready
+  order_delivered
+  order_cancelled
+  order_payment_success
+  order_payment_failed
+  reservation_created
+  reservation_confirmed
+  reservation_cancelled
+  reservation_reminder
+  shift_assigned
+  shift_reminder
+  schedule_updated
+  attendance_reminder
+  new_review
+  low_inventory
+  menu_updated
+  promotion_created
+  voucher_expires_soon
+  member_joined
+  member_left
+  role_changed
+  organization_updated
+  system_maintenance
+  feature_announcement
+  security_alert
+  new_message
+  conversation_started
+}
+
+enum notification_priority_enum {
+  low
+  medium
+  high
+  urgent
+}
+
+enum notification_status_enum {
+  unread
+  read
+  archived
 }

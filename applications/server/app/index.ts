@@ -1,8 +1,3 @@
-// Khởi tạo module-alias trước tất cả imports khác
-import * as moduleAlias from 'module-alias';
-moduleAlias.addAlias('@', __dirname + '/..');
-require('module-alias/register');
-
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -12,76 +7,29 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cookieParser from "cookie-parser";
 import session from "express-session";
-import http, { createServer } from "http";
 import fs from 'fs';
+import http, { createServer } from "http";
 
-// Config imports
-import { createGraphQLMiddleware } from '@/config/graphql';
-import { 
-  initializeRealtimeChat, 
-  sendRealtimeNotification, 
-  broadcastToConversation 
-} from '@/config/realtime';
-import { 
-  imageUpload, 
-  fileUpload,
-  getUploadDirectory,
-  createFileUrl 
-} from '@/config/upload';
-
-import {
-  clerkMiddleware,
-  requireAuth,
-} from '@clerk/express';
-import { clerkAuthMiddleware, requireAuthentication } from '@/middlewares/authMiddlewares';
 import prisma from '@/config/prisma';
-import * as chatService from '@/services/chatServices';
+import { errorHandler } from '@/middlewares/errorMiddlewares';
+import { initializeRealtimeChat } from "@/config/realtime";
 
-// Import types and interfaces
-import {
-  IUser,
-  IConversation,
-  IMessage,
-  IOrder,
-  IMenuItem,
-  IRestaurant,
-  IReservation,
-  IReview,
-  IPayment,
-  IInventoryItem,
-  IVoucher,
-  IPromotion,
-  ConversationType as ConversationTypeEnum,
-  ConversationStatus,
-  MessageType as MessageTypeEnum,
-  UserRole,
-  UserStatus,
-  OrderStatus,
-  OrderType as OrderTypeEnum,
-  PaymentStatus,
-  ISocketUser,
-  ISocketMessage,
-  ITypingIndicator,
-  IUserStatusChange
-} from '@/constants/interfaces';
-
-/* OLD ROUTE IMPORTS */
-import authRoutes from "@/routes/authRoutes";
+/* ROUTE IMPORTS */
+// import authRoutes from "@/routes/authRoutes";
 import paymentRoutes from "@/routes/purchaseRoutes";
 import productRoutes from "@/routes/productRoutes";
 import voucherRoutes from '@/routes/voucherRoutes';
 import categoryRoutes from '@/routes/categoryRoutes';
 import taskRoutes from "@/routes/taskRoutes";
-import userRoutes from "@/routes/userRoutes";
+// import userRoutes from "@/routes/userRoutes";
 import restaurantRoutes from "@/routes/restaurantRoutes";
-import orderRoutes from "@/routes/orderRoutes";
+// import orderRoutes from "@/routes/orderRoutes";
 import menuRoutes from "@/routes/menuRoutes";
 import uploadRoutes from "@/routes/uploadRoutes";
-import chatRoutes from "@/routes/chatRoutes";
+// import chatRoutes from "@/routes/chatRoutes";
 import clerkRoutes from "@/routes/clerkRoutes";
-import rlsTestRoutes from "@/routes/rlsTestRoutes";
-// import aiRoutes from "@/ai/routes/aiRoutes";
-import { errorHandler } from '@/middlewares/errorMiddlewares';
+// import rlsTestRoutes from "@/routes/rlsTestRoutes";
+import notificationRoutes from "@/routes/notificationRoutes";
 
 // ================================
 // 🌐 EXPRESS SERVER CONFIGURATION
@@ -92,35 +40,7 @@ dotenv.config();
 // dotenv.config({ path: ".env.local" });
 
 const app: Express = express();
-// const PORT = process.env.PORT || 5000;
-// Disable ETag for dynamic API responses to avoid 304 on auth/me
-app.set('etag', false);
-
-// Configure webhook raw body parsing BEFORE express.json()
-// Raw body parser for webhook verification (MUST be before express.json)
-// app.use('/clerk/webhooks', express.raw({ type: 'application/json' })); // Temporary removed for debugging
-
 app.use(express.json());
-
-// Debug middleware - FIRST to catch all requests
-app.use((req, res, next) => {
-  console.log(`🚨 VERY FIRST DEBUG: ${req.method} ${req.path} ${req.url}`);
-  next();
-});
-
-// Test route trực tiếp trước tất cả middleware
-app.get('/test-direct', (req, res) => {
-  console.log("🎯 DIRECT ROUTE WORKS!");
-  res.json({ success: true, message: "Direct route working!", timestamp: new Date().toISOString() });
-});
-
-app.use(express.json());
-
-// Debug middleware - first in line
-app.use((req, res, next) => {
-  console.log(`🚨 FIRST DEBUG: ${req.method} ${req.path} ${req.url}`);
-  next();
-});
 
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
@@ -154,23 +74,15 @@ app.use(cors({
   credentials: true,
 }));
 
-// Cấu hình Clerk middleware - EXCLUDE webhook paths sẽ được đặt sau routes
-
-/* SOCKET.IO CHAT CONFIG */
 const server = http.createServer(app);
-const io = initializeRealtimeChat(server);
+// const io = initializeRealtimeChat(server);
 
 /* STATIC FILES */
 /* UPLOAD MULTER CONFIG */
-// const __filename = fileURLToPath(process.env.url!);
-// // const __dirname = path.resolve();
-// const __dirname = path.dirname(__filename);
-// app.use("/assets", express.static(path.join(__dirname, "assets")));
+
 const directory = path.resolve(__dirname, "..", "public");
 if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
 app.use("@/public", express.static(directory));
-
-
 
 // const storage = multer.diskStorage({
 //   destination: (
@@ -192,133 +104,36 @@ app.use("@/public", express.static(directory));
 
 // const upload = multer({ storage: storage });
 
-const isProduction = process.env.EXPRESS_ENV === 'production';
-
-// Kết nối Database
-// connectDB();
-
-// Middlewares Cơ bản
-// app.use(cors()); // Cho phép Cross-Origin Resource Sharing
-// app.use(helmet()); // Bảo mật ứng dụng bằng cách thiết lập các HTTP headers
-// app.use(morgan('dev')); // Logging HTTP requests (chế độ 'dev' cho development)
-// app.use(express.json()); // Parse JSON request bodies (thay thế body-parser.json)
-// app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
-
-// app.use(express.json());
-// app.use(helmet());
-// app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-// app.use(morgan("common"));
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(cors());
-
-/* STATIC FILES */
-/* UPLOAD MULTER CONFIG */
-// const __filename = fileURLToPath(process.env.url!);
-// // const __dirname = path.resolve();
-// const __dirname = path.dirname(__filename);
-// app.use("/assets", express.static(path.join(__dirname, "assets")));
-//
-// const storage = multer.diskStorage({
-//     destination: (
-//         req,
-//         file,
-//         cb
-//     ): void => {
-//         cb(null, "assets");
-//     },
-//     filename: (
-//         req,
-//         file,
-//         cb
-//     ): void => {
-//         // cb(null, req.body.name);
-//         cb(null, file.originalname);
-//     },
-// });
-//
-// const upload = multer({ storage });
-
-// --- Ví dụ tích hợp Clerk (nếu bạn dùng) ---
-// app.get('/protected-route', ClerkExpressRequireAuth(), (req, res) => {
-//   res.json(req.auth);
-// });
-// --------------------------------------------
-
 /* ROUTES */
 // ================================
 // 📡 GRAPHQL ENDPOINT SETUP
 // ================================
 // ROUTES
 // ================================
-app.use('/graphql', createGraphQLMiddleware());
+// app.use('/graphql', createGraphQLMiddleware());
 
 // ================================
 // 🛣️ REST API ROUTES (Updated with Clerk Auth)
 // ================================
-
-// Clerk routes (webhooks và auth)
-// Clerk webhook routes (must be before global auth middleware)
 app.use('/clerk', clerkRoutes);
+// app.use(clerkAuthMiddleware)
 
-// ================================
-// 🔐 GLOBAL AUTH MIDDLEWARE (after webhook routes)
-// ================================
-// app.use((req, res, next) => {
-//   console.log(`🔍 Auth middleware: ${req.method} ${req.path}`);
-//   // Skip auth for ALL clerk routes (webhooks + health + status)
-//   if (req.path.startsWith('/clerk/')) {
-//     console.log(`⚡ Skipping auth for clerk route: ${req.path}`);
-//     return next();
-//   }
-//   // Skip auth for public routes
-//   if (req.path.startsWith('/auth') || 
-//       req.path.startsWith('/payment') || 
-//       req.path.startsWith('/category') ||
-//       req.path.startsWith('/menus') ||
-//       req.path.startsWith('/upload')) {
-//     console.log(`📂 Skipping auth for public route: ${req.path}`);
-//     return next();
-//   }
-//   // Apply auth middleware for all other routes
-//   console.log(`🔐 Applying auth for: ${req.path}`);
-//   clerkAuthMiddleware(req, res, next);
-// });
-
-app.use(clerkAuthMiddleware)
-
-// Public routes (no auth required)
-app.use("/auth", authRoutes); // Keep for backwards compatibility
+// app.use("/auth", authRoutes); // Keep for backwards compatibility
 app.use("/payment", paymentRoutes); // Payment hooks từ providers
 app.use("/category", categoryRoutes); // Public category access
 app.use('/menus', menuRoutes); // Public menu viewing
 app.use('/upload', uploadRoutes); // File uploads
 
 // Protected routes (require Clerk authentication)
-app.use("/products", requireAuthentication, productRoutes);
-app.use("/voucher", requireAuthentication, voucherRoutes);
-app.use("/task", requireAuthentication, taskRoutes);
-app.use('/users', requireAuthentication, userRoutes);
-app.use('/restaurants', requireAuthentication, restaurantRoutes);
-app.use('/orders', requireAuthentication, orderRoutes);
-app.use('/chat', requireAuthentication, chatRoutes);
-app.use('/rls', rlsTestRoutes); // RLS testing routes (simple)
-
-// AI routes (require authentication) - TEMPORARILY DISABLED
-// app.use('/ai', requireAuthentication, aiRoutes);
-
-// Debug route to test voucher endpoints
-// app.get('/debug/voucher', (req, res) => {
-//   res.json({
-//     success: true,
-//     message: 'Voucher debug endpoint working',
-//     availableRoutes: [
-//       'GET /voucher - Get all vouchers',
-//       'POST /voucher - Create voucher',
-//       'GET /voucher/:id - Get voucher by ID'
-//     ]
-//   });
-// });
+app.use("/products", productRoutes);
+app.use("/voucher", voucherRoutes);
+app.use("/task", taskRoutes);
+// app.use('/users', userRoutes);
+app.use('/restaurants', restaurantRoutes);
+// app.use('/orders', orderRoutes);
+// app.use('/chat', chatRoutes);
+// app.use('/rls', rlsTestRoutes); // RLS testing routes (simple)
+app.use("/notifications", notificationRoutes);
 
 app.get('/', (
   req,
@@ -421,7 +236,7 @@ app.get('/', (
     socketEvents: {
       'Client to Server': [
         'join_conversation',
-        'leave_conversation', 
+        'leave_conversation',
         'send_message',
         'mark_messages_read',
         'typing_start',
@@ -489,16 +304,16 @@ app.get('/', (
 });
 
 // 404 handler (should be after all routes but before error handler)
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ 
-    success: false,
-    error: 'Not Found', 
-    message: `Route ${req.originalUrl} not found.` 
-  });
-});
+// app.use((req: Request, res: Response) => {
+//   res.status(404).json({
+//     success: false,
+//     error: 'Not Found',
+//     message: `Route ${req.originalUrl} not found.`
+//   });
+// });
 
 // Error handling middleware (phải đặt cuối cùng)
-app.use(errorHandler);
+// app.use(errorHandler);
 
 // ================================
 // 🚀 INITIALIZE REALTIME SERVER
@@ -512,20 +327,15 @@ const httpServer = http.createServer(app);
 
 // Initialize Socket.IO service for realtime chat + Supabase Realtime
 const realtimeServices = initializeRealtimeChat(httpServer);
-
-// Initialize AI training jobs - TEMPORARILY DISABLED
-// import { setupAITrainingJobs } from '@/ai/utils/aiScheduler';
-// setupAITrainingJobs();
-
-// Export services for use in other parts of the application
 export const socketService = realtimeServices.chatSocketService;
 export const supabaseRealtimeService = realtimeServices.supabaseRealtimeService;
 
-const port = process.env.EXPRESS_PORT || 8080;
 
 // ================================
 // 🚀 START SERVER WITH SOCKET.IO & GRAPHQL
 // ================================
+
+const port = process.env.EXPRESS_PORT || 8080;
 
 const startServer = async () => {
   try {
