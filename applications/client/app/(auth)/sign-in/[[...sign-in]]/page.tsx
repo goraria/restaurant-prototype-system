@@ -1,28 +1,38 @@
 "use client"
 
-import { useTheme } from 'next-themes';
 import { SignIn } from '@clerk/nextjs'
-import { dark } from '@clerk/themes';
+import { useClerkTheme } from '@/hooks/use-clerk-theme';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SignInPage() {
-  const { theme } = useTheme();
+  const { mounted, clerkBaseTheme } = useClerkTheme();
 
   return (
-    <div className="bg-muted flex w-full h-screen flex-1 items-center justify-center p-6 md:p-10">
-      <SignIn 
-        appearance={{
-          baseTheme: theme === "dark" ? dark : undefined,
-          elements: {
-            rootBox: {},
-            cardBox: {
-            },
-            headerTitle: {
-              
-            }
-          },
-        }}
+    <>
+      {mounted ? (
+        <>
+          <SignIn
+            appearance={{
+              baseTheme: clerkBaseTheme,
+              elements: {
+                rootBox: {},
+                cardBox: "bg-card text-card-foreground flex flex-col rounded-xl border !shadow-sm",
+                headerTitle: {
 
-      />
-    </div>
+                },
+                formButtonPrimary: "!bg-foreground !inset-none",
+                footer: "!bg-card",
+              },
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <div className="flex flex-col">
+            <Skeleton className="w-[400px] h-[550px] bg-gray-200 rounded-lg"/>
+          </div>
+        </>
+      )}
+    </>
   )
 }
