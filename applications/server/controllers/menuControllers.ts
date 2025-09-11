@@ -9,6 +9,7 @@ import {
   createMenuItem as createMenuItemService,
   getMenuItemById as getMenuItemByIdService,
   getMenuItems as getMenuItemsService,
+  getMenuItemAll as getMenuItemAllService,
   getFeaturedMenuItems as getFeaturedMenuItemsService,
   updateMenuItem as updateMenuItemService,
   deleteMenuItem as deleteMenuItemService,
@@ -374,6 +375,25 @@ export const getMenuItems = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy danh sách món ăn';
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+};
+
+export const getMenuItemAll = async (req: Request, res: Response) => {
+  try {
+    const menuItems = await getMenuItemAllService();
+
+    res.status(200).json({
+      success: true,
+      message: 'Lấy tất cả món ăn thành công',
+      data: menuItems.data,
+      total: menuItems.total
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy tất cả món ăn';
     res.status(500).json({
       success: false,
       message: errorMessage

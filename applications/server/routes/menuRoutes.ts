@@ -14,7 +14,8 @@ import {
   deleteMenuItem,
   bulkUpdateMenuItems,
   bulkToggleAvailability,
-  getMenuStats
+  getMenuStats,
+  getMenuItemAll
 } from '@/controllers/menuControllers';
 
 // Import middleware (tạm thời comment để không lỗi)
@@ -39,9 +40,10 @@ router.get('/restaurant/:restaurantId/stats', getMenuStats); // Thống kê menu
 
 // Public routes cho menu items
 router.get('/items/featured', getFeaturedMenuItems); // Lấy món ăn nổi bật
+router.get('/items', getMenuItemAll); // Lấy tất cả món ăn
 
 // Protected routes cho menu items
-router.get('/items', getMenuItems); // Lấy danh sách món ăn với filter
+router.get('/items/page', getMenuItems); // Lấy danh sách món ăn với filter
 router.post('/items', createMenuItem); // Tạo món ăn mới
 router.get('/items/:id', getMenuItemById); // Lấy món ăn theo ID
 router.put('/items/:id', updateMenuItem); // Cập nhật món ăn

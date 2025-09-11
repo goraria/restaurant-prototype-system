@@ -5,7 +5,9 @@ import {
   FetchBaseQueryError
 } from "@reduxjs/toolkit/query";
 import { User } from "@clerk/nextjs/server";
+import { Clerk } from "@clerk/clerk-js"
 import { toast } from "sonner";
+import { Menu, MenuItem, MenuItemInterface } from "@/constants/interfaces";
 
 const baseQueryWithClerk: BaseQueryFn<
   string | FetchArgs,
@@ -13,7 +15,7 @@ const baseQueryWithClerk: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const baseQuery = fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
     credentials: 'include',
     prepareHeaders: async (headers) => {
       try {
@@ -62,7 +64,7 @@ const baseQueryWithClerk: BaseQueryFn<
       }
     }
 
-    console.error('API Error:', {
+    console.log('API Error:', {
       status,
       errorData,
       args
@@ -207,10 +209,14 @@ export const api = createApi({
     }),
 
     // Menus CRUD
-    getAllMenus: builder.query<any[], void>({
-      query: () => "/menus",
+    // ------------------------------------------------------------------------
+    getAllMenus: builder.query<Menu[], void>({
+      query: () => ({
+        url: `/menus`
+      }),
       providesTags: ["Menus"],
     }),
+    // ------------------------------------------------------------------------
     getMenuById: builder.query<any, string>({
       query: (id) => `/menus/${id}`,
       providesTags: (result, error, id) => [{ type: "Menus", id }],
@@ -253,9 +259,17 @@ export const api = createApi({
       providesTags: ["Menus"],
     }),
     getMenuItems: builder.query<any[], Record<string, any> | void>({
-      query: (params) => ({ url: `/menus/items`, params: params ?? {} }),
+      query: (params) => ({ url: `/menus/items/page`, params: params ?? {} }),
       providesTags: ["Menus"],
     }),
+    // ------------------------------------------------------------------------
+    getAllMenuItems: builder.query<MenuItem[], void>({
+      query: () => ({
+        url: `/menus/items`
+      }),
+      providesTags: ["Menus"],
+    }),
+    // ------------------------------------------------------------------------
     createMenuItem: builder.mutation<any, any>({
       query: (data) => ({ url: `/menus/items`, method: "POST", body: data }),
       invalidatesTags: ["Menus"],
@@ -813,10 +827,13 @@ export const {
   useCreateMenuMutation,
   useUpdateMenuMutation,
   useDeleteMenuMutation,
+  useGetAllMenuItemsQuery,
   useGetMenuItemsQuery,
   useCreateMenuItemMutation,
   useUpdateMenuItemMutation,
   useDeleteMenuItemMutation,
+  useBulkUpdateMenuItemsMutation,
+  useBulkToggleMenuItemsAvailabilityMutation,
 
   // Tables
   useGetTablesQuery,

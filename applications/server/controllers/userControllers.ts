@@ -1,9 +1,45 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { clerkConfigClient } from '@/config/clerk';
-import { AuthenticatedRequest } from '@/types/auth';
+// import { AuthenticatedRequest } from '@/types/auth';
 
 const prisma = new PrismaClient();
+
+export async function updateUser(
+  req: Request,
+  res: Response
+) {
+  const { id } = req.params;
+  const data = req.body;
+
+  if (!id) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  try {
+    await clerkConfigClient.users.updateUser(id, {
+      firstName: data.name.split(' ')[0],
+      lastName: data.name.split(' ').slice(1).join(' ') || ''
+    });
+
+    res.json({ success: true, message: 'User updated successfully in authentication service' });
+  } catch (error) {
+    return res.status(500).json({ error, message: 'Failed to update user in authentication service' });
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 // Get current user profile
 export const getCurrentUser = async (req: Request, res: Response) => {
@@ -55,12 +91,12 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    const { 
-      first_name, 
-      last_name, 
-      phone_number, 
-      date_of_birth, 
-      gender 
+    const {
+      first_name,
+      last_name,
+      phone_number,
+      date_of_birth,
+      gender
     } = req.body;
 
     // Update user in database
@@ -296,10 +332,10 @@ export const getUserOrders = async (req: Request, res: Response) => {
         where,
         include: {
           restaurants: {
-            select: { 
-              id: true, 
-              name: true, 
-              logo_url: true, 
+            select: {
+              id: true,
+              name: true,
+              logo_url: true,
               address: true,
               phone_number: true
             }
@@ -370,7 +406,7 @@ export const getUserStatistics = async (req: Request, res: Response) => {
           last_order_date: null
         }
       });
-      
+
       return res.json({
         success: true,
         statistics: newStats
@@ -391,7 +427,7 @@ export const getUserStatistics = async (req: Request, res: Response) => {
 export const deleteUserController = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    
+
     if (!id) {
       return res.status(400).json({ error: 'User ID is required' });
     }
