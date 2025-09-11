@@ -8,13 +8,14 @@ import {
   deleteUserAddress,
   getUserOrders,
   getUserStatistics,
-  deleteUserController
+  deleteUserController,
+  updateUser
 } from '@/controllers/userControllers';
-import {
-  requireAuth,
-  requireCustomer,
-  requireRestaurantAccess
-} from '@/middlewares/authMiddlewares';
+// import {
+//   requireAuth,
+//   requireCustomer,
+//   requireRestaurantAccess
+// } from '@/middlewares/authMiddlewares';
 import { getOrdersController, getRestaurantOrdersController } from '@/controllers/orderControllers';
 
 const router = Router();
@@ -54,5 +55,11 @@ router.get('/restaurant/orders',
   requireRestaurantAccess(), 
   getRestaurantOrdersController
 );
+
+///////////////////////////////
+// EXAMPLE
+///////////////////////////////
+
+router.put('/:id', updateUser);
 
 export default router;

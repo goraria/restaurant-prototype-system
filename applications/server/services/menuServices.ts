@@ -520,6 +520,45 @@ export const getMenuItems = async (filters: MenuItemQuery) => {
   }
 };
 
+// Lấy tất cả món ăn trong 1 page (không phân trang)
+export const getMenuItemAll = async () => {
+  try {
+    const menuItems = await prisma.menu_items.findMany({
+      include: {
+        menus: {
+          select: {
+            id: true,
+            name: true,
+            restaurant_id: true,
+            restaurants: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          }
+        },
+        categories: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          }
+        }
+      }
+    });
+
+    return {
+      data: menuItems,
+      total: menuItems.length,
+      message: `Đã lấy ${menuItems.length} món ăn`
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy tất cả món ăn: ${error}`);
+  }
+};
+
 // Lấy món ăn nổi bật
 export const getFeaturedMenuItems = async (filters: FeaturedItemsQuery) => {
   try {

@@ -27,7 +27,7 @@ import restaurantRoutes from "@/routes/restaurantRoutes";
 import menuRoutes from "@/routes/menuRoutes";
 import uploadRoutes from "@/routes/uploadRoutes";
 // import chatRoutes from "@/routes/chatRoutes";
-import clerkRoutes from "@/routes/clerkRoutes";
+// import clerkRoutes from "@/routes/clerkRoutes";
 // import rlsTestRoutes from "@/routes/rlsTestRoutes";
 import notificationRoutes from "@/routes/notificationRoutes";
 
@@ -115,7 +115,7 @@ app.use("@/public", express.static(directory));
 // ================================
 // 🛣️ REST API ROUTES (Updated with Clerk Auth)
 // ================================
-app.use('/clerk', clerkRoutes);
+// app.use('/clerk', clerkRoutes);
 // app.use(clerkAuthMiddleware)
 
 // app.use("/auth", authRoutes); // Keep for backwards compatibility

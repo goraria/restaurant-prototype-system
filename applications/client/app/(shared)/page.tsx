@@ -72,7 +72,13 @@ export default function HomePage() {
             
             <SignedIn>
               <Button asChild size="lg" className="text-lg px-8 py-3">
-                <Link href="/manager">Vào Dashboard</Link>
+                <Link href="/manager">Vào Manager</Link>
+              </Button>
+              <Button asChild size="lg" className="text-lg px-8 py-3">
+                <Link href="/staff">Vào Staff</Link>
+              </Button>
+              <Button asChild size="lg" className="text-lg px-8 py-3">
+                <Link href="/customer">Vào Customer</Link>
               </Button>
             </SignedIn>
           </div>
