@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import {
   createMenu as createMenuService,
   getMenuById as getMenuByIdService,
+  getAllMenus as getAllMenusService,
   getMenus as getMenusService,
   getMenusByRestaurantId as getMenusByRestaurantIdService,
   updateMenu as updateMenuService,
@@ -9,13 +10,16 @@ import {
   createMenuItem as createMenuItemService,
   getMenuItemById as getMenuItemByIdService,
   getMenuItems as getMenuItemsService,
-  getMenuItemAll as getMenuItemAllService,
+  getAllMenuItems as getAllMenuItemsService,
   getFeaturedMenuItems as getFeaturedMenuItemsService,
   updateMenuItem as updateMenuItemService,
   deleteMenuItem as deleteMenuItemService,
   bulkUpdateMenuItems as bulkUpdateMenuItemsService,
   bulkToggleAvailability as bulkToggleAvailabilityService,
-  getMenuStats as getMenuStatsService
+  getMenuStats as getMenuStatsService,
+  //
+  getRecipeByMenuItemId as getRecipeByMenuItemIdService,
+  getAllMenuItemNames as getAllMenuItemNamesService,
 } from '@/services/menuServices';
 import {
   CreateMenuSchema,
@@ -96,6 +100,26 @@ export const getMenuById = async (req: Request, res: Response) => {
       });
     }
 
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+};
+
+
+export const getAllMenus = async (req: Request, res: Response) => {
+  try {
+    const menus = await getAllMenusService();
+
+    res.status(200).json({
+      success: true,
+      message: 'Lấy danh sách menu thành công',
+      data: menus.data,
+      total: menus.total
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy danh sách menu';
     res.status(500).json({
       success: false,
       message: errorMessage
@@ -382,9 +406,9 @@ export const getMenuItems = async (req: Request, res: Response) => {
   }
 };
 
-export const getMenuItemAll = async (req: Request, res: Response) => {
+export const getAllMenuItems = async (req: Request, res: Response) => {
   try {
-    const menuItems = await getMenuItemAllService();
+    const menuItems = await getAllMenuItemsService();
 
     res.status(200).json({
       success: true,
@@ -400,6 +424,23 @@ export const getMenuItemAll = async (req: Request, res: Response) => {
     });
   }
 };
+
+export function getAllMenuItemNames(req: Request, res: Response) {
+  try {
+    const names = getAllMenuItemNamesService();
+    res.status(200).json({
+      success: true,
+      message: 'Lấy tên tất cả món ăn thành công',
+      data: names
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy tên tất cả món ăn';
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+}
 
 /**
  * Lấy món ăn nổi bật
@@ -651,3 +692,42 @@ export const getMenuStats = async (req: Request, res: Response) => {
     });
   }
 };
+
+// ============================================================================
+// RECIPES CONTROLLERS
+// ============================================================================
+
+export async function getRecipeByMenuItemId(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID menu item là bắt buộc'
+      });
+    }
+
+    const recipe = await getRecipeByMenuItemIdService(id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Lấy thông tin recipe thành công',
+      data: recipe
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy thông tin recipe';
+
+    if (errorMessage.includes('không tìm thấy') || errorMessage.includes('không hợp lệ')) {
+      return res.status(404).json({
+        success: false,
+        message: errorMessage
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+}

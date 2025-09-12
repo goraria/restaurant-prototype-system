@@ -120,7 +120,7 @@ app.use("@/public", express.static(directory));
 
 // app.use("/auth", authRoutes); // Keep for backwards compatibility
 app.use("/payment", paymentRoutes); // Payment hooks từ providers
-app.use("/category", categoryRoutes); // Public category access
+app.use("/categories", categoryRoutes); // Public category access
 app.use('/menus', menuRoutes); // Public menu viewing
 app.use('/upload', uploadRoutes); // File uploads
 

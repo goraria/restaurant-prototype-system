@@ -107,6 +107,36 @@ export const getMenuById = async (id: string) => {
   }
 };
 
+// Lấy tất cả món ăn trong 1 page (không phân trang)
+export const getAllMenus = async () => {
+  try {
+    const menus = await prisma.menus.findMany({
+      include: {
+        restaurants: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          }
+        },
+        _count: {
+          select: {
+            menu_items: true,
+          }
+        }
+      },
+    });
+
+    return {
+      data: menus,
+      total: menus.length,
+      message: `Đã lấy ${menus.length} món ăn`
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy tất cả món ăn: ${error}`);
+  }
+};
+
 // Lấy danh sách menu với filter
 export const getMenus = async (filters: MenuQuery) => {
   try {
@@ -521,7 +551,7 @@ export const getMenuItems = async (filters: MenuItemQuery) => {
 };
 
 // Lấy tất cả món ăn trong 1 page (không phân trang)
-export const getMenuItemAll = async () => {
+export const getAllMenuItems = async () => {
   try {
     const menuItems = await prisma.menu_items.findMany({
       include: {
@@ -546,6 +576,25 @@ export const getMenuItemAll = async () => {
             slug: true,
           }
         }
+      }
+    });
+
+    return {
+      data: menuItems,
+      total: menuItems.length,
+      message: `Đã lấy ${menuItems.length} món ăn`
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy tất cả món ăn: ${error}`);
+  }
+};
+
+export const getAllMenuItemNames = async () => {
+  try {
+    const menuItems = await prisma.menu_items.findMany({
+      select: {
+        id: true,
+        name: true,
       }
     });
 
@@ -842,3 +891,154 @@ export const getMenuStats = async (restaurantId: string) => {
     throw new Error(`Lỗi khi lấy thống kê menu: ${error}`);
   }
 };
+
+// ============================================================================
+// RECIPES
+// ============================================================================
+
+export async function getAllRecipe() {
+  try {
+    const recipes = await prisma.recipes.findMany({
+      include: {
+        ingredients: {
+          include: {
+            inventory_items: {
+              select: {
+                id: true,
+                name: true,
+                unit: true,
+              }
+            }
+          }
+        },
+        menu_items: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            image_url: true,
+            is_available: true,
+            categories: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!recipes) {
+      throw new Error('Không tìm thấy recipe');
+    }
+
+    return {
+      data: recipes,
+      total: recipes.length,
+      message: `Đã lấy ${recipes.length} công thức`
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy tất cả thông tin recipes: ${error}`);
+  }
+}
+
+export async function getRecipeById(id: string) {
+  try {
+    if (!validateUUID(id)) {
+      throw new Error('ID recipe không hợp lệ');
+    }
+
+    const recipe = await prisma.recipes.findUnique({
+      where: { id },
+      include: {
+        ingredients: {
+          include: {
+            inventory_items: {
+              select: {
+                id: true,
+                name: true,
+                unit: true,
+              }
+            }
+          }
+        },
+        menu_items: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            image_url: true,
+            is_available: true,
+            categories: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!recipe) {
+      throw new Error('Không tìm thấy recipe');
+    }
+
+    return recipe;
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy thông tin recipe: ${error}`);
+  }
+}
+
+export async function getRecipeByMenuItemId(id: string) {
+  try {
+    if (!validateUUID(id)) {
+      throw new Error('ID món ăn không hợp lệ');
+    }
+
+    const recipes = await prisma.recipes.findMany({
+      where: { menu_item_id: id },
+      include: {
+        ingredients: {
+          include: {
+            inventory_items: {
+              select: {
+                id: true,
+                name: true,
+                unit: true,
+              }
+            }
+          }
+        },
+        menu_items: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            image_url: true,
+            is_available: true,
+            categories: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return recipes;
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy danh sách recipe: ${error}`);
+  }
+}
+
+// ============================================================================

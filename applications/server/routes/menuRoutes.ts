@@ -15,7 +15,10 @@ import {
   bulkUpdateMenuItems,
   bulkToggleAvailability,
   getMenuStats,
-  getMenuItemAll
+  //
+  getAllMenuItems,
+  getAllMenus,
+  getRecipeByMenuItemId
 } from '@/controllers/menuControllers';
 
 // Import middleware (tạm thời comment để không lỗi)
@@ -23,9 +26,15 @@ import {
 
 const router = Router();
 
-// ================================
+// ============================================================================
 // 🍽️ MENU ROUTES
-// ================================
+// ============================================================================
+
+// All (dành cho admin)
+router.get('/', getAllMenus); // Lấy danh sách menu
+router.get('/items', getAllMenuItems); // Lấy tất cả món ăn
+
+router.get("/recipe/item/:id", getRecipeByMenuItemId)
 
 // Public routes - Không cần authentication
 router.get('/restaurant/:restaurantId', getMenusByRestaurantId); // Lấy menu của nhà hàng
@@ -34,13 +43,12 @@ router.get('/restaurant/:restaurantId/stats', getMenuStats); // Thống kê menu
 // Protected routes - Cần authentication
 // router.use(authMiddleware); // Uncomment khi có auth middleware
 
-// ================================
+// ============================================================================
 // 🍽️ MENU ITEM ROUTES
-// ================================
+// ============================================================================
 
 // Public routes cho menu items
 router.get('/items/featured', getFeaturedMenuItems); // Lấy món ăn nổi bật
-router.get('/items', getMenuItemAll); // Lấy tất cả món ăn
 
 // Protected routes cho menu items
 router.get('/items/page', getMenuItems); // Lấy danh sách món ăn với filter
@@ -54,7 +62,8 @@ router.put('/items/bulk/update', bulkUpdateMenuItems); // Cập nhật hàng lo�
 router.put('/items/bulk/availability', bulkToggleAvailability); // Bật/tắt trạng thái hàng loạt
 
 // Menu CRUD operations
-router.get('/', getMenus); // Lấy danh sách menu với filter
+// router.get('/', getMenus); // Lấy danh sách menu với filter
+router.get('/page', getMenus); // Lấy danh sách menu với filter
 router.post('/', createMenu); // Tạo menu mới
 router.get('/:id', getMenuById); // Lấy menu theo ID
 router.put('/:id', updateMenu); // Cập nhật menu

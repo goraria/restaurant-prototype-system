@@ -1,14 +1,26 @@
-import { ComponentProps } from "react";
+import React, { ComponentProps, ComponentType } from "react";
 import { Sidebar } from "@/components/ui/sidebar";
 import { LucideIcon } from "lucide-react";
+import {
+  Table as TanStackTable,
+  Column,
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+} from "@tanstack/react-table"
 
-export interface NavMainItem {
-  title: string;
-  url: string;
-  icon?: LucideIcon;
-  isActive?: boolean;
-  items?: { title: string; url: string }[];
-}
+// ============================================================================
+// SIDEBAR INTERFACES
+// ============================================================================
 
 export interface NavMainItem {
   title: string;
@@ -44,6 +56,74 @@ export interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
     description: string;
   };
   user: AppSidebarUser;
+}
+
+// ============================================================================
+// DATATABLES INTERFACES
+// ============================================================================
+
+export interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+  search: {
+    column: string
+    placeholder: string
+  }
+  filter?: {
+    column: string
+    title?: string
+    options: {
+      label: string
+      value: string | number | boolean
+      icon?: ComponentType<{
+        className?: string | undefined;
+      }> | undefined
+    }[]
+  }[]
+  max?: string
+}
+
+export interface DataTableColumnHeaderProps<TData, TValue>
+  extends React.HTMLAttributes<HTMLDivElement> {
+  column: Column<TData, TValue>
+  title: string
+}
+
+export interface DataTableSortButtonProps<TData, TValue>
+  extends React.HTMLAttributes<HTMLDivElement> {
+  column: Column<TData, TValue>
+  title: string
+}
+
+export interface DataTablePaginationProps<TData> {
+  table: TanStackTable<TData>
+}
+
+export interface DataTableFacetedFilterProps<TData, TValue> {
+  column?: Column<TData, TValue>
+  title?: string
+  options: {
+    label: string
+    value: string | number | boolean
+    icon?: React.ComponentType<{ className?: string }>
+  }[]
+}
+
+// ============================================================================
+// SIDEBAR INTERFACES
+// ============================================================================
+
+export interface StatsBoxProps {
+  title: string
+  description: string
+  icon: LucideIcon
+  color?: string
+  stats: string | number
+}
+
+export interface BadgeIconProps {
+  color?: string
+  icon: LucideIcon
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -159,6 +239,29 @@ export interface CategoryInterface {
   parent_category?: CategoryInterface;
   child_categories?: CategoryInterface[];
   menu_items?: MenuItemInterface[];
+}
+
+export interface CategoryDataColumn {
+  id: string
+  name: string
+  slug: string
+  description?: string | null
+  created_at: string
+  display_order: number
+  image_url?: string | null
+  is_active: boolean
+  parent_id?: string | null
+  updated_at: string
+  parent_category?: {
+    id: string
+    name: string
+    slug: string
+  } | null
+  child_categories: CategoryDataColumn[] | [],
+  // menu_items_count: number
+  _count?: {
+    menu_items: number
+  }
 }
 
 // =============================================================================
@@ -310,7 +413,7 @@ export interface MenuInterface {
   menu_items?: MenuItemInterface[];
 }
 
-export interface Menu {
+export interface MenuDataColumn {
   id: string
   restaurant_id: string
   name: string
@@ -363,7 +466,7 @@ export interface MenuItemInterface {
 // API Interfaces
 // =============================================================================
 // Legacy MenuItem for backward compatibility
-export interface MenuItem {
+export interface MenuItemDataColumn {
   id: string
   menu_id: string
   name: string
@@ -694,6 +797,47 @@ export interface RecipeInterface {
   serving_size?: number;
   menu_item?: MenuItemInterface;
   ingredients?: RecipeIngredientInterface[];
+}
+
+export interface RecipeDataColumn {
+  id: string;
+  menu_item_id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+  cook_time?: number | null;
+  instructions?: string;
+  prep_time?: number | null;
+  serving_size?: number;
+  menu_item?: MenuItemDataColumn;
+  ingredients?: {
+    id: string;
+    recipe_id: string;
+    inventory_item_id: string;
+    quantity: number | string;
+    unit: string;
+    notes?: string | null;
+    recipe?: RecipeInterface;
+    inventory_items: {
+      id: string;
+      name: string;
+      unit?: string;
+    };
+  }[] | [];
+  menu_items: {
+    id: string;
+    name: string;
+    description?: string | null;
+    price: number | string;
+    image_url?: string | null;
+    is_available: boolean;
+    categories: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  }
 }
 
 // =============================================================================
