@@ -48,6 +48,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,7 +77,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 import { formatCurrency } from "@/utils/format-utils";
 import { Switch } from "@/components/ui/switch";
-import { MenuItem } from "@/constants/interfaces";
+import { MenuItemDataColumn, StatsBoxProps } from "@/constants/interfaces";
+import { StatsBox } from "@/components/elements/stats-box";
 
 export default function MenuItemsPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -84,9 +86,9 @@ export default function MenuItemsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null)
-  const [deletingMenuItem, setDeletingMenuItem] = useState<MenuItem | null>(null)
-  const [selectedRows, setSelectedRows] = useState<MenuItem[]>([])
+  const [editingMenuItem, setEditingMenuItem] = useState<MenuItemDataColumn | null>(null)
+  const [deletingMenuItem, setDeletingMenuItem] = useState<MenuItemDataColumn | null>(null)
+  const [selectedRows, setSelectedRows] = useState<MenuItemDataColumn[]>([])
   const [isBulkOperationLoading, setIsBulkOperationLoading] = useState(false)
 
   const {
@@ -103,7 +105,7 @@ export default function MenuItemsPage() {
   const [bulkUpdateMenuItemsMutation] = useBulkUpdateMenuItemsMutation();
   const [bulkToggleAvailabilityMutation] = useBulkToggleMenuItemsAvailabilityMutation();
 
-  const columns: ColumnDef<MenuItem, unknown>[] = [
+  const columns: ColumnDef<MenuItemDataColumn, unknown>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -210,10 +212,10 @@ export default function MenuItemsPage() {
     },
     {
       accessorKey: "counter",
-      header: () => <div className="text-right">Lượt order</div>,
+      header: () => <div className="text-center">Lượt order</div>,
       cell: ({ row }) => {
         return (
-          <div className="text-right font-medium">
+          <div className="text-center font-medium">
             {row.original.display_order}
           </div>
         )
@@ -226,7 +228,7 @@ export default function MenuItemsPage() {
     {
       accessorKey: "amount",
       // header: "Amount",
-      header: () => <div className="text-right">Giá order</div>,
+      header: () => <div className="text-center">Giá order</div>,
       cell: ({ row }) => {
         // const amount = parseFloat(row.getValue("amount"))
         // const formatted = new Intl.NumberFormat("vi-VN", {
@@ -241,7 +243,7 @@ export default function MenuItemsPage() {
 
         return <div className="text-right font-medium">{formatted}</div>
       },
-      size: 90, // Width cho Amount column
+      size: 120, // Width cho Amount column
     },
     {
       id: "actions",
@@ -355,7 +357,7 @@ export default function MenuItemsPage() {
     }
   }, [error]);
 
-  const filteredMenuItems = menuItems.filter((item: MenuItem) => {
+  const filteredMenuItems = menuItems.filter((item: MenuItemDataColumn) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -368,11 +370,11 @@ export default function MenuItemsPage() {
 
   const getMenuItemStats = () => {
     const totalItems = menuItems.length
-    const availableItems = menuItems.filter((item: MenuItem) => item.is_available).length
-    const unavailableItems = menuItems.filter((item: MenuItem) => !item.is_available).length
+    const availableItems = menuItems.filter((item: MenuItemDataColumn) => item.is_available).length
+    const unavailableItems = menuItems.filter((item: MenuItemDataColumn) => !item.is_available).length
     // const vegetarianItems = menuItems.filter((item: MenuItem) => item.is_vegetarian || false).length
     // const veganItems = menuItems.filter((item: MenuItem) => item.is_vegan || false).length
-    const totalValue = menuItems.reduce((sum: number, item: MenuItem) => {
+    const totalValue = menuItems.reduce((sum: number, item: MenuItemDataColumn) => {
       const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price
       return sum + (price || 0)
     }, 0)
@@ -404,12 +406,12 @@ export default function MenuItemsPage() {
     setIsCreateDialogOpen(true)
   }
 
-  const openEditDialog = (menuItem: MenuItem) => {
+  const openEditDialog = (menuItem: MenuItemDataColumn) => {
     setEditingMenuItem(menuItem)
     setIsEditDialogOpen(true)
   }
 
-  const openDeleteDialog = (menuItem: MenuItem) => {
+  const openDeleteDialog = (menuItem: MenuItemDataColumn) => {
     setDeletingMenuItem(menuItem)
     setIsDeleteDialogOpen(true)
   }
@@ -526,7 +528,7 @@ export default function MenuItemsPage() {
   }
 
   // Toggle availability for single item
-  const handleToggleAvailability = async (menuItem: MenuItem) => {
+  const handleToggleAvailability = async (menuItem: MenuItemDataColumn) => {
     try {
       await updateMenuItemMutation({
         id: menuItem.id,
@@ -542,439 +544,417 @@ export default function MenuItemsPage() {
 
   const stats = getMenuItemStats()
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Đang tải dữ liệu...</p>
-        </div>
-      </div>
-    )
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-64">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+  //         <p className="mt-2 text-muted-foreground">Đang tải dữ liệu...</p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
+
+  const statsBox: StatsBoxProps[] = [
+    {
+      title: "Tổng số món",
+      description: "Trong menu",
+      icon: Utensils,
+      // color: "blue",
+      stats: stats.totalItems
+    },
+    {
+      title: "Có sẵn",
+      description: "Đang bán",
+      icon: CheckCircle,
+      color: "professional-green",
+      stats: stats.availableItems
+    },
+    {
+      title: "Hết hàng",
+      description: "Tạm dừng bán",
+      icon: XCircle,
+      color: "professional-red",
+      stats: stats.unavailableItems
+    },
+    {
+      title: "Đồ ăn chay",
+      description: "Món chay",
+      icon: Utensils,
+      color: "professional-blue",
+      stats: 123
+    },
+    {
+      title: "Tổng giá",
+      description: "Các món ăn",
+      icon: DollarSign,
+      color: "professional-orange",
+      stats: formatCurrency({ value: stats.totalValue, currency: "VND" })
+    },
+  ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý món ăn</h1>
-          <p className="text-muted-foreground">
-            Quản lý và cấu hình các món ăn trong menu
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Xuất báo cáo
-          </Button>
-          <Button onClick={openCreateDialog}>
-            <Plus className="mr-2 h-4 w-4" />
-            Thêm món
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-        <Card className="flex">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="">
-              <span className="truncate">{/* text-sm font-medium */}
-                Tổng số món
-              </span>
-              <p className="truncate text-xs text-muted-foreground">
-                Tất cả món trong menu
-              </p>
-            </CardTitle>
-            <Utensils className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalItems}</div>
-          </CardContent>
-          <CardFooter>
-            <div className="text-2xl font-bold">{stats.totalItems}</div>
-          </CardFooter>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="">
-              <span className="truncate">{/* text-sm font-medium */}
-                Có sẵn
-              </span>
-              <p className="truncate text-xs text-muted-foreground">
-                Đang bán
-              </p>
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-professional-green" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-professional-green">{stats.availableItems}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="">
-              <span className="truncate">{/* text-sm font-medium */}
-                Hết hàng
-              </span>
-              <p className="truncate text-xs text-muted-foreground">
-                Tạm dừng bán
-              </p>
-            </CardTitle>
-            <XCircle className="h-4 w-4 text-professional-red" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-professional-red">{stats.unavailableItems}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="">
-              <span className="truncate">{/* text-sm font-medium */}
-                Món chay
-              </span>
-              <p className="truncate text-xs text-muted-foreground">
-                Phù hợp người ăn chay
-              </p>
-            </CardTitle>
-            <Utensils className="h-4 w-4 text-professional-orange" />
-          </CardHeader>
-          {/*<CardContent>*/}
-          {/*  <div className="text-2xl font-bold text-professional-orange">{stats.vegetarianItems}</div>*/}
-          {/*</CardContent>*/}
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="">
-              <span className="truncate">{/* text-sm font-medium */}
-                Tổng đã bán
-              </span>
-              <p className="truncate text-xs text-muted-foreground">
-                Tổng thu nhập
-              </p>
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {formatCurrency({ value: stats.totalValue, currency: "VND" })}
+    <>
+      {!isLoading ? (
+        <>
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+              {statsBox.map((box, index) => (
+                <StatsBox
+                  key={index}
+                  title={box.title}
+                  description={box.description}
+                  icon={box.icon}
+                  color={box.color}
+                  stats={box.stats}
+                />
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Bulk Operations */}
-      {selectedRows.length > 0 && (
-        <Card className="mb-4">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">
-                  Đã chọn {selectedRows.length} món ăn
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkToggleAvailability(true)}
-                  disabled={isBulkOperationLoading}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Bật tất cả
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleBulkToggleAvailability(false)}
-                  disabled={isBulkOperationLoading}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Tắt tất cả
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleBulkDelete}
-                  disabled={isBulkOperationLoading}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Xóa tất cả
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedRows([])}
-                >
-                  Hủy chọn
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            {/* Bulk Operations */}
+            {selectedRows.length > 0 && (
+              <Card className="mb-4">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium">
+                        Đã chọn {selectedRows.length} món ăn
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleBulkToggleAvailability(true)}
+                        disabled={isBulkOperationLoading}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Bật tất cả
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleBulkToggleAvailability(false)}
+                        disabled={isBulkOperationLoading}
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Tắt tất cả
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleBulkDelete}
+                        disabled={isBulkOperationLoading}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Xóa tất cả
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedRows([])}
+                      >
+                        Hủy chọn
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-      <DataTable
-        columns={columns}
-        data={menuItems}
-        // order={["select", "menu-item"]}
-        search={{
-          column: "name",
-          placeholder: "Tìm kiếm tên món ăn..."
-        }}
-        max="name"
-        filter={[
-          {
-            column: "categories",
-            title: "Danh mục",
-            options: [
-              {
-                label: "Món Chính",
-                value: "main",
-              },
-              {
-                label: "Đồ Uống",
-                value: "drink",
-              },
-            ]
-          },
-          {
-            column: "status",
-            title: "Trạng thái",
-            options: [
-              {
-                label: "Có sẵn",
-                value: true,
-              },
-              {
-                label: "Hết hàng",
-                value: false,
-              },
-            ]
-          }
-        ]}
-      />
+            <DataTable
+              columns={columns}
+              data={menuItems}
+              // order={["select", "menu-item"]}
+              search={{
+                column: "name",
+                placeholder: "Tìm kiếm tên món ăn..."
+              }}
+              max="name"
+              filter={[
+                {
+                  column: "categories",
+                  title: "Danh mục",
+                  options: [
+                    {
+                      label: "Món Chính",
+                      value: "main",
+                    },
+                    {
+                      label: "Đồ Uống",
+                      value: "drink",
+                    },
+                  ]
+                },
+                {
+                  column: "status",
+                  title: "Trạng thái",
+                  options: [
+                    {
+                      label: "Có sẵn",
+                      value: true,
+                    },
+                    {
+                      label: "Hết hàng",
+                      value: false,
+                    },
+                  ]
+                }
+              ]}
+            />
 
-      <Card className="m-0">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Utensils className="h-5 w-5" />
-            Danh sách món ăn
-          </CardTitle>
-          <CardDescription>
-            Quản lý và cấu hình các món ăn trong menu
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm kiếm theo tên món hoặc mô tả..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="available">Có sẵn</SelectItem>
-                <SelectItem value="unavailable">Hết hàng</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm" onClick={() => refetchMenuItems()}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Làm mới
-            </Button>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredMenuItems.length === 0 ? (
-              <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-                <Utensils className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-                  Chưa có món ăn nào
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {menuItems.length === 0
-                    ? "Chưa có món ăn nào trong hệ thống. Hãy thêm món đầu tiên!"
-                    : "Không tìm thấy món ăn nào phù hợp với bộ lọc."
-                  }
-                </p>
-                {menuItems.length === 0 && (
+            <Card className="m-0">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Utensils className="h-5 w-5" />
+                  Danh sách món ăn
+                </CardTitle>
+                <CardDescription>
+                  Quản lý và cấu hình các món ăn trong menu
+                </CardDescription>
+              </CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight">Quản lý món ăn</h1>
+                  <p className="text-muted-foreground">
+                    Quản lý và cấu hình các món ăn trong menu
+                  </p>
+                </div>
+                <div className="flex gap-2">
                   <Button onClick={openCreateDialog}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Thêm món đầu tiên
+                    Thêm món
                   </Button>
-                )}
+                </div>
               </div>
-            ) : (
-              filteredMenuItems.map((item: MenuItem) => (
-                <Card key={item.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="font-semibold text-lg">{item.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {item.description || 'Không có mô tả'}
-                        </p>
-                      </div>
-                      <Badge variant={item.is_available ? "default" : "secondary"}>
-                        {item.is_available ? (
-                          <>
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Có sẵn
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-3 h-3 mr-1" />
-                            Hết hàng
-                          </>
-                        )}
-                      </Badge>
-                    </div>
+              <CardContent>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Tìm kiếm theo tên món hoặc mô tả..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-8"
+                    />
+                  </div>
+                  <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả</SelectItem>
+                      <SelectItem value="available">Có sẵn</SelectItem>
+                      <SelectItem value="unavailable">Hết hàng</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm" onClick={() => refetchMenuItems()}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Làm mới
+                  </Button>
+                </div>
 
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Giá:</span>
-                        <span className="font-medium">
-                          {formatCurrency({ value: item.price, currency: "VND" })}
-                        </span>
-                      </div>
-                      {item.preparation_time && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Thời gian chế biến:</span>
-                          <span className="font-medium">{item.preparation_time} phút</span>
-                        </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredMenuItems.length === 0 ? (
+                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                      <Utensils className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                        Chưa có món ăn nào
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {menuItems.length === 0
+                          ? "Chưa có món ăn nào trong hệ thống. Hãy thêm món đầu tiên!"
+                          : "Không tìm thấy món ăn nào phù hợp với bộ lọc."
+                        }
+                      </p>
+                      {menuItems.length === 0 && (
+                        <Button onClick={openCreateDialog}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Thêm món đầu tiên
+                        </Button>
                       )}
-                      {item.calories && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Calories:</span>
-                          <span className="font-medium">{item.calories} kcal</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Thứ tự:</span>
-                        <span className="font-medium">{item.display_order}</span>
-                      </div>
-                      {/*<div className="flex gap-1 mt-2">*/}
-                      {/*  {(item.is_vegetarian || false) && (*/}
-                      {/*    <Badge variant="outline" className="text-xs">Chay</Badge>*/}
-                      {/*  )}*/}
-                      {/*  {(item.is_vegan || false) && (*/}
-                      {/*    <Badge variant="outline" className="text-xs">Thuần chay</Badge>*/}
-                      {/*  )}*/}
-                      {/*</div>*/}
                     </div>
+                  ) : (
+                    filteredMenuItems.map((item: MenuItemDataColumn) => (
+                      <Card key={item.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h3 className="font-semibold text-lg">{item.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {item.description || 'Không có mô tả'}
+                              </p>
+                            </div>
+                            <Badge variant={item.is_available ? "default" : "secondary"}>
+                              {item.is_available ? (
+                                <>
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Có sẵn
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="w-3 h-3 mr-1" />
+                                  Hết hàng
+                                </>
+                              )}
+                            </Badge>
+                          </div>
 
-                    <div className="flex items-center gap-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Chi tiết
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditDialog(item)}>
-                            <Edit className="mr-2 h-4 w-4"/>
-                            Chỉnh sửa
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Utensils className="mr-2 h-4 w-4"/>
-                            Xem công thức
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Clock className="mr-2 h-4 w-4"/>
-                            Lịch sử thay đổi
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openDeleteDialog(item)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4"/>
-                            Xóa
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardContent>
-                </Card>
-              )))}
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Giá:</span>
+                              <span className="font-medium">
+                                {formatCurrency({ value: item.price, currency: "VND" })}
+                              </span>
+                            </div>
+                            {item.preparation_time && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Thời gian chế biến:</span>
+                                <span className="font-medium">{item.preparation_time} phút</span>
+                              </div>
+                            )}
+                            {item.calories && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Calories:</span>
+                                <span className="font-medium">{item.calories} kcal</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Thứ tự:</span>
+                              <span className="font-medium">{item.display_order}</span>
+                            </div>
+                            {/*<div className="flex gap-1 mt-2">*/}
+                            {/*  {(item.is_vegetarian || false) && (*/}
+                            {/*    <Badge variant="outline" className="text-xs">Chay</Badge>*/}
+                            {/*  )}*/}
+                            {/*  {(item.is_vegan || false) && (*/}
+                            {/*    <Badge variant="outline" className="text-xs">Thuần chay</Badge>*/}
+                            {/*  )}*/}
+                            {/*</div>*/}
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-4">
+                            <Button variant="outline" size="sm" className="flex-1">
+                              <Eye className="h-4 w-4 mr-2" />
+                              Chi tiết
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => openEditDialog(item)}>
+                                  <Edit className="mr-2 h-4 w-4"/>
+                                  Chỉnh sửa
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Utensils className="mr-2 h-4 w-4"/>
+                                  Xem công thức
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Clock className="mr-2 h-4 w-4"/>
+                                  Lịch sử thay đổi
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => openDeleteDialog(item)}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4"/>
+                                  Xóa
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Create MenuItem Dialog */}
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Thêm món mới</DialogTitle>
+                  <DialogDescription>
+                    Thêm mới món ăn vào menu
+                  </DialogDescription>
+                </DialogHeader>
+                <MenuItemForm
+                  mode="create"
+                  restaurantId="5dc89877-8c0b-482d-a71d-609d6e14cb9e"
+                  menuId="e904d033-3a03-4905-bc39-4cb0c7f29196"
+                  onSuccess={handleCreateSuccess}
+                  onCancel={() => setIsCreateDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit MenuItem Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Chỉnh sửa món</DialogTitle>
+                  <DialogDescription>
+                    Cập nhật thông tin món ăn
+                  </DialogDescription>
+                </DialogHeader>
+                {editingMenuItem && (
+                  <MenuItemForm
+                    mode="update"
+                    // initialValues={{
+                    //   ...editingMenuItem,
+                    //   price: typeof editingMenuItem.price === 'string' ? parseFloat(editingMenuItem.price) : editingMenuItem.price
+                    // }}
+                    onSuccess={handleUpdateSuccess}
+                    onCancel={() => setIsEditDialogOpen(false)}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Xóa món</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Bạn có chắc chắn muốn xóa &quot;{deletingMenuItem?.name}&quot;? Hành động này không thể hoàn tác.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Hủy</AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteMenuItem}
+                    >
+                      Xóa
+                    </Button>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
-        </CardContent>
-      </Card>
+        </>
+      ) : (
+        <>
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+              <Skeleton className="h-36 rounded-xl" />
+              <Skeleton className="h-36 rounded-xl" />
+              <Skeleton className="h-36 rounded-xl" />
+              <Skeleton className="h-36 rounded-xl" />
+              <Skeleton className="h-36 rounded-xl" />
+            </div>
 
-      {/* Create MenuItem Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Thêm món mới</DialogTitle>
-            <DialogDescription>
-              Thêm mới món ăn vào menu
-            </DialogDescription>
-          </DialogHeader>
-          <MenuItemForm
-            mode="create"
-            restaurantId="5dc89877-8c0b-482d-a71d-609d6e14cb9e"
-            menuId="e904d033-3a03-4905-bc39-4cb0c7f29196"
-            onSuccess={handleCreateSuccess}
-            onCancel={() => setIsCreateDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit MenuItem Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Chỉnh sửa món</DialogTitle>
-            <DialogDescription>
-              Cập nhật thông tin món ăn
-            </DialogDescription>
-          </DialogHeader>
-          {editingMenuItem && (
-            <MenuItemForm
-              mode="update"
-              // initialValues={{
-              //   ...editingMenuItem,
-              //   price: typeof editingMenuItem.price === 'string' ? parseFloat(editingMenuItem.price) : editingMenuItem.price
-              // }}
-              onSuccess={handleUpdateSuccess}
-              onCancel={() => setIsEditDialogOpen(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xóa món</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa &quot;{deletingMenuItem?.name}&quot;? Hành động này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteMenuItem}
-              >
-                Xóa
-              </Button>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+            <Skeleton className="h-screen w-full rounded-xl"/>
+          </div>
+        </>
+      )}
+    </>
   )
 }

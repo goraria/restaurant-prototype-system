@@ -10,14 +10,17 @@ import {
   hardDeleteCategory,
   reorderCategories,
   moveCategory,
-  getCategoryBreadcrumbs
+  getCategoryBreadcrumbs,
+  getAllCategories
 } from '@/controllers/categoryControllers';
 
 const router = Router();
 
+router.get('/', getAllCategories);
+
 // Category CRUD operations
 router.post('/', createCategory);
-router.get('/', getCategories);
+router.get('/page', getCategories);
 router.get('/tree', getCategoryTree);
 router.get('/:id', getCategoryById);
 router.get('/slug/:slug', getCategoryBySlug);

@@ -143,7 +143,7 @@ export default function SettingsPage() {
                   </li>
                   <li className="list-inline-item">
                     <MapPin size={20} className="align-top me-2" />
-                    <span className="font-medium">TP.HCM, Việt Nam</span>
+                    <span className="font-medium">Hà Nội, Việt Nam</span>
                   </li>
                   <li className="list-inline-item">
                     <CalendarDays size={20} className="align-top me-2" />

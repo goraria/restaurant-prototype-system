@@ -16,6 +16,36 @@ const formatCategory = (category: any) => {
   };
 };
 
+export const getAllCategories = async () => {
+  try {
+    const categories = await prisma.categories.findMany({
+      include: {
+        parent_category: true,
+        child_categories: {
+          orderBy: {
+            display_order: 'asc'
+          }
+        },
+        _count: {
+          select: {
+            menu_items: true
+          }
+        }
+      }
+    });
+
+    return {
+      data: categories,
+      total: categories.length,
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to get categories: ${error.message}`);
+    }
+    throw new Error('Failed to get categories');
+  }
+};
+
 /**
  * Create a new category
  */

@@ -28,7 +28,6 @@ import {
   RefreshCw
 } from "lucide-react"
 import { toast } from 'sonner'
-import { useDispatch } from "@/state/redux";
 
 // Import form components and API hooks
 import { InventoryItemForm } from '@/components/forms';
@@ -64,7 +63,6 @@ interface PurchaseOrder {
 }
 
 export default function InventoryPage() {
-  const dispatch = useDispatch();
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("")
@@ -77,55 +75,8 @@ export default function InventoryPage() {
   const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null)
 
   useEffect(() => {
-    fetchInventory();
+
   }, []);
-
-  const fetchInventory = async () => {
-    setIsLoading(true);
-    try {
-      const items = await getInventoryItems(dispatch);
-      setInventoryItems(items);
-    } catch (e) {
-      toast.error('Lỗi khi tải dữ liệu kho');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreate = async (data: any) => {
-    try {
-      await createInventoryItem(dispatch, data);
-      fetchInventory();
-      toast.success('Mục kho đã được tạo thành công!');
-      setIsCreateDialogOpen(false);
-    } catch (e) {
-      toast.error('Lỗi khi tạo mục kho');
-    }
-  };
-
-  const handleUpdate = async (id: string, data: any) => {
-    try {
-      await updateInventoryItem(dispatch, id, data);
-      fetchInventory();
-      toast.success('Thông tin kho đã được cập nhật!');
-      setIsEditDialogOpen(false);
-      setEditingItem(null);
-    } catch (e) {
-      toast.error('Lỗi khi cập nhật mục kho');
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteInventoryItem(dispatch, id);
-      fetchInventory();
-      toast.success('Mục kho đã được xóa!');
-      setIsDeleteDialogOpen(false);
-      setDeletingItem(null);
-    } catch (e) {
-      toast.error('Lỗi khi xóa mục kho');
-    }
-  };
 
   const filteredItems = inventoryItems.filter((item: InventoryItem) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -361,7 +312,11 @@ export default function InventoryPage() {
                     <SelectItem value="expired">Hết hạn</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="sm" onClick={() => refetch()}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  // onClick={() => refetch()}
+                >
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Làm mới
                 </Button>
@@ -488,7 +443,7 @@ export default function InventoryPage() {
           </DialogHeader>
           <InventoryItemForm
             mode="create"
-            onSuccess={handleCreate}
+            // onSuccess={handleCreate}
             onCancel={() => setIsCreateDialogOpen(false)}
           />
         </DialogContent>
@@ -507,7 +462,7 @@ export default function InventoryPage() {
             <InventoryItemForm
               mode="update"
               initialValues={editingItem}
-              onSuccess={handleUpdate}
+              // onSuccess={handleUpdate}
               onCancel={() => setIsEditDialogOpen(false)}
             />
           )}
@@ -516,18 +471,18 @@ export default function InventoryPage() {
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmDialog
-        open={isDeleteDialogOpen}
+        // open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         title="Xóa mục kho"
         description={`Bạn có chắc chắn muốn xóa "${deletingItem?.name}"?`}
-        onConfirm={() => {
-          if (deletingItem) {
-            deleteInventoryItem(deletingItem.id)
-              .unwrap()
-              .then(handleDeleteSuccess)
-              .catch(() => toast.error('Có lỗi xảy ra khi xóa mục kho!'));
-          }
-        }}
+        // onConfirm={() => {
+        //   if (deletingItem) {
+        //     deleteInventoryItem(deletingItem.id)
+        //       .unwrap()
+        //       .then(handleDeleteSuccess)
+        //       .catch(() => toast.error('Có lỗi xảy ra khi xóa mục kho!'));
+        //   }
+        // }}
       />
     </div>
   )

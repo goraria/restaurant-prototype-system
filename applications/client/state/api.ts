@@ -7,7 +7,13 @@ import {
 import { User } from "@clerk/nextjs/server";
 import { Clerk } from "@clerk/clerk-js"
 import { toast } from "sonner";
-import { Menu, MenuItem, MenuItemInterface } from "@/constants/interfaces";
+import {
+  CategoryDataColumn,
+  MenuDataColumn,
+  MenuItemDataColumn,
+  MenuItemInterface,
+  RecipeDataColumn
+} from "@/constants/interfaces";
 
 const baseQueryWithClerk: BaseQueryFn<
   string | FetchArgs,
@@ -105,7 +111,7 @@ const baseQueryWithClerk: BaseQueryFn<
 export const api = createApi({
   baseQuery: baseQueryWithClerk,
   reducerPath: "api",
-  tagTypes: ["Users", "Restaurants", "Orders", "Menus"],
+  tagTypes: ["Users", "Restaurants", "Orders", "Menus", "Categories", "Recipes"],
   endpoints: (builder) => ({
     // ========== CRUD API ENDPOINTS ==========
 
@@ -208,15 +214,31 @@ export const api = createApi({
       invalidatesTags: ["Orders"],
     }),
 
+    // Categories CRUD
+    // ------------------------------------------------------------------------
+    getAllCategories: builder.query<CategoryDataColumn[], void>({
+      query: () => ({
+        url: `/categories`
+      }),
+      providesTags: ["Categories"],
+    }),
+    // ------------------------------------------------------------------------
+
     // Menus CRUD
     // ------------------------------------------------------------------------
-    getAllMenus: builder.query<Menu[], void>({
+    getAllMenus: builder.query<MenuDataColumn[], void>({
       query: () => ({
         url: `/menus`
       }),
       providesTags: ["Menus"],
     }),
     // ------------------------------------------------------------------------
+    getMenus: builder.query<MenuDataColumn[], void>({
+      query: () => ({
+        url: `/menus/page`
+      }),
+      providesTags: ["Menus"],
+    }),
     getMenuById: builder.query<any, string>({
       query: (id) => `/menus/${id}`,
       providesTags: (result, error, id) => [{ type: "Menus", id }],
@@ -263,7 +285,7 @@ export const api = createApi({
       providesTags: ["Menus"],
     }),
     // ------------------------------------------------------------------------
-    getAllMenuItems: builder.query<MenuItem[], void>({
+    getAllMenuItems: builder.query<MenuItemDataColumn[], void>({
       query: () => ({
         url: `/menus/items`
       }),
@@ -486,6 +508,14 @@ export const api = createApi({
     getInventoryTransactions: builder.query<any, Record<string, any> | void>({
       query: (params) => ({ url: `/inventory-transactions`, params: params ?? {} }),
     }),
+    // ------------------------------------------------------------------------
+    getRecipeByMenuItemId: builder.query<RecipeDataColumn, string>({
+      query: (id) => ({
+        url: `/menus/recipe/item/${id}`
+      }),
+      providesTags: ["Recipes"],
+    }),
+    // ------------------------------------------------------------------------
     createRecipe: builder.mutation<any, any>({
       query: (data) => ({ url: `/recipes`, method: "POST", body: data }),
     }),
@@ -821,6 +851,9 @@ export const {
   useUpdateOrderMutation,
   useDeleteOrderMutation,
 
+  // Categories
+  useGetAllCategoriesQuery,
+
   // Menus
   useGetAllMenusQuery,
   useGetMenuByIdQuery,
@@ -834,6 +867,14 @@ export const {
   useDeleteMenuItemMutation,
   useBulkUpdateMenuItemsMutation,
   useBulkToggleMenuItemsAvailabilityMutation,
+
+  // Recipes
+  useCreateRecipeMutation,
+  useGetRecipesQuery,
+  useCalculateRecipeCostMutation,
+  useGetRecipeByIdQuery,
+  useUpdateRecipeMutation,
+  useGetRecipeByMenuItemIdQuery,
 
   // Tables
   useGetTablesQuery,

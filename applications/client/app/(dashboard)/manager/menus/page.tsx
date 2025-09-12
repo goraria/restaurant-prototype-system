@@ -17,7 +17,7 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
-  Download, Utensils, Clock
+  Download, Utensils, Clock, DollarSign
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox";
@@ -45,16 +45,17 @@ import { DeleteConfirmDialog } from '@/components/forms';
 import { DataTable, DataTableColumnHeader, DataTableSortButton } from "@/components/elements/data-table";
 import { useAppDispatch } from '@/state/redux';
 import { formatCurrency } from "@/utils/format-utils";
-import { Menu } from "@/constants/interfaces";
+import { MenuDataColumn, StatsBoxProps } from "@/constants/interfaces";
 import { useGetAllMenusQuery } from "@/state/api";
+import { StatsBox } from "@/components/elements/stats-box";
 
 export default function MenusPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [editingMenu, setEditingMenu] = useState<Menu | null>(null)
-  const [deletingMenu, setDeletingMenu] = useState<Menu | null>(null)
+  const [editingMenu, setEditingMenu] = useState<MenuDataColumn | null>(null)
+  const [deletingMenu, setDeletingMenu] = useState<MenuDataColumn | null>(null)
   // const [isLoading, setIsLoading] = useState(true)
 
   const {
@@ -64,7 +65,7 @@ export default function MenusPage() {
     refetch: refetchMenuItems
   } = useGetAllMenusQuery();
 
-  const data: Menu[] = [
+  const data: MenuDataColumn[] = [
     {
       "id": "e1f9375a-7de2-4c3b-9c8d-394f3d4ee292",
       "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
@@ -86,7 +87,7 @@ export default function MenusPage() {
     }
   ]
 
-  const columns: ColumnDef<Menu, unknown>[] = [
+  const columns: ColumnDef<MenuDataColumn, unknown>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -236,7 +237,7 @@ export default function MenusPage() {
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <MenuIcon className="mr-2 h-4 w-4" />
-                Quản lý món
+                Quản lý thực đơn
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Calendar className="mr-2 h-4 w-4" />
@@ -277,16 +278,16 @@ export default function MenusPage() {
 
   }, [])
 
-  const filteredMenus = menus.filter((menu: Menu) => {
+  const filteredMenus = menus.filter((menu: MenuDataColumn) => {
     return menu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
            (menu.description && menu.description.toLowerCase().includes(searchTerm.toLowerCase()))
   })
 
   const getMenuStats = () => {
     const totalMenus = menus.length
-    const activeMenus = menus.filter((m: Menu) => m.is_active).length
-    const inactiveMenus = menus.filter((m: Menu) => !m.is_active).length
-    const totalMenuItems = menus.reduce((sum: number, menu: Menu) => sum + (menu._count?.menu_items || 0), 0)
+    const activeMenus = menus.filter((m: MenuDataColumn) => m.is_active).length
+    const inactiveMenus = menus.filter((m: MenuDataColumn) => !m.is_active).length
+    const totalMenuItems = menus.reduce((sum: number, menu: MenuDataColumn) => sum + (menu._count?.menu_items || 0), 0)
 
     return { totalMenus, activeMenus, inactiveMenus, totalMenuItems }
   }
@@ -312,12 +313,12 @@ export default function MenusPage() {
     setIsCreateDialogOpen(true)
   }
 
-  const openEditDialog = (menu: Menu) => {
+  const openEditDialog = (menu: MenuDataColumn) => {
     setEditingMenu(menu)
     setIsEditDialogOpen(true)
   }
 
-  const openDeleteDialog = (menu: Menu) => {
+  const openDeleteDialog = (menu: MenuDataColumn) => {
     setDeletingMenu(menu)
     setIsDeleteDialogOpen(true)
   }
@@ -335,84 +336,69 @@ export default function MenusPage() {
     )
   }
 
+  const statsBox: StatsBoxProps[] = [
+    {
+      title: "Tổng số menu",
+      description: "Tất cả menu trong nhà hàng",
+      icon: MenuIcon,
+      // color: "professional-green",
+      stats: stats.totalMenus
+    },
+    {
+      title: "Menu đang hoạt động",
+      description: "Hiển thị cho khách hàng",
+      icon: CheckCircle,
+      color: "professional-green",
+      stats: stats.activeMenus
+    },
+    {
+      title: "Menu tạm dừng",
+      description: "Không hiển thị cho khách",
+      icon: XCircle,
+      color: "professional-red",
+      stats: stats.inactiveMenus
+    },
+    {
+      title: "Tổng số món ăn",
+      description: "Tất cả món trong các menu",
+      icon: MenuIcon,
+      color: "professional-blue",
+      stats: stats.totalMenuItems
+    },
+  ]
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý menu</h1>
-          <p className="text-muted-foreground">
-            Quản lý các menu và danh mục món ăn trong nhà hàng
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Xuất báo cáo
-          </Button>
-          <Button onClick={openCreateDialog}>
-            <Plus className="mr-2 h-4 w-4" />
-            Thêm menu
-          </Button>
-        </div>
-      </div>
+      {/*<div className="flex items-center justify-between">*/}
+      {/*  <div>*/}
+      {/*    <h1 className="text-3xl font-bold tracking-tight">Quản lý menu</h1>*/}
+      {/*    <p className="text-muted-foreground">*/}
+      {/*      Quản lý các menu và danh mục món ăn trong nhà hàng*/}
+      {/*    </p>*/}
+      {/*  </div>*/}
+      {/*  <div className="flex gap-2">*/}
+      {/*    <Button variant="outline">*/}
+      {/*      <Download className="mr-2 h-4 w-4" />*/}
+      {/*      Xuất báo cáo*/}
+      {/*    </Button>*/}
+      {/*    <Button onClick={openCreateDialog}>*/}
+      {/*      <Plus className="mr-2 h-4 w-4" />*/}
+      {/*      Thêm menu*/}
+      {/*    </Button>*/}
+      {/*  </div>*/}
+      {/*</div>*/}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tổng số menu
-            </CardTitle>
-            <MenuIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMenus}</div>
-            <p className="text-xs text-muted-foreground">
-              Tất cả menu trong nhà hàng
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Menu đang hoạt động
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-professional-green" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-professional-green">{stats.activeMenus}</div>
-            <p className="text-xs text-muted-foreground">
-              Hiển thị cho khách hàng
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Menu tạm dừng
-            </CardTitle>
-            <XCircle className="h-4 w-4 text-professional-red" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-professional-red">{stats.inactiveMenus}</div>
-            <p className="text-xs text-muted-foreground">
-              Không hiển thị cho khách
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tổng số món ăn
-            </CardTitle>
-            <MenuIcon className="h-4 w-4 text-professional-blue" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-professional-blue">{stats.totalMenuItems}</div>
-            <p className="text-xs text-muted-foreground">
-              Tất cả món trong các menu
-            </p>
-          </CardContent>
-        </Card>
+        {statsBox.map((box, index) => (
+          <StatsBox
+            key={index}
+            title={box.title}
+            description={box.description}
+            icon={box.icon}
+            color={box.color}
+            stats={box.stats}
+          />
+        ))}
       </div>
 
       <DataTable
@@ -423,22 +409,7 @@ export default function MenusPage() {
           placeholder: "Tìm kiếm thực đơn..."
         }}
         max="name"
-        filter={[
-          {
-            column: "status",
-            title: "Trạng thái",
-            options: [
-              {
-                label: "Có sẵn",
-                value: true,
-              },
-              {
-                label: "Hết hàng",
-                value: false,
-              },
-            ]
-          }
-        ]}
+        filter={[]}
       />
 
       <Card>
@@ -469,7 +440,7 @@ export default function MenusPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredMenus.map((menu: Menu) => (
+            {filteredMenus.map((menu: MenuDataColumn) => (
               <Card key={menu.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -580,7 +551,7 @@ export default function MenusPage() {
           {editingMenu && (
             <MenuForm
               mode="update"
-              initialValues={editingMenu}
+              // initialValues={editingMenu}
               onSuccess={handleUpdateSuccess}
               onCancel={() => setIsEditDialogOpen(false)}
             />

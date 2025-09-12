@@ -10,13 +10,33 @@ import {
   hardDeleteCategory as hardDeleteCategoryService,
   reorderCategories as reorderCategoriesService,
   moveCategory as moveCategoryService,
-  getCategoryBreadcrumbs as getCategoryBreadcrumbsService
+  getCategoryBreadcrumbs as getCategoryBreadcrumbsService,
+  getAllCategories as getAllCategoriesService,
 } from '@/services/categoryServices';
 import { 
   CreateCategorySchema, 
   UpdateCategorySchema, 
   CategoryQuerySchema 
 } from '@/schemas/categorySchemas';
+
+export const getAllCategories = async (req: Request, res: Response) => {
+  try {
+    const categories = await getAllCategoriesService();
+
+    res.status(200).json({
+      success: true,
+      message: 'Categories retrieved successfully',
+      data: categories.data,
+      total: categories.total,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get categories';
+    res.status(500).json({
+      success: false,
+      message: errorMessage
+    });
+  }
+};
 
 /**
  * Create a new category
@@ -76,7 +96,7 @@ export const getCategoryById = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: 'Category found',
-      data: category
+      data: category,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to get category';
@@ -131,7 +151,7 @@ export const getCategories = async (req: Request, res: Response) => {
   try {
     // Validate query parameters
     const result = CategoryQuerySchema.safeParse(req.query);
-    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
