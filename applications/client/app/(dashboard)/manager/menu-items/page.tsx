@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import {
   Card,
   CardContent,
@@ -368,7 +368,7 @@ export default function MenuItemsPage() {
     return matchesSearch && matchesAvailability
   })
 
-  const getMenuItemStats = () => {
+  const stats = useMemo(() => {
     const totalItems = menuItems.length
     const availableItems = menuItems.filter((item: MenuItemDataColumn) => item.is_available).length
     const unavailableItems = menuItems.filter((item: MenuItemDataColumn) => !item.is_available).length
@@ -380,7 +380,7 @@ export default function MenuItemsPage() {
     }, 0)
 
     return { totalItems, availableItems, unavailableItems, totalValue } // , vegetarianItems, veganItems
-  }
+  }, [menuItems])
 
   const handleCreateSuccess = () => {
     setIsCreateDialogOpen(false)
@@ -541,8 +541,6 @@ export default function MenuItemsPage() {
       toast.error('Có lỗi xảy ra khi thay đổi trạng thái!')
     }
   }
-
-  const stats = getMenuItemStats()
 
   // if (isLoading) {
   //   return (

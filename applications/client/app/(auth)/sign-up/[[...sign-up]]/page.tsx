@@ -17,12 +17,21 @@ export default function SignUpPage() {
               baseTheme: clerkBaseTheme,
               elements: {
                 rootBox: {},
-                cardBox: "bg-card text-card-foreground flex flex-col rounded-xl border !shadow-sm",
+                cardBox: "!bg-card text-card-foreground flex flex-col !rounded-xl !border !shadow-sm",
+                card: "!bg-card text-card-foreground flex flex-col !rounded-xl !border",
                 headerTitle: {
 
                 },
+                socialButtonsIconButton: "!bg-secondary",
                 formButtonPrimary: "!bg-foreground !inset-none",
-                footer: "!bg-card",
+                // footer: "!bg-card",
+                footer: {
+                  background: "var(--card)",
+                  // padding: "0rem 2.5rem",
+                  "& > div > div:nth-child(1)": {
+                    background: "var(--card)",
+                  },
+                },
               },
             }}
           />

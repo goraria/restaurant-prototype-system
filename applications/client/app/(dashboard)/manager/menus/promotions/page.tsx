@@ -50,7 +50,7 @@ import { toast } from 'sonner';
 // Import form components and API hooks
 import { PromotionForm, VoucherForm } from '@/components/forms';
 import { DeleteConfirmDialog } from '@/components/forms';
-import { useGetPromotionsQuery, useCreatePromotionMutation, useUpdatePromotionMutation, useDeletePromotionMutation, useGetVouchersQuery, useCreateVoucherMutation, useUpdateVoucherMutation, useDeleteVoucherMutation } from '@/state/api';
+// import { useGetPromotionsQuery, useCreatePromotionMutation, useUpdatePromotionMutation, useDeletePromotionMutation, useGetVouchersQuery, useCreateVoucherMutation, useUpdateVoucherMutation, useDeleteVoucherMutation } from '@/state/api';
 
 interface Promotion {
   id: string;

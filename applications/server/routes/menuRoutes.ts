@@ -18,7 +18,6 @@ import {
   //
   getAllMenuItems,
   getAllMenus,
-  getRecipeByMenuItemId
 } from '@/controllers/menuControllers';
 
 // Import middleware (tạm thời comment để không lỗi)
@@ -33,8 +32,6 @@ const router = Router();
 // All (dành cho admin)
 router.get('/', getAllMenus); // Lấy danh sách menu
 router.get('/items', getAllMenuItems); // Lấy tất cả món ăn
-
-router.get("/recipe/item/:id", getRecipeByMenuItemId)
 
 // Public routes - Không cần authentication
 router.get('/restaurant/:restaurantId', getMenusByRestaurantId); // Lấy menu của nhà hàng

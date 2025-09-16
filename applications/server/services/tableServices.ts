@@ -17,6 +17,7 @@ import {
   TableStatsQuery,
   ReservationStatsQuery
 } from '@/schemas/tableSchemas';
+import { validate } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -24,10 +25,10 @@ const prisma = new PrismaClient();
 // 🔧 HELPER FUNCTIONS
 // ================================
 
-const validateUUID = (id: string): boolean => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(id);
-};
+// const validateUUID = (id: string): boolean => {
+//   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+//   return uuidRegex.test(id);
+// };
 
 const generateSessionCode = (): string => {
   return Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -36,6 +37,34 @@ const generateSessionCode = (): string => {
 // ================================
 // 🪑 TABLE SERVICES
 // ================================
+
+export async function getAllTable() {
+  try {
+    const tables = await prisma.tables.findMany({
+      include: {
+        restaurants: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          }
+        },
+        _count: {
+          select: {
+            reservations: true,
+            table_orders: true,
+          }
+        }
+      },
+    })
+
+    if (!tables) return
+
+    return tables
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy danh sách bàn: ${error}`);
+  }
+}
 
 // Tạo bàn mới
 export const createTable = async (data: CreateTable) => {
@@ -96,7 +125,7 @@ export const createTable = async (data: CreateTable) => {
 // Lấy bàn theo ID
 export const getTableById = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID bàn không hợp lệ');
     }
 
@@ -240,7 +269,7 @@ export const getTables = async (filters: TableQuery) => {
 // Lấy bàn theo nhà hàng
 export const getTablesByRestaurantId = async (restaurantId: string) => {
   try {
-    if (!validateUUID(restaurantId)) {
+    if (!validate(restaurantId)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 
@@ -275,7 +304,7 @@ export const getTablesByRestaurantId = async (restaurantId: string) => {
 // Cập nhật bàn
 export const updateTable = async (id: string, data: UpdateTable) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID bàn không hợp lệ');
     }
 
@@ -329,7 +358,7 @@ export const updateTable = async (id: string, data: UpdateTable) => {
 // Xóa bàn
 export const deleteTable = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID bàn không hợp lệ');
     }
 
@@ -368,7 +397,7 @@ export const checkTableAvailability = async (data: TableAvailability) => {
   try {
     const { restaurant_id, party_size, reservation_date, duration_hours = 2 } = data;
 
-    if (!validateUUID(restaurant_id)) {
+    if (!validate(restaurant_id)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 
@@ -415,7 +444,7 @@ export const updateTableStatus = async (data: UpdateTableStatus) => {
 
     // Kiểm tra tất cả IDs hợp lệ
     for (const id of table_ids) {
-      if (!validateUUID(id)) {
+      if (!validate(id)) {
         throw new Error(`ID bàn không hợp lệ: ${id}`);
       }
     }
@@ -533,7 +562,7 @@ export const createReservation = async (data: CreateReservation) => {
 // Lấy đặt bàn theo ID
 export const getReservationById = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID đặt bàn không hợp lệ');
     }
 
@@ -667,7 +696,7 @@ export const getReservations = async (filters: ReservationQuery) => {
 // Cập nhật đặt bàn
 export const updateReservation = async (id: string, data: UpdateReservation) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID đặt bàn không hợp lệ');
     }
 
@@ -721,7 +750,7 @@ export const confirmReservation = async (data: ConfirmReservation) => {
   try {
     const { reservation_id, notes } = data;
 
-    if (!validateUUID(reservation_id)) {
+    if (!validate(reservation_id)) {
       throw new Error('ID đặt bàn không hợp lệ');
     }
 
@@ -768,13 +797,13 @@ export const checkInTable = async (data: TableCheckIn) => {
     const { reservation_id, table_id, party_size, staff_id } = data;
 
     // Validate inputs
-    if (reservation_id && !validateUUID(reservation_id)) {
+    if (reservation_id && !validate(reservation_id)) {
       throw new Error('ID đặt bàn không hợp lệ');
     }
-    if (!validateUUID(table_id)) {
+    if (!validate(table_id)) {
       throw new Error('ID bàn không hợp lệ');
     }
-    if (!validateUUID(staff_id)) {
+    if (!validate(staff_id)) {
       throw new Error('ID nhân viên không hợp lệ');
     }
 
@@ -911,7 +940,7 @@ export const createTableOrder = async (data: CreateTableOrder) => {
 // Lấy table order theo ID
 export const getTableOrderById = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID phiên bàn không hợp lệ');
     }
 
@@ -1056,7 +1085,7 @@ export const getTableOrders = async (filters: TableOrderQuery) => {
 // Cập nhật table order
 export const updateTableOrder = async (id: string, data: UpdateTableOrder) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID phiên bàn không hợp lệ');
     }
 
@@ -1121,7 +1150,7 @@ export const getTableStats = async (data: TableStatsQuery) => {
   try {
     const { restaurant_id, date_from, date_to } = data;
 
-    if (!validateUUID(restaurant_id)) {
+    if (!validate(restaurant_id)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 
@@ -1206,7 +1235,7 @@ export const getReservationStats = async (data: ReservationStatsQuery) => {
   try {
     const { restaurant_id, date_from, date_to } = data;
 
-    if (!validateUUID(restaurant_id)) {
+    if (!validate(restaurant_id)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 

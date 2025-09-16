@@ -16,17 +16,60 @@ import {
   TableStatsQuerySchema,
   ReservationStatsQuerySchema
 } from '@/schemas/tableSchemas';
-import * as tableServices from '@/services/tableServices';
+import {
+  getAllTable as getAllTableService,
+  createTable as createTableService,
+  getTableById as getTableByIdService,
+  getTables as getTablesService,
+  getTablesByRestaurantId as getTablesByRestaurantIdService,
+  updateTable as updateTableService,
+  deleteTable as deleteTableService,
+  checkTableAvailability as checkTableAvailabilityService,
+  updateTableStatus as updateTableStatusService,
+  createReservation as createReservationService,
+  getReservationById as getReservationByIdService,
+  getReservations as getReservationsService,
+  updateReservation as updateReservationService,
+  confirmReservation as confirmReservationService,
+  checkInTable as checkInTableService,
+  createTableOrder as createTableOrderService,
+  getTableOrderById as getTableOrderByIdService,
+  getTableOrders as getTableOrdersService,
+  updateTableOrder as updateTableOrderService,
+  getTableStats as getTableStatsService,
+  getReservationStats as getReservationStatsService,
+} from '@/services/tableServices';
 
 // ================================
 // 🪑 TABLE CONTROLLERS
 // ================================
 
+export async function getAllTable(
+  req: Request,
+  res: Response
+) {
+  try {
+    const result = await getAllTableService();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Lấy danh sách bàn thành công',
+      data: result
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Lỗi khi lấy danh sách bàn',
+      error: error.issues || error
+    });
+  }
+}
+
 // Tạo bàn mới
 export const createTable = async (req: Request, res: Response) => {
   try {
     const validatedData = CreateTableSchema.parse(req.body);
-    const table = await tableServices.createTable(validatedData);
+    const table = await createTableService(validatedData);
     
     res.status(201).json({
       success: true,
@@ -43,29 +86,29 @@ export const createTable = async (req: Request, res: Response) => {
 };
 
 // Lấy bàn theo ID
-export const getTableById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const table = await tableServices.getTableById(id);
+// export const getTableById = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const table = await getTableByIdService(id);
     
-    res.status(200).json({
-      success: true,
-      message: 'Lấy thông tin bàn thành công',
-      data: table
-    });
-  } catch (error: any) {
-    res.status(404).json({
-      success: false,
-      message: error.message || 'Không tìm thấy bàn',
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: 'Lấy thông tin bàn thành công',
+//       data: table
+//     });
+//   } catch (error: any) {
+//     res.status(404).json({
+//       success: false,
+//       message: error.message || 'Không tìm thấy bàn',
+//     });
+//   }
+// };
 
 // Lấy danh sách bàn với filter
 export const getTables = async (req: Request, res: Response) => {
   try {
     const validatedQuery = TableQuerySchema.parse(req.query);
-    const result = await tableServices.getTables(validatedQuery);
+    const result = await getTablesService(validatedQuery);
     
     res.status(200).json({
       success: true,
@@ -82,68 +125,68 @@ export const getTables = async (req: Request, res: Response) => {
 };
 
 // Lấy bàn theo nhà hàng
-export const getTablesByRestaurantId = async (req: Request, res: Response) => {
-  try {
-    const { restaurantId } = req.params;
-    const tables = await tableServices.getTablesByRestaurantId(restaurantId);
+// export const getTablesByRestaurantId = async (req: Request, res: Response) => {
+//   try {
+//     const { restaurantId } = req.params;
+//     const tables = await getTablesByRestaurantIdService(restaurantId);
     
-    res.status(200).json({
-      success: true,
-      message: 'Lấy bàn của nhà hàng thành công',
-      data: tables
-    });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Lỗi khi lấy bàn của nhà hàng',
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: 'Lấy bàn của nhà hàng thành công',
+//       data: tables
+//     });
+//   } catch (error: any) {
+//     res.status(400).json({
+//       success: false,
+//       message: error.message || 'Lỗi khi lấy bàn của nhà hàng',
+//     });
+//   }
+// };
 
 // Cập nhật bàn
-export const updateTable = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const validatedData = UpdateTableSchema.parse(req.body);
-    const table = await tableServices.updateTable(id, validatedData);
+// export const updateTable = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const validatedData = UpdateTableSchema.parse(req.body);
+//     const table = await updateTableService(id, validatedData);
     
-    res.status(200).json({
-      success: true,
-      message: 'Cập nhật bàn thành công',
-      data: table
-    });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Lỗi khi cập nhật bàn',
-      error: error.issues || error
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: 'Cập nhật bàn thành công',
+//       data: table
+//     });
+//   } catch (error: any) {
+//     res.status(400).json({
+//       success: false,
+//       message: error.message || 'Lỗi khi cập nhật bàn',
+//       error: error.issues || error
+//     });
+//   }
+// };
 
 // Xóa bàn
-export const deleteTable = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const result = await tableServices.deleteTable(id);
+// export const deleteTable = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const result = await deleteTableService(id);
     
-    res.status(200).json({
-      success: true,
-      message: result.message
-    });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Lỗi khi xóa bàn',
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: result.message
+//     });
+//   } catch (error: any) {
+//     res.status(400).json({
+//       success: false,
+//       message: error.message || 'Lỗi khi xóa bàn',
+//     });
+//   }
+// };
 
 // Kiểm tra bàn trống
 export const checkTableAvailability = async (req: Request, res: Response) => {
   try {
     const validatedData = TableAvailabilitySchema.parse(req.body);
-    const availableTables = await tableServices.checkTableAvailability(validatedData);
+    const availableTables = await checkTableAvailabilityService(validatedData);
     
     res.status(200).json({
       success: true,
@@ -163,7 +206,7 @@ export const checkTableAvailability = async (req: Request, res: Response) => {
 export const updateTableStatus = async (req: Request, res: Response) => {
   try {
     const validatedData = UpdateTableStatusSchema.parse(req.body);
-    const result = await tableServices.updateTableStatus(validatedData);
+    const result = await updateTableStatusService(validatedData);
     
     res.status(200).json({
       success: true,
@@ -187,7 +230,7 @@ export const updateTableStatus = async (req: Request, res: Response) => {
 export const createReservation = async (req: Request, res: Response) => {
   try {
     const validatedData = CreateReservationSchema.parse(req.body);
-    const reservation = await tableServices.createReservation(validatedData);
+    const reservation = await createReservationService(validatedData);
     
     res.status(201).json({
       success: true,
@@ -204,29 +247,29 @@ export const createReservation = async (req: Request, res: Response) => {
 };
 
 // Lấy đặt bàn theo ID
-export const getReservationById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const reservation = await tableServices.getReservationById(id);
+// export const getReservationById = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const reservation = await getReservationByIdService(id);
     
-    res.status(200).json({
-      success: true,
-      message: 'Lấy thông tin đặt bàn thành công',
-      data: reservation
-    });
-  } catch (error: any) {
-    res.status(404).json({
-      success: false,
-      message: error.message || 'Không tìm thấy đặt bàn',
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: 'Lấy thông tin đặt bàn thành công',
+//       data: reservation
+//     });
+//   } catch (error: any) {
+//     res.status(404).json({
+//       success: false,
+//       message: error.message || 'Không tìm thấy đặt bàn',
+//     });
+//   }
+// };
 
 // Lấy danh sách đặt bàn
 export const getReservations = async (req: Request, res: Response) => {
   try {
     const validatedQuery = ReservationQuerySchema.parse(req.query);
-    const result = await tableServices.getReservations(validatedQuery);
+    const result = await getReservationsService(validatedQuery);
     
     res.status(200).json({
       success: true,
@@ -243,31 +286,31 @@ export const getReservations = async (req: Request, res: Response) => {
 };
 
 // Cập nhật đặt bàn
-export const updateReservation = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const validatedData = UpdateReservationSchema.parse(req.body);
-    const reservation = await tableServices.updateReservation(id, validatedData);
+// export const updateReservation = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const validatedData = UpdateReservationSchema.parse(req.body);
+//     const reservation = await updateReservationService(id, validatedData);
     
-    res.status(200).json({
-      success: true,
-      message: 'Cập nhật đặt bàn thành công',
-      data: reservation
-    });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Lỗi khi cập nhật đặt bàn',
-      error: error.issues || error
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: 'Cập nhật đặt bàn thành công',
+//       data: reservation
+//     });
+//   } catch (error: any) {
+//     res.status(400).json({
+//       success: false,
+//       message: error.message || 'Lỗi khi cập nhật đặt bàn',
+//       error: error.issues || error
+//     });
+//   }
+// };
 
 // Xác nhận đặt bàn
 export const confirmReservation = async (req: Request, res: Response) => {
   try {
     const validatedData = ConfirmReservationSchema.parse(req.body);
-    const reservation = await tableServices.confirmReservation(validatedData);
+    const reservation = await confirmReservationService(validatedData);
     
     res.status(200).json({
       success: true,
@@ -287,7 +330,7 @@ export const confirmReservation = async (req: Request, res: Response) => {
 export const checkInTable = async (req: Request, res: Response) => {
   try {
     const validatedData = TableCheckInSchema.parse(req.body);
-    const tableOrder = await tableServices.checkInTable(validatedData);
+    const tableOrder = await checkInTableService(validatedData);
     
     res.status(201).json({
       success: true,
@@ -311,7 +354,7 @@ export const checkInTable = async (req: Request, res: Response) => {
 export const createTableOrder = async (req: Request, res: Response) => {
   try {
     const validatedData = CreateTableOrderSchema.parse(req.body);
-    const tableOrder = await tableServices.createTableOrder(validatedData);
+    const tableOrder = await createTableOrderService(validatedData);
     
     res.status(201).json({
       success: true,
@@ -328,29 +371,29 @@ export const createTableOrder = async (req: Request, res: Response) => {
 };
 
 // Lấy table order theo ID
-export const getTableOrderById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const tableOrder = await tableServices.getTableOrderById(id);
+// export const getTableOrderById = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const tableOrder = await getTableOrderByIdService(id);
     
-    res.status(200).json({
-      success: true,
-      message: 'Lấy thông tin phiên bàn thành công',
-      data: tableOrder
-    });
-  } catch (error: any) {
-    res.status(404).json({
-      success: false,
-      message: error.message || 'Không tìm thấy phiên bàn',
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: 'Lấy thông tin phiên bàn thành công',
+//       data: tableOrder
+//     });
+//   } catch (error: any) {
+//     res.status(404).json({
+//       success: false,
+//       message: error.message || 'Không tìm thấy phiên bàn',
+//     });
+//   }
+// };
 
 // Lấy danh sách table orders
 export const getTableOrders = async (req: Request, res: Response) => {
   try {
     const validatedQuery = TableOrderQuerySchema.parse(req.query);
-    const result = await tableServices.getTableOrders(validatedQuery);
+    const result = await getTableOrdersService(validatedQuery);
     
     res.status(200).json({
       success: true,
@@ -367,25 +410,25 @@ export const getTableOrders = async (req: Request, res: Response) => {
 };
 
 // Cập nhật table order
-export const updateTableOrder = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const validatedData = UpdateTableOrderSchema.parse(req.body);
-    const tableOrder = await tableServices.updateTableOrder(id, validatedData);
+// export const updateTableOrder = async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const validatedData = UpdateTableOrderSchema.parse(req.body);
+//     const tableOrder = await updateTableOrderService(id, validatedData);
     
-    res.status(200).json({
-      success: true,
-      message: 'Cập nhật phiên bàn thành công',
-      data: tableOrder
-    });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Lỗi khi cập nhật phiên bàn',
-      error: error.issues || error
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: 'Cập nhật phiên bàn thành công',
+//       data: tableOrder
+//     });
+//   } catch (error: any) {
+//     res.status(400).json({
+//       success: false,
+//       message: error.message || 'Lỗi khi cập nhật phiên bàn',
+//       error: error.issues || error
+//     });
+//   }
+// };
 
 // ================================
 // 📊 STATISTICS CONTROLLERS
@@ -395,7 +438,7 @@ export const updateTableOrder = async (req: Request, res: Response) => {
 export const getTableStats = async (req: Request, res: Response) => {
   try {
     const validatedQuery = TableStatsQuerySchema.parse(req.query);
-    const stats = await tableServices.getTableStats(validatedQuery);
+    const stats = await getTableStatsService(validatedQuery);
     
     res.status(200).json({
       success: true,
@@ -415,7 +458,7 @@ export const getTableStats = async (req: Request, res: Response) => {
 export const getReservationStats = async (req: Request, res: Response) => {
   try {
     const validatedQuery = ReservationStatsQuerySchema.parse(req.query);
-    const stats = await tableServices.getReservationStats(validatedQuery);
+    const stats = await getReservationStatsService(validatedQuery);
     
     res.status(200).json({
       success: true,

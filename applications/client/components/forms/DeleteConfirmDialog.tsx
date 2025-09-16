@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 type DeleteConfirmDialogProps = {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   title?: string;
   description?: string;
   confirmText?: string;
   cancelText?: string;
-  onConfirm: () => Promise<void> | void;
+  onConfirm?: () => Promise<void> | void;
 };
 
 export default function DeleteConfirmDialog({
@@ -27,7 +27,7 @@ export default function DeleteConfirmDialog({
   async function handleConfirm() {
     try {
       setLoading(true);
-      await onConfirm();
+      // await onConfirm();
       setOpen(false);
     } finally {
       setLoading(false);
@@ -37,7 +37,7 @@ export default function DeleteConfirmDialog({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        {trigger}
+        {trigger ? trigger : <Button variant="destructive">Xoá</Button>}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

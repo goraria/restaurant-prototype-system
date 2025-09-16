@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -17,6 +18,7 @@ import { RecipeDataColumn } from "@/constants/interfaces";
 import { formatCurrency } from "@/utils/format-utils";
 
 export default function RecipeDetailPage() {
+  const router = useRouter()
   const data: RecipeDataColumn = {
     "id": "827c147e-7309-44b3-9d25-0b3f3974fd3e",
     "menu_item_id": "ff6d72fb-9380-4ffb-8bc5-7fe4f24948bd",
@@ -122,6 +124,8 @@ export default function RecipeDetailPage() {
       }
     }
   }
+
+  console.log(router)
 
   const columns: ColumnDef<RecipeDataColumn, unknown>[] = [
     {

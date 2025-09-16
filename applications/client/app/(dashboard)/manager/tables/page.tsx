@@ -1,10 +1,24 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
+import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
   Plus,
   Search,
   Filter,
@@ -22,20 +36,6 @@ import {
   RefreshCw,
   Download
 } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { toast } from 'sonner'
 
 // Import form components and services
@@ -43,18 +43,11 @@ import { TableForm } from '@/components/forms';
 import { DeleteConfirmDialog } from '@/components/forms';
 import { useAppDispatch } from '@/state/redux';
 import { fetchTables, createTable, updateTable, deleteTable } from '@/services/tableServices';
-
-interface Table {
-  id: string
-  table_number: string
-  capacity: number
-  status: 'available' | 'occupied' | 'reserved' | 'maintenance' | 'out_of_order'
-  location?: string | null
-  qr_code?: string | null
-  restaurant_id: string
-  created_at: string
-  updated_at: string
-}
+import { TableDataColumn } from "@/constants/interfaces"
+import { useGetAllTablesQuery } from '@/state/api'
+import { StatsBox } from "@/components/elements/stats-box";
+import { StatsBoxProps } from "@/constants/interfaces";
+import { getTableStatus } from "@/utils/status-utils"
 
 export default function TablesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -62,82 +55,277 @@ export default function TablesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [editingTable, setEditingTable] = useState<Table | null>(null)
-  const [deletingTable, setDeletingTable] = useState<Table | null>(null)
-  const [tables, setTables] = useState<Table[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [editingTable, setEditingTable] = useState<TableDataColumn | null>(null)
+  const [deletingTable, setDeletingTable] = useState<TableDataColumn | null>(null)
+  const {
+    data: tablesData = [],
+    error,
+    isLoading,
+    refetch
+  } = useGetAllTablesQuery()
 
   const dispatch = useAppDispatch();
 
-  const loadTables = async () => {
-    try {
-      setIsLoading(true)
-      const data = await fetchTables(dispatch, {})
-      setTables(data || [])
-    } catch (error) {
-      console.error('Error loading tables:', error)
-      toast.error('Có lỗi xảy ra khi tải danh sách bàn!')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const mockTables: TableDataColumn[] = [
+    {
+      "id": "cba6dd0b-b03e-4b02-bf0e-0d12385b621b",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T19",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:29.882Z",
+      "updated_at": "2025-09-07T16:40:29.882Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "5239ede9-734c-4740-9c1a-beccc3ff350b",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T23",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:30.931Z",
+      "updated_at": "2025-09-07T16:40:30.931Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "c03da8c1-12dc-4d17-b18e-96c540ad0ba0",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T24",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:31.193Z",
+      "updated_at": "2025-09-07T16:40:31.193Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "7d067eeb-baba-4e94-8b46-df96e0d28089",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T6",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:26.450Z",
+      "updated_at": "2025-09-07T16:40:26.450Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "5cfad2a1-5166-4203-bd27-87a32909eff5",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T2",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:25.357Z",
+      "updated_at": "2025-09-07T16:40:25.357Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "9d25466d-bf75-46d1-be1a-3f9df1bbf680",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T10",
+      "capacity": 8,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:27.517Z",
+      "updated_at": "2025-09-07T16:40:27.517Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "6e942ffa-8e14-4964-8fa7-715071b5367c",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T18",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:29.617Z",
+      "updated_at": "2025-09-07T16:40:29.617Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "5c8b0b5a-d29a-484f-ab1b-b8ee0616a6fd",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T7",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:26.711Z",
+      "updated_at": "2025-09-07T16:40:26.711Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "91f35ac2-7957-40be-9ee5-fcbb823f1577",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T8",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:26.992Z",
+      "updated_at": "2025-09-07T16:40:26.992Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "878382bd-083e-41b6-ad62-af89b0499c23",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T20",
+      "capacity": 8,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:30.143Z",
+      "updated_at": "2025-09-07T16:40:30.143Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+    {
+      "id": "0b980e0b-cf90-4c55-95ce-d6428fb6e4f7",
+      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+      "table_number": "T1",
+      "capacity": 4,
+      "location": null,
+      "status": "available",
+      "qr_code": null,
+      "created_at": "2025-09-07T16:40:25.081Z",
+      "updated_at": "2025-09-07T16:40:25.081Z",
+      "restaurants": {
+        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
+        "name": "Waddles",
+        "code": "WADDLES"
+      },
+      "_count": {
+        "reservations": 0,
+        "table_orders": 0
+      }
+    },
+  ]
 
-  useEffect(() => {
-    loadTables()
-  }, [])
+  const tables: TableDataColumn[] = (tablesData && tablesData.length > 0 ? tablesData : mockTables)
 
-  const filteredTables = tables.filter((table: Table) => {
+  const filteredTables = tables.filter((table: TableDataColumn) => {
     const matchesSearch = table.table_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (table.location && table.location.toLowerCase().includes(searchTerm.toLowerCase()))
+      (table.location && table.location.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesStatus = selectedStatus === "all" || table.status === selectedStatus
     return matchesSearch && matchesStatus
   })
 
   const getTableStats = () => {
     const totalTables = tables.length
-    const availableTables = tables.filter((t: Table) => t.status === 'available').length
-    const occupiedTables = tables.filter((t: Table) => t.status === 'occupied').length
-    const reservedTables = tables.filter((t: Table) => t.status === 'reserved').length
-    const maintenanceTables = tables.filter((t: Table) => t.status === 'maintenance').length
-    const outOfOrderTables = tables.filter((t: Table) => t.status === 'out_of_order').length
+    const availableTables = tables.filter((t: TableDataColumn) => t.status === 'available').length
+    const occupiedTables = tables.filter((t: TableDataColumn) => t.status === 'occupied').length
+    const reservedTables = tables.filter((t: TableDataColumn) => t.status === 'reserved').length
+    const maintenanceTables = tables.filter((t: TableDataColumn) => t.status === 'maintenance').length
+    const outOfOrderTables = tables.filter((t: TableDataColumn) => t.status === 'out_of_order').length
 
     return { totalTables, availableTables, occupiedTables, reservedTables, maintenanceTables, outOfOrderTables }
   }
 
-  const getStatusBadge = (status: Table['status']) => {
-    switch (status) {
-      case 'available':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Trống</Badge>
-      case 'occupied':
-        return <Badge className="bg-red-100 text-red-800"><Users className="w-3 h-3 mr-1" />Có khách</Badge>
-      case 'reserved':
-        return <Badge className="bg-blue-100 text-blue-800"><Calendar className="w-3 h-3 mr-1" />Đã đặt</Badge>
-      case 'maintenance':
-        return <Badge className="bg-gray-100 text-gray-800"><AlertTriangle className="w-3 h-3 mr-1" />Bảo trì</Badge>
-      case 'out_of_order':
-        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="w-3 h-3 mr-1" />Hỏng</Badge>
-      default:
-        return <Badge variant="outline">Không xác định</Badge>
-    }
-  }
-
   const handleCreateSuccess = () => {
     setIsCreateDialogOpen(false)
-    loadTables()
+    refetch()
     toast.success('Bàn đã được tạo thành công!')
   }
 
   const handleUpdateSuccess = () => {
     setIsEditDialogOpen(false)
     setEditingTable(null)
-    loadTables()
+    refetch()
     toast.success('Thông tin bàn đã được cập nhật!')
   }
 
   const handleDeleteSuccess = () => {
     setIsDeleteDialogOpen(false)
     setDeletingTable(null)
-    loadTables()
+    refetch()
     toast.success('Bàn đã được xóa!')
   }
 
@@ -145,12 +333,12 @@ export default function TablesPage() {
     setIsCreateDialogOpen(true)
   }
 
-  const openEditDialog = (table: Table) => {
+  const openEditDialog = (table: TableDataColumn) => {
     setEditingTable(table)
     setIsEditDialogOpen(true)
   }
 
-  const openDeleteDialog = (table: Table) => {
+  const openDeleteDialog = (table: TableDataColumn) => {
     setDeletingTable(table)
     setIsDeleteDialogOpen(true)
   }
@@ -168,9 +356,53 @@ export default function TablesPage() {
     )
   }
 
+  const statsBox: StatsBoxProps[] = [
+    {
+      title: "Tổng số bàn",
+      description: "Bàn tất cả",
+      icon: Users,
+      stats: stats.totalTables
+    },
+    {
+      title: "Bàn trống",
+      description: "Sẵn sàng",
+      icon: CheckCircle,
+      color: "professional-green",
+      stats: stats.availableTables
+    },
+    {
+      title: "Có khách",
+      description: "Đang phục vụ",
+      icon: Users,
+      color: "professional-red",
+      stats: stats.occupiedTables
+    },
+    {
+      title: "Đã đặt",
+      description: "Có đặt trước",
+      icon: Calendar,
+      color: "professional-blue",
+      stats: stats.reservedTables
+    },
+    {
+      title: "Bảo trì",
+      description: "Đang bảo trì",
+      icon: AlertTriangle,
+      color: "professional-gray",
+      stats: stats.maintenanceTables
+    },
+    {
+      title: "Hỏng",
+      description: "Không sử dụng",
+      icon: AlertTriangle,
+      color: "professional-orange",
+      stats: stats.outOfOrderTables
+    },
+  ]
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Quản lý bàn</h1>
           <p className="text-muted-foreground">
@@ -178,105 +410,64 @@ export default function TablesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <QrCode className="mr-2 h-4 w-4" />
-            Tạo QR Code
-          </Button>
-          <Button onClick={openCreateDialog}>
-            <Plus className="mr-2 h-4 w-4" />
-            Thêm bàn
-          </Button>
         </div>
+      </div> */}
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6">
+        {statsBox.map((box, idx) => (
+          <StatsBox
+            key={idx}
+            title={box.title}
+            description={box.description}
+            icon={box.icon}
+            color={box.color}
+            stats={box.stats}
+          />
+        ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tổng số bàn
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTables}</div>
-            <p className="text-xs text-muted-foreground">
-              Tất cả bàn trong nhà hàng
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Bàn trống
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.availableTables}</div>
-            <p className="text-xs text-muted-foreground">
-              Sẵn sàng phục vụ
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Có khách
-            </CardTitle>
-            <Users className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.occupiedTables}</div>
-            <p className="text-xs text-muted-foreground">
-              Đang phục vụ
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Đã đặt
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.reservedTables}</div>
-            <p className="text-xs text-muted-foreground">
-              Có đặt trước
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Hỏng
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.outOfOrderTables}</div>
-            <p className="text-xs text-muted-foreground">
-              Không sử dụng được
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Bảo trì
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-gray-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-600">{stats.maintenanceTables}</div>
-            <p className="text-xs text-muted-foreground">
-              Đang bảo trì
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Tìm kiếm theo số bàn hoặc vị trí..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={refetch}
+        >
+          <RefreshCw className="h-4 w-4" />
+          {/* Làm mới */}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+        >
+          <Download className="h-4 w-4" />
+          {/* Xuất báo cáo */}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+        >
+          <QrCode className="h-4 w-4" />
+          {/* Tạo QR Code */}
+        </Button>
+        <Button
+          onClick={openCreateDialog}
+          size="icon"
+        >
+          <Plus className="h-4 w-4" />
+          {/* Thêm bàn */}
+        </Button>
       </div>
 
-      <Card>
+      <Card className="">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
@@ -286,95 +477,6 @@ export default function TablesPage() {
             Quản lý và theo dõi trạng thái tất cả các bàn
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm kiếm theo số bàn hoặc vị trí..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Button variant="outline" size="sm" onClick={loadTables}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Làm mới
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Xuất báo cáo
-            </Button>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredTables.map((table: Table) => (
-              <Card key={table.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">{table.table_number}</h3>
-                      <p className="text-sm text-muted-foreground">{table.location || 'Chưa có vị trí'}</p>
-                    </div>
-                    {getStatusBadge(table.status)}
-                  </div>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Sức chứa:</span>
-                      <span className="font-medium">{table.capacity} người</span>
-                    </div>
-                    {table.qr_code && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">QR Code:</span>
-                        <span className="font-mono text-xs">{table.qr_code}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Ngày tạo:</span>
-                      <span className="text-xs">{new Date(table.created_at).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 mt-4">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Chi tiết
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditDialog(table)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Chỉnh sửa
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <QrCode className="mr-2 h-4 w-4" />
-                          Xem QR Code
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Calendar className="mr-2 h-4 w-4" />
-                          Lịch đặt bàn
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => openDeleteDialog(table)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
       </Card>
 
       {/* Create Table Dialog */}
@@ -407,7 +509,15 @@ export default function TablesPage() {
           {editingTable && (
             <TableForm
               mode="update"
-              initialValues={editingTable}
+              initialValues={{
+                table_number: editingTable.table_number,
+                capacity: editingTable.capacity ?? undefined,
+                location: editingTable.location ?? null,
+                status: (['available', 'occupied', 'reserved', 'maintenance', 'out_of_order'] as const).includes((editingTable.status as any))
+                  ? (editingTable.status as any)
+                  : 'available',
+                qr_code: (editingTable.qr_code as any) ?? null,
+              }}
               onSuccess={handleUpdateSuccess}
               onCancel={() => setIsEditDialogOpen(false)}
             />
@@ -432,5 +542,80 @@ export default function TablesPage() {
         }}
       />
     </div>
+  )
+}
+
+function TableCard({
+  table,
+  openEditDialog,
+  openDeleteDialog,
+}: {
+  table: TableDataColumn,
+  openEditDialog: (table: TableDataColumn) => void,
+  openDeleteDialog: (table: TableDataColumn) => void,
+}) {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="flex items-center justify-between">
+        <div>
+          <h3 className="font-semibold text-lg">{table.table_number}</h3>
+          <p className="text-sm text-muted-foreground">{table.location || 'Chưa có vị trí'}</p>
+        </div>
+        {getTableStatus(table.status)}
+      </CardHeader>
+      <CardContent className="">
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Sức chứa:</span>
+            <span className="font-medium">{table.capacity} người</span>
+          </div>
+          {table.qr_code && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">QR Code:</span>
+              <span className="font-mono text-xs">{table.qr_code}</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Ngày tạo:</span>
+            <span className="text-xs">{table.created_at ? new Date(table.created_at as string | number).toLocaleDateString('vi-VN') : '—'}</span>
+          </div>
+        </div>
+      </CardContent>
+
+      <CardFooter className="flex items-center gap-2">
+        <Button variant="outline" className="flex-1">
+          <Eye className="h-4 w-4 mr-2" />
+          Chi tiết
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => openEditDialog(table)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Chỉnh sửa
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <QrCode className="mr-2 h-4 w-4" />
+              Xem QR Code
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Calendar className="mr-2 h-4 w-4" />
+              Lịch đặt bàn
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => openDeleteDialog(table)}
+              variant="destructive"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Xóa
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardFooter>
+    </Card>
   )
 }

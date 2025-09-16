@@ -80,7 +80,7 @@ Tôi đã tạo thành công **11 module chính** cho hệ thống quản lý nh
 
 ## 🔗 Navigation Integration
 
-Tất cả các trang được tích hợp hoàn toàn với navigation system trong `constants.ts`:
+Tất cả các trang được tích hợp hoàn toàn với navigation system trong `types.ts`:
 - **Breadcrumb navigation**: Tự động tạo breadcrumb từ URL
 - **Sidebar integration**: Kết nối với managerSidebar
 - **Route handling**: URL routing phù hợp với cấu trúc menu

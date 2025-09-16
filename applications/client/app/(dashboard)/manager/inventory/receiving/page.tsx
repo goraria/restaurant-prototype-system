@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { DataTable } from "@/components/ui/data-table"
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, Plus, Edit, Trash2, Truck, CheckCircle, Clock, XCircle, Search, Filter, Download, Upload, Package } from "lucide-react"
+import { MoreHorizontal, Plus, Edit, Trash2, Truck, CheckCircle, Clock, XCircle, Search, Filter, Download, Upload, Package, TrendingUp } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
+import { useGetAllInventoryItemsQuery } from "@/state/api"
 
 // Types
 interface ReceivingRecord {
@@ -192,6 +193,78 @@ const qualityConfig = {
 }
 
 export default function InventoryReceivingPage() {
+  // Dữ liệu nguyên liệu để chọn vào bảng nhập kho
+  const { data: ingredients = [] } = useGetAllInventoryItemsQuery()
+
+  type ReceivingRow = {
+    id: string
+    inventory_item_id: string | null
+    unit: string
+    quantity: number
+    unit_cost: number
+    supplier: string | null
+    expiry_date: Date | null
+  }
+
+  const [receivingRows, setReceivingRows] = useState<ReceivingRow[]>([
+    {
+      id: crypto.randomUUID(),
+      inventory_item_id: null,
+      unit: "",
+      quantity: 0,
+      unit_cost: 0,
+      supplier: null,
+      expiry_date: null,
+    },
+  ])
+
+  const supplierOptions = useMemo(() => {
+    const s = new Set<string>()
+    for (const it of ingredients as any[]) {
+      if (it?.supplier) s.add(it.supplier)
+    }
+    return Array.from(s)
+  }, [ingredients])
+
+  const addReceivingRow = () => setReceivingRows(prev => ([
+    ...prev,
+    {
+      id: crypto.randomUUID(),
+      inventory_item_id: null,
+      unit: "",
+      quantity: 0,
+      unit_cost: 0,
+      supplier: null,
+      expiry_date: null,
+    }
+  ]))
+
+  const removeReceivingRow = (rowId: string) => setReceivingRows(prev => prev.filter(r => r.id !== rowId))
+
+  const onSelectItem = (rowId: string, itemId: string) => {
+    const item = (ingredients as any[]).find((i) => i.id === itemId)
+    setReceivingRows(prev => prev.map(r => r.id === rowId ? {
+      ...r,
+      inventory_item_id: itemId,
+      unit: item?.unit ?? "",
+      unit_cost: typeof item?.unit_cost === 'string' ? parseFloat(item.unit_cost) : (item?.unit_cost ?? 0),
+      supplier: item?.supplier ?? r.supplier,
+    } : r))
+  }
+
+  const onChangeQty = (rowId: string, qty: number) => {
+    setReceivingRows(prev => prev.map(r => r.id === rowId ? { ...r, quantity: qty } : r))
+  }
+
+  const onChangeSupplier = (rowId: string, sup: string) => {
+    setReceivingRows(prev => prev.map(r => r.id === rowId ? { ...r, supplier: sup } : r))
+  }
+
+  const onChangeExpiry = (rowId: string, date?: Date) => {
+    setReceivingRows(prev => prev.map(r => r.id === rowId ? { ...r, expiry_date: date ?? null } : r))
+  }
+
+  const totalReceivingAmount = receivingRows.reduce((sum, r) => sum + (r.quantity * r.unit_cost), 0)
   const [records, setRecords] = useState<ReceivingRecord[]>(mockReceivingRecords)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false)
@@ -545,6 +618,120 @@ export default function InventoryReceivingPage() {
 
   return (
     <div className="space-y-6">
+      {/* Nhập kho nhanh */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Nhập kho mới</CardTitle>
+          <CardDescription>Bảng thêm nhiều dòng, chọn nguyên liệu có sẵn, khóa đơn vị và đơn giá</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="py-2 pr-4">Nguyên liệu</th>
+                  <th className="py-2 pr-4">Đơn vị</th>
+                  <th className="py-2 pr-4">Số lượng</th>
+                  <th className="py-2 pr-4">Đơn giá</th>
+                  <th className="py-2 pr-4">Nhà cung cấp</th>
+                  <th className="py-2 pr-4">Hạn sử dụng</th>
+                  <th className="py-2 pr-0 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {receivingRows.map((row) => {
+                  const selected = (ingredients as any[]).find((i) => i.id === row.inventory_item_id)
+                  return (
+                    <tr key={row.id} className="border-t">
+                      <td className="py-3 pr-4 min-w-[260px]">
+                        <Select value={row.inventory_item_id ?? undefined} onValueChange={(v) => onSelectItem(row.id, v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn nguyên liệu" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-80">
+                            {(ingredients as any[]).map((it) => (
+                              <SelectItem key={it.id} value={it.id}>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-6 w-6 rounded-md bg-accent flex items-center justify-center">
+                                    <Package className="h-3 w-3 text-primary" />
+                                  </div>
+                                  <span className="truncate">{it.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="py-3 pr-4 min-w-[90px]">
+                        <Badge variant="outline">{row.unit || selected?.unit || '-'}</Badge>
+                      </td>
+                      <td className="py-3 pr-4 min-w-[140px]">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={Number.isFinite(row.quantity) ? row.quantity : 0}
+                          onChange={(e) => onChangeQty(row.id, Number(e.target.value))}
+                        />
+                      </td>
+                      <td className="py-3 pr-4 min-w-[140px]">
+                        <div className="text-right font-medium">
+                          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(row.unit_cost)}
+                        </div>
+                      </td>
+                      <td className="py-3 pr-4 min-w-[220px]">
+                        <Select value={row.supplier ?? undefined} onValueChange={(v) => onChangeSupplier(row.id, v)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn nhà cung cấp" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {supplierOptions.map((s) => (
+                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="py-3 pr-4 min-w-[220px]">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-left font-normal">
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {row.expiry_date ? format(row.expiry_date, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={row.expiry_date ?? undefined}
+                              onSelect={(d) => onChangeExpiry(row.id, d)}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </td>
+                      <td className="py-3 pr-0 text-right">
+                        <Button variant="outline" size="icon" onClick={() => removeReceivingRow(row.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between">
+            <Button variant="ghost" onClick={addReceivingRow}>
+              <Plus className="mr-2 h-4 w-4" /> Thêm dòng
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              Tổng tiền: <span className="font-semibold text-foreground">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalReceivingAmount)}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -764,7 +951,6 @@ export default function InventoryReceivingPage() {
           <DataTable
             columns={columns}
             data={filteredRecords}
-            searchKey="receiptNumber"
           />
         </CardContent>
       </Card>
@@ -793,7 +979,6 @@ export default function InventoryReceivingPage() {
               <DataTable
                 columns={itemColumns}
                 data={selectedRecord.items}
-                searchKey="productName"
               />
             </div>
           )}

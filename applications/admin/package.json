@@ -11,10 +11,10 @@
     "shadcn": "npx shadcn@latest add -a -o"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.46.2",
-    "@clerk/localizations": "^3.25.0",
-    "@clerk/themes": "^2.4.18",
-    "@hookform/resolvers": "^5.2.1",
+    "@clerk/clerk-react": "^5.47.0",
+    "@clerk/localizations": "^3.25.1",
+    "@clerk/themes": "^2.4.19",
+    "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -44,7 +44,7 @@
     "@reduxjs/toolkit": "^2.9.0",
     "@supabase/supabase-js": "^2.57.4",
     "@tailwindcss/vite": "^4.1.13",
-    "axios": "^1.12.1",
+    "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -54,12 +54,12 @@
     "lucide-react": "^0.544.0",
     "next-themes": "^0.4.6",
     "react": "^19.1.1",
-    "react-day-picker": "^9.9.0",
+    "react-day-picker": "^9.10.0",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.62.0",
     "react-redux": "^9.2.0",
     "react-resizable-panels": "^3.0.6",
-    "recharts": "3.2.0",
+    "recharts": "3.2.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.13",
@@ -69,8 +69,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
-    "@types/node": "^24.3.1",
-    "@types/react": "^19.1.12",
+    "@types/node": "^24.5.0",
+    "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react-swc": "^4.0.1",
     "eslint": "^9.35.0",
@@ -79,7 +79,7 @@
     "globals": "^16.4.0",
     "tw-animate-css": "^1.3.8",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.43.0",
+    "typescript-eslint": "^8.44.0",
     "vite": "^7.1.5"
   }
 }

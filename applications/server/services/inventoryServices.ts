@@ -1,7 +1,7 @@
 import { PrismaClient, inventory_items, inventory_transactions, recipes, recipe_ingredients } from '@prisma/client';
-import { 
-  CreateInventoryItem, 
-  UpdateInventoryItem, 
+import {
+  CreateInventoryItem,
+  UpdateInventoryItem,
   InventoryQuery,
   BulkUpdateInventory,
   LowStockAlert,
@@ -21,17 +21,9 @@ import {
   QRInventoryCheck,
   QuickStockUpdate
 } from '@/schemas/inventorySchemas';
+import { validate } from 'uuid';
 
 const prisma = new PrismaClient();
-
-// ================================
-// 🔧 HELPER FUNCTIONS
-// ================================
-
-const validateUUID = (id: string): boolean => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(id);
-};
 
 const generateQRCode = (itemId: string, itemName: string): string => {
   return `INV_${itemId}_${itemName.toUpperCase().replace(/\s+/g, '_')}`;
@@ -40,6 +32,103 @@ const generateQRCode = (itemId: string, itemName: string): string => {
 // ================================
 // 🏪 INVENTORY ITEM SERVICES
 // ================================
+
+export async function getAllInventoryItems() {
+  try {
+    const item = await prisma.inventory_items.findMany({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        unit: true,
+        quantity: true,
+        min_quantity: true,
+        max_quantity: true,
+        created_at: true,
+        updated_at: true,
+        expiry_date: true,
+        supplier: true,
+        unit_cost: true,
+        restaurants: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          }
+        },
+        transactions: {
+          select: {
+            id: true,
+            type: true,
+            quantity: true,
+            unit_cost: true,
+            total_cost: true,
+            supplier: true,
+            created_at: true,
+          }
+        },
+        // recipe_ingredients: {
+        //   select: {
+        //     id: true,
+        //     quantity: true,
+        //     unit: true,
+        //     notes: true,
+        //     recipes: {
+        //       select: {
+        //         id: true,
+        //         name: true,
+        //         description: true,
+        //         menu_items: {
+        //           select: {
+        //             id: true,
+        //             name: true,
+        //             description: true,
+        //             price: true,
+        //             image_url: true,
+        //             is_available: true,
+        //             menus: {
+        //               select: {
+        //                 id: true,
+        //                 name: true,
+        //                 restaurants: {
+        //                   select: {
+        //                     id: true,
+        //                     name: true,
+        //                     code: true,
+        //                   }
+        //                 }
+        //               }
+        //             },
+        //             categories: {
+        //               select: {
+        //                 id: true,
+        //                 name: true,
+        //                 slug: true,
+        //               }
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        // },
+        _count: {
+          select: {
+            recipe_ingredients: true
+          }
+        }
+      }
+    });
+
+    if (!item) {
+      throw new Error('Không tìm thấy nguyên liệu');
+    }
+
+    return item;
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy thông tin nguyên liệu: ${error}`);
+  }
+}
 
 // Tạo nguyên liệu mới
 export const createInventoryItem = async (data: CreateInventoryItem) => {
@@ -101,7 +190,7 @@ export const createInventoryItem = async (data: CreateInventoryItem) => {
 // Lấy nguyên liệu theo ID
 export const getInventoryItemById = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID nguyên liệu không hợp lệ');
     }
 
@@ -159,12 +248,12 @@ export const getInventoryItemById = async (id: string) => {
 // Lấy danh sách nguyên liệu với filter
 export const getInventoryItems = async (filters: InventoryQuery) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      sort_by = 'name', 
-      sort_order = 'asc', 
-      ...whereFilters 
+    const {
+      page = 1,
+      limit = 10,
+      sort_by = 'name',
+      sort_order = 'asc',
+      ...whereFilters
     } = filters;
     const skip = (page - 1) * limit;
 
@@ -200,17 +289,17 @@ export const getInventoryItems = async (filters: InventoryQuery) => {
       where.AND = where.AND || [];
       where.AND.push({
         OR: [
-          { 
+          {
             AND: [
               { min_quantity: { not: null } },
               { quantity: { lte: prisma.inventory_items.fields.min_quantity } }
             ]
           },
-          { 
+          {
             AND: [
-              { min_quantity: null }, 
+              { min_quantity: null },
               { quantity: { lte: 10 } }
-            ] 
+            ]
           }
         ]
       });
@@ -220,7 +309,7 @@ export const getInventoryItems = async (filters: InventoryQuery) => {
     if (whereFilters.expiring_soon) {
       const sevenDaysFromNow = new Date();
       sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-      
+
       where.expiry_date = {
         lte: sevenDaysFromNow,
         gte: new Date()
@@ -294,7 +383,7 @@ export const getInventoryItems = async (filters: InventoryQuery) => {
 // Lấy nguyên liệu theo nhà hàng
 export const getInventoryItemsByRestaurantId = async (restaurantId: string) => {
   try {
-    if (!validateUUID(restaurantId)) {
+    if (!validate(restaurantId)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 
@@ -320,7 +409,7 @@ export const getInventoryItemsByRestaurantId = async (restaurantId: string) => {
 // Cập nhật nguyên liệu
 export const updateInventoryItem = async (id: string, data: UpdateInventoryItem) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID nguyên liệu không hợp lệ');
     }
 
@@ -382,7 +471,7 @@ export const updateInventoryItem = async (id: string, data: UpdateInventoryItem)
 // Xóa nguyên liệu
 export const deleteInventoryItem = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID nguyên liệu không hợp lệ');
     }
 
@@ -423,12 +512,12 @@ export const bulkUpdateInventory = async (data: BulkUpdateInventory) => {
 
     // Kiểm tra tất cả IDs hợp lệ
     for (const item of items) {
-      if (!validateUUID(item.id)) {
+      if (!validate(item.id)) {
         throw new Error(`ID nguyên liệu không hợp lệ: ${item.id}`);
       }
     }
 
-    const updatePromises = items.map(item => 
+    const updatePromises = items.map(item =>
       prisma.inventory_items.update({
         where: { id: item.id },
         data: {
@@ -455,7 +544,7 @@ export const getLowStockAlert = async (data: LowStockAlert) => {
   try {
     const { restaurant_id, threshold_days } = data;
 
-    if (!validateUUID(restaurant_id)) {
+    if (!validate(restaurant_id)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 
@@ -468,7 +557,7 @@ export const getLowStockAlert = async (data: LowStockAlert) => {
         where: {
           restaurant_id,
           AND: [
-            { min_quantity: null }, 
+            { min_quantity: null },
             { quantity: { lte: 10 } }
           ]
         },
@@ -541,7 +630,7 @@ export const createInventoryTransaction = async (data: CreateInventoryTransactio
     // Cập nhật số lượng trong kho
     const currentQuantity = Number(inventoryItem.quantity);
     const transactionQuantity = Math.abs(data.quantity);
-    
+
     const newQuantity = data.type === 'purchase' || (data.type === 'adjustment' && data.quantity > 0)
       ? currentQuantity + transactionQuantity
       : currentQuantity - transactionQuantity;
@@ -563,12 +652,12 @@ export const createInventoryTransaction = async (data: CreateInventoryTransactio
 // Lấy danh sách giao dịch
 export const getInventoryTransactions = async (filters: TransactionQuery) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      sort_by = 'created_at', 
-      sort_order = 'desc', 
-      ...whereFilters 
+    const {
+      page = 1,
+      limit = 10,
+      sort_by = 'created_at',
+      sort_order = 'desc',
+      ...whereFilters
     } = filters;
     const skip = (page - 1) * limit;
 
@@ -741,7 +830,7 @@ export const createRecipe = async (data: CreateRecipe) => {
 // Lấy công thức theo ID
 export const getRecipeById = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID công thức không hợp lệ');
     }
 
@@ -796,12 +885,12 @@ export const getRecipeById = async (id: string) => {
 // Lấy danh sách công thức
 export const getRecipes = async (filters: RecipeQuery) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      sort_by = 'name', 
-      sort_order = 'asc', 
-      ...whereFilters 
+    const {
+      page = 1,
+      limit = 10,
+      sort_by = 'name',
+      sort_order = 'asc',
+      ...whereFilters
     } = filters;
     const skip = (page - 1) * limit;
 
@@ -893,7 +982,7 @@ export const getRecipes = async (filters: RecipeQuery) => {
 // Cập nhật công thức
 export const updateRecipe = async (id: string, data: UpdateRecipe) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID công thức không hợp lệ');
     }
 
@@ -944,7 +1033,7 @@ export const calculateRecipeCost = async (data: RecipeCostCalculation) => {
   try {
     const { recipe_id, serving_size } = data;
 
-    if (!validateUUID(recipe_id)) {
+    if (!validate(recipe_id)) {
       throw new Error('ID công thức không hợp lệ');
     }
 
@@ -1016,7 +1105,7 @@ export const getInventoryStats = async (data: InventoryStatsQuery) => {
   try {
     const { restaurant_id, date_from, date_to } = data;
 
-    if (!validateUUID(restaurant_id)) {
+    if (!validate(restaurant_id)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 
@@ -1041,7 +1130,7 @@ export const getInventoryStats = async (data: InventoryStatsQuery) => {
         where: {
           restaurant_id,
           AND: [
-            { min_quantity: null }, 
+            { min_quantity: null },
             { quantity: { lte: 10 } }
           ]
         }

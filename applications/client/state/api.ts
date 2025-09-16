@@ -9,10 +9,12 @@ import { Clerk } from "@clerk/clerk-js"
 import { toast } from "sonner";
 import {
   CategoryDataColumn,
+  IngredientDataColumn,
   MenuDataColumn,
   MenuItemDataColumn,
   MenuItemInterface,
-  RecipeDataColumn
+  RecipeDataColumn,
+  TableDataColumn
 } from "@/constants/interfaces";
 
 const baseQueryWithClerk: BaseQueryFn<
@@ -49,7 +51,13 @@ const baseQueryWithClerk: BaseQueryFn<
     const status = result.error.status;
     let errorMessage = "Có lỗi xảy ra";
 
-    if (errorData?.message) {
+    // Xử lý GraphQL errors
+    if (errorData?.errors && Array.isArray(errorData.errors)) {
+      const graphqlErrors = errorData.errors;
+      errorMessage = graphqlErrors.map((err: any) => err.message).join(', ');
+    }
+    // Xử lý REST API errors
+    else if (errorData?.message) {
       errorMessage = errorData.message;
     } else if (typeof status === 'number') {
       switch (status) {
@@ -73,7 +81,8 @@ const baseQueryWithClerk: BaseQueryFn<
     console.log('API Error:', {
       status,
       errorData,
-      args
+      args,
+      isGraphQL: !!(errorData?.errors)
     });
 
     // Chỉ hiển thị toast cho lỗi nghiêm trọng
@@ -96,10 +105,12 @@ const baseQueryWithClerk: BaseQueryFn<
     }
   }
 
-  // Xử lý cấu trúc dữ liệu response nếu cần
+  // Xử lý GraphQL response - GraphQL trả về trực tiếp data, không cần unwrap
+  // Chỉ unwrap nếu là REST API response có cấu trúc { data: ... }
   if (result.data && typeof result.data === 'object') {
     const payload = result.data as any;
-    if (payload && 'data' in payload) {
+    // Chỉ unwrap nếu không phải GraphQL response (GraphQL không có 'data' wrapper)
+    if (payload && 'data' in payload && !payload.query && !payload.mutation) {
       return { ...result, data: payload.data };
     }
   }
@@ -111,8 +122,100 @@ const baseQueryWithClerk: BaseQueryFn<
 export const api = createApi({
   baseQuery: baseQueryWithClerk,
   reducerPath: "api",
-  tagTypes: ["Users", "Restaurants", "Orders", "Menus", "Categories", "Recipes"],
+  tagTypes: [
+    "Users",
+    "Restaurants",
+    "Orders",
+    "Menus",
+    "Categories",
+    "Recipes",
+    "Inventory",
+    "Table"
+  ],
   endpoints: (builder) => ({
+    // ========== GRAPHQL API ENDPOINTS ==========
+    graphqlFirst: builder.query<any, any>({
+      query: (data) => ({
+        url: "/graphql",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    graphqlSecond: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/graphql",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    // GraphQL Subscriptions (placeholder - requires WebSocket implementation)
+    // graphqlSubscription: builder.query<any, any>({
+    //   query: (data) => ({
+    //     url: "/graphql",
+    //     method: "POST",
+    //     body: data,
+    //   }),
+    //   // Note: Real subscriptions require WebSocket connection
+    //   // This is a placeholder for future implementation
+    // }),
+
+    // ========== JAPTOR API ENDPOINTS ==========
+    // ------------------------------------------------------------------------
+    // Categories CRUD
+    // ------------------------------------------------------------------------
+    getAllCategories: builder.query<CategoryDataColumn[], void>({
+      query: () => ({
+        url: `/category`
+      }),
+      providesTags: ["Categories"],
+    }),
+    // ------------------------------------------------------------------------
+    // Menus CRUD
+    // ------------------------------------------------------------------------
+    getAllMenus: builder.query<MenuDataColumn[], void>({
+      query: () => ({
+        url: `/menu`
+      }),
+      providesTags: ["Menus"],
+    }),
+    // ------------------------------------------------------------------------
+    getAllMenuItems: builder.query<MenuItemDataColumn[], void>({
+      query: () => ({
+        url: `/menu/items`
+      }),
+      providesTags: ["Menus"],
+    }),
+    // ------------------------------------------------------------------------
+    // Recipes CRUD
+    // ------------------------------------------------------------------------
+    getRecipeByMenuItemId: builder.query<RecipeDataColumn, string>({
+      query: (id) => ({
+        url: `/recipe/menu-item/${id}`
+      }),
+      providesTags: ["Recipes"],
+    }),
+    // ------------------------------------------------------------------------
+    // Inventories CRUD
+    // ------------------------------------------------------------------------
+    getAllInventoryItems: builder.query<IngredientDataColumn[], void>({
+      query: () => ({
+        url: "/inventory"
+      }),
+      providesTags: ["Inventory"],
+    }),
+    // ------------------------------------------------------------------------
+    // Tables CRUD
+    // ------------------------------------------------------------------------
+    getAllTables: builder.query<TableDataColumn[], void>({
+      query: () => ({
+        url: "/table"
+      }),
+      providesTags: ["Table"],
+    }),
+    // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+
     // ========== CRUD API ENDPOINTS ==========
 
     // Users CRUD
@@ -213,26 +316,6 @@ export const api = createApi({
       }),
       invalidatesTags: ["Orders"],
     }),
-
-    // Categories CRUD
-    // ------------------------------------------------------------------------
-    getAllCategories: builder.query<CategoryDataColumn[], void>({
-      query: () => ({
-        url: `/categories`
-      }),
-      providesTags: ["Categories"],
-    }),
-    // ------------------------------------------------------------------------
-
-    // Menus CRUD
-    // ------------------------------------------------------------------------
-    getAllMenus: builder.query<MenuDataColumn[], void>({
-      query: () => ({
-        url: `/menus`
-      }),
-      providesTags: ["Menus"],
-    }),
-    // ------------------------------------------------------------------------
     getMenus: builder.query<MenuDataColumn[], void>({
       query: () => ({
         url: `/menus/page`
@@ -284,14 +367,6 @@ export const api = createApi({
       query: (params) => ({ url: `/menus/items/page`, params: params ?? {} }),
       providesTags: ["Menus"],
     }),
-    // ------------------------------------------------------------------------
-    getAllMenuItems: builder.query<MenuItemDataColumn[], void>({
-      query: () => ({
-        url: `/menus/items`
-      }),
-      providesTags: ["Menus"],
-    }),
-    // ------------------------------------------------------------------------
     createMenuItem: builder.mutation<any, any>({
       query: (data) => ({ url: `/menus/items`, method: "POST", body: data }),
       invalidatesTags: ["Menus"],
@@ -508,14 +583,7 @@ export const api = createApi({
     getInventoryTransactions: builder.query<any, Record<string, any> | void>({
       query: (params) => ({ url: `/inventory-transactions`, params: params ?? {} }),
     }),
-    // ------------------------------------------------------------------------
-    getRecipeByMenuItemId: builder.query<RecipeDataColumn, string>({
-      query: (id) => ({
-        url: `/menus/recipe/item/${id}`
-      }),
-      providesTags: ["Recipes"],
-    }),
-    // ------------------------------------------------------------------------
+    // 
     createRecipe: builder.mutation<any, any>({
       query: (data) => ({ url: `/recipes`, method: "POST", body: data }),
     }),
@@ -829,6 +897,13 @@ export const api = createApi({
 });
 
 export const {
+  // GraphQL API Hooks
+  useGraphqlFirstQuery,
+  useGraphqlSecondMutation,
+  // useGraphqlSubscription,
+  // useGraphqlInfiniteQuery,
+
+  
   // CRUD API Hooks
   // Users
   useGetAllUsersQuery,
@@ -876,7 +951,11 @@ export const {
   useUpdateRecipeMutation,
   useGetRecipeByMenuItemIdQuery,
 
+  // Ingredients
+  useGetAllInventoryItemsQuery,
+
   // Tables
+  useGetAllTablesQuery,
   useGetTablesQuery,
   useGetTableByIdQuery,
   useCreateTableMutation,
