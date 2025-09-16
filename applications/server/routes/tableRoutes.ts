@@ -1,5 +1,27 @@
 import { Router } from 'express';
-import * as tableControllers from '@/controllers/tableControllers';
+import {
+	getAllTable,
+	createTable,
+	getTables,
+	checkTableAvailability,
+	updateTableStatus,
+	// getTableById,
+	// updateTable,
+	// deleteTable,
+	// getTablesByRestaurantId,
+	createReservation,
+	getReservations,
+	confirmReservation,
+	checkInTable,
+	// getReservationById,
+	// updateReservation,
+	createTableOrder,
+	getTableOrders,
+	// getTableOrderById,
+	// updateTableOrder,
+	getTableStats,
+	getReservationStats,
+} from '@/controllers/tableControllers';
 
 const router = Router();
 
@@ -7,76 +29,78 @@ const router = Router();
 // 🪑 TABLE ROUTES
 // ================================
 
+router.get("/", getAllTable)
+
 // 🔹 Tạo bàn mới
-router.post('/tables', tableControllers.createTable);
+router.post('/tables', createTable);
 
 // 🔹 Lấy danh sách bàn với filter & pagination
-router.get('/tables', tableControllers.getTables);
+router.get('/tables', getTables);
 
 // 🔹 Kiểm tra bàn trống
-router.post('/tables/check-availability', tableControllers.checkTableAvailability);
+router.post('/tables/check-availability', checkTableAvailability);
 
 // 🔹 Cập nhật trạng thái nhiều bàn
-router.patch('/tables/status', tableControllers.updateTableStatus);
+router.patch('/tables/status', updateTableStatus);
 
 // 🔹 Lấy bàn theo ID
-router.get('/tables/:id', tableControllers.getTableById);
+// router.get('/tables/:id', getTableById);
 
 // 🔹 Cập nhật bàn
-router.put('/tables/:id', tableControllers.updateTable);
+// router.put('/tables/:id', updateTable);
 
 // 🔹 Xóa bàn
-router.delete('/tables/:id', tableControllers.deleteTable);
+// router.delete('/tables/:id', deleteTable);
 
 // 🔹 Lấy bàn theo nhà hàng
-router.get('/restaurants/:restaurantId/tables', tableControllers.getTablesByRestaurantId);
+// router.get('/restaurants/:restaurantId/tables', getTablesByRestaurantId);
 
 // ================================
 // 📅 RESERVATION ROUTES
 // ================================
 
 // 🔹 Tạo đặt bàn mới
-router.post('/reservations', tableControllers.createReservation);
+router.post('/reservations', createReservation);
 
 // 🔹 Lấy danh sách đặt bàn với filter & pagination
-router.get('/reservations', tableControllers.getReservations);
+router.get('/reservations', getReservations);
 
 // 🔹 Xác nhận đặt bàn
-router.post('/reservations/confirm', tableControllers.confirmReservation);
+router.post('/reservations/confirm', confirmReservation);
 
 // 🔹 Check-in khách hàng
-router.post('/reservations/check-in', tableControllers.checkInTable);
+router.post('/reservations/check-in', checkInTable);
 
 // 🔹 Lấy đặt bàn theo ID
-router.get('/reservations/:id', tableControllers.getReservationById);
+// router.get('/reservations/:id', getReservationById);
 
 // 🔹 Cập nhật đặt bàn
-router.put('/reservations/:id', tableControllers.updateReservation);
+// router.put('/reservations/:id', updateReservation);
 
 // ================================
 // 🍽️ TABLE ORDER ROUTES
 // ================================
 
 // 🔹 Tạo phiên bàn mới
-router.post('/table-orders', tableControllers.createTableOrder);
+router.post('/table-orders', createTableOrder);
 
 // 🔹 Lấy danh sách phiên bàn với filter & pagination
-router.get('/table-orders', tableControllers.getTableOrders);
+router.get('/table-orders', getTableOrders);
 
 // 🔹 Lấy phiên bàn theo ID
-router.get('/table-orders/:id', tableControllers.getTableOrderById);
+// router.get('/table-orders/:id', getTableOrderById);
 
 // 🔹 Cập nhật phiên bàn
-router.put('/table-orders/:id', tableControllers.updateTableOrder);
+// router.put('/table-orders/:id', updateTableOrder);
 
 // ================================
 // 📊 STATISTICS ROUTES
 // ================================
 
 // 🔹 Thống kê bàn
-router.get('/stats/tables', tableControllers.getTableStats);
+router.get('/stats/tables', getTableStats);
 
 // 🔹 Thống kê đặt bàn
-router.get('/stats/reservations', tableControllers.getReservationStats);
+router.get('/stats/reservations', getReservationStats);
 
 export default router;

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -64,28 +64,6 @@ export default function MenusPage() {
     isLoading,
     refetch: refetchMenuItems
   } = useGetAllMenusQuery();
-
-  const data: MenuDataColumn[] = [
-    {
-      "id": "e1f9375a-7de2-4c3b-9c8d-394f3d4ee292",
-      "restaurant_id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
-      "name": "Ultimate Menu",
-      "description": "Professtional menu for your restaurant",
-      "is_active": true,
-      "created_at": "2025-09-07T16:34:24.757Z",
-      "updated_at": "2025-09-07T16:34:24.757Z",
-      "display_order": 0,
-      "image_url": null,
-      "restaurants": {
-        "id": "4ac60dce-ce60-4df4-a950-3585cbef426f",
-        "name": "Waddles",
-        "code": "WADDLES"
-      },
-      "_count": {
-        "menu_items": 200
-      }
-    }
-  ]
 
   const columns: ColumnDef<MenuDataColumn, unknown>[] = [
     {
@@ -283,14 +261,14 @@ export default function MenusPage() {
            (menu.description && menu.description.toLowerCase().includes(searchTerm.toLowerCase()))
   })
 
-  const getMenuStats = () => {
+  const stats = useMemo(() => {
     const totalMenus = menus.length
     const activeMenus = menus.filter((m: MenuDataColumn) => m.is_active).length
     const inactiveMenus = menus.filter((m: MenuDataColumn) => !m.is_active).length
     const totalMenuItems = menus.reduce((sum: number, menu: MenuDataColumn) => sum + (menu._count?.menu_items || 0), 0)
 
     return { totalMenus, activeMenus, inactiveMenus, totalMenuItems }
-  }
+  }, [menus])
 
   const handleCreateSuccess = () => {
     setIsCreateDialogOpen(false)
@@ -322,8 +300,6 @@ export default function MenusPage() {
     setDeletingMenu(menu)
     setIsDeleteDialogOpen(true)
   }
-
-  const stats = getMenuStats()
 
   if (isLoading) {
     return (
@@ -403,7 +379,7 @@ export default function MenusPage() {
 
       <DataTable
         columns={columns}
-        data={data}
+        data={menus}
         search={{
           column: "name",
           placeholder: "Tìm kiếm thực đơn..."

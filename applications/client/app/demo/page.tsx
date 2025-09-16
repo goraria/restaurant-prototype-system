@@ -1,4 +1,4 @@
-// "use client"
+"use client"
 
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { columns } from "@/components/tables/japtor"
@@ -13,10 +13,17 @@ import {
 } from "@/components/ui/table";
 import { DataTableCustom, Payment } from "@/components/tables/custom";
 import { DataTableJaptor } from "@/components/tables/japtor";
+import { ConfirmDialog } from "@/components/elements/confirm-dialog";
+import { FormWizard } from "@/components/elements/form-wizard";
+import { ModeToggle } from "@/components/elements/mode-toggle";
 
-async function getData(): Promise<Payment[]> {
-  // Fetch data from your API here.
-  return [
+import {
+  useGraphqlFirstQuery,
+  useGraphqlSecondMutation
+} from "@/state/api";
+
+export default function Page() {
+  const data: Payment[] = [
     {
       id: "728ed52f",
       amount: 1000,
@@ -691,13 +698,30 @@ async function getData(): Promise<Payment[]> {
     },
     // ...
   ]
-}
 
-export default async function Page() {
-  const data = await getData();
+  const query = `query GetMenuItems($menu_id: ID) {
+    menuItems(menu_id: $menu_id) {
+      id
+      name
+      description
+      price
+      is_available
+      is_featured
+      display_order
+    }
+  }`
+
+  const { data: menuItems } = useGraphqlFirstQuery({
+    query,
+    variables: { menu_id: "e1f9375a-7de2-4c3b-9c8d-394f3d4ee292" }, // Provide a sample menu_id
+    // operationName: "MenuItems",
+  });
+
+  console.log(menuItems)
 
   return (
-    <div className="container-wrapper p-6 gap-6 border-none">
+    <div className="container-wrapper p-6 gap-6 space-y-6 border-none">
+      <FormWizard/>
       <Card className="p-4 py-0">
         {/* <DataTableViewOptions table={table} /> */}
         <DataTableCustom columns={columns} data={data} />
@@ -705,9 +729,22 @@ export default async function Page() {
       </Card>
 
       <div className="p-4"> {/** container mx-auto py-10 */}
+        <ModeToggle/>
       </div>
 
       <DataTableJaptor columns={columns} data={data} />
+
+      <Card className="flex p-6">
+        <ConfirmDialog />
+
+        {/*<ConfirmDialog*/}
+        {/*  trigger={() => (<Button variant="">Xác nhận</Button>)}*/}
+        {/*  title="Xác nhận thay đổi mục này?"*/}
+        {/*  description="Thay đổi có thể hoàn tác."*/}
+        {/*  confirmText="Xoá"*/}
+        {/*  cancelText="Huỷ"*/}
+        {/*/>*/}
+      </Card>
     </div>
   )
 }

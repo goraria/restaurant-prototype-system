@@ -93,8 +93,8 @@ export default clerkMiddleware(
     const role = getUserRole(sessionClaims)
     const orgInfo = getOrganizationInfo(sessionClaims)
     
-    console.log("User role:", role);
-    console.log("Organization info:", orgInfo);
+    // console.log("User role:", role);
+    // console.log("Organization info:", orgInfo);
 
     // 1. Admin có thể truy cập tất cả
     if (role === "admin") {

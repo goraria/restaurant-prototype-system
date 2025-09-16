@@ -4,7 +4,8 @@ import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/element/HapticTab';
 import TabBarBackground from '@/components/element/TabBarBackground';
-import { Colors } from '@/constants/Colors';
+// import { Colors } from '@/constants/Colors';
+import { THEME } from "@/lib/theme";
 import { useColorScheme } from 'nativewind';
 // import { useColorScheme } from '@/hooks/useColorScheme';
 import {
@@ -22,7 +23,7 @@ export default function TabLayout() {
     <>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+          tabBarActiveTintColor: THEME[colorScheme ?? 'light'].muted,
           headerShown: false,
           tabBarButton: HapticTab,
           tabBarBackground: TabBarBackground,

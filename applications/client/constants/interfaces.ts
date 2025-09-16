@@ -81,6 +81,11 @@ export interface DataTableProps<TData, TValue> {
     }[]
   }[]
   max?: string
+  onReload?: () => void
+  onDownload?: () => void
+  onCreate?: () => void
+  onUpdate?: () => void
+  onChange?: () => void
 }
 
 export interface DataTableColumnHeaderProps<TData, TValue>
@@ -198,6 +203,197 @@ export type NotificationPriorityEnum = 'low' | 'medium' | 'high' | 'urgent';
 
 export type NotificationStatusEnum = 'unread' | 'read' | 'archived';
 
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
+export interface RestaurantDataColumnShortly {
+  id: string
+  name: string
+  code: string
+}
+
+export interface CategoryDataColumnShortly {
+  id: string
+  name: string
+  slug: string
+}
+
+export interface MenuDataColumnShortly {
+  id: string
+  name: string
+  restaurants: RestaurantDataColumnShortly
+}
+
+export interface MenuItemDataColumnShortly {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number | string;
+  image_url?: string | null;
+  is_available: boolean;
+  menus: MenuDataColumnShortly
+  categories: CategoryDataColumnShortly
+}
+
+export interface RecipeDataColumnShortly {
+  id: string
+  name: string
+  description: string | null
+  menu_items: MenuItemDataColumnShortly
+}
+
+export interface InventoryItemDataColumnShortly {
+  id: string;
+  name: string;
+  unit?: string;
+}
+
+export interface IngredientDataColumnShortly {
+  id: string
+  quantity: string | number | null
+  unit: string
+  notes: string | null
+  recipes?: RecipeDataColumnShortly
+  inventory_items?: InventoryItemDataColumnShortly
+}
+
+export interface TableDataColumnShortly {
+  id: string
+  table_number: string
+  capacity: number | null
+  location: string |null
+  status: string | number | null
+  qr_code: string | number | null
+}
+
+// ============================================================================
+// Done
+export interface CategoryDataColumn {
+  id: string
+  name: string
+  slug: string
+  description?: string | null
+  created_at: string
+  display_order: number
+  image_url?: string | null
+  is_active: boolean
+  parent_id?: string | null
+  updated_at: string
+  parent_category?: CategoryDataColumnShortly| null
+  child_categories: CategoryDataColumn[] | [],
+  // menu_items_count: number
+  _count?: {
+    menu_items: number
+  }
+}
+
+// Done
+export interface MenuDataColumn {
+  id: string
+  name: string
+  description?: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  display_order: number
+  image_url?: string | null
+  restaurants: RestaurantDataColumnShortly
+  _count?: {
+    menu_items: number
+  }
+}
+
+// Done
+export interface MenuItemDataColumn {
+  id: string
+  menu_id: string
+  name: string
+  description: string
+  price: string
+  image_url: string | null
+  is_available: boolean
+  created_at: string
+  updated_at: string
+  category_id: string
+  allergens: string[]
+  calories: number | null
+  dietary_info: string[]
+  display_order: number
+  is_featured: boolean
+  preparation_time: number | null
+  menus: MenuDataColumnShortly
+  categories: CategoryDataColumnShortly
+}
+
+// Done
+export interface RecipeDataColumn {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+  cook_time?: number | null;
+  instructions?: string;
+  prep_time?: number | null;
+  serving_size?: number;
+  ingredients?: IngredientDataColumnShortly[] | [];
+  menu_items: MenuItemDataColumnShortly
+}
+
+// Done
+export interface IngredientDataColumn {
+  id: string
+  name: string
+  description: string | null
+  unit: string
+  quantity: string | number | null
+  min_quantity: string | number | null
+  max_quantity: string | number | null
+  created_at: string | Date
+  updated_at: string | Date
+  expiry_date: string | Date | null
+  supplier: string | null
+  unit_cost: string | number | null
+  restaurants: RestaurantDataColumnShortly
+  transactions: [] | null
+  recipe_ingredients?: IngredientDataColumnShortly[]
+  _count?: {
+    recipe_ingredients: number
+  }
+}
+
+// Done
+export interface TableDataColumn {
+  id: string
+  restaurant_id: string
+  table_number: string
+  capacity: number | null
+  location: string |null
+  status: string | number | null
+  qr_code: string | number | null
+  created_at: string | number | null
+  updated_at: string | Date
+  restaurants: RestaurantDataColumnShortly
+  _count: {
+    reservations: number
+    table_orders: number
+  }
+  // ??
+}
+
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
+// =============================================================================
+// =============================================================================
+// =============================================================================
+
 // MAIN INTERFACES
 
 // =============================================================================
@@ -239,29 +435,6 @@ export interface CategoryInterface {
   parent_category?: CategoryInterface;
   child_categories?: CategoryInterface[];
   menu_items?: MenuItemInterface[];
-}
-
-export interface CategoryDataColumn {
-  id: string
-  name: string
-  slug: string
-  description?: string | null
-  created_at: string
-  display_order: number
-  image_url?: string | null
-  is_active: boolean
-  parent_id?: string | null
-  updated_at: string
-  parent_category?: {
-    id: string
-    name: string
-    slug: string
-  } | null
-  child_categories: CategoryDataColumn[] | [],
-  // menu_items_count: number
-  _count?: {
-    menu_items: number
-  }
 }
 
 // =============================================================================
@@ -413,26 +586,6 @@ export interface MenuInterface {
   menu_items?: MenuItemInterface[];
 }
 
-export interface MenuDataColumn {
-  id: string
-  restaurant_id: string
-  name: string
-  description?: string | null
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  display_order: number
-  image_url?: string | null
-  restaurants: {
-    id: string
-    name: string
-    code: string
-  }
-  _count?: {
-    menu_items: number
-  }
-}
-
 // =============================================================================
 // API Interfaces
 // =============================================================================
@@ -466,69 +619,6 @@ export interface MenuItemInterface {
 // API Interfaces
 // =============================================================================
 // Legacy MenuItem for backward compatibility
-export interface MenuItemDataColumn {
-  id: string
-  menu_id: string
-  name: string
-  description: string
-  price: string
-  image_url: string | null
-  is_available: boolean
-  created_at: string
-  updated_at: string
-  category_id: string
-  allergens: string[]
-  calories: number | null
-  dietary_info: string[]
-  display_order: number
-  is_featured: boolean
-  preparation_time: number | null
-  menus: {
-    id: string
-    name: string
-    restaurant_id: string
-    restaurants: {
-      id: string
-      name: string
-      code: string
-    }
-  }
-  categories: {
-    id: string
-    name: string
-    slug: string
-  }
-
-  // id: string
-  // restaurant_id?: string
-  // menu_id: string
-  // category_id?: string
-  // name: string
-  // description?: string
-  // price: number | string
-  // image_url?: string
-  // preparation_time?: number
-  // calories?: number
-  // allergens?: string[]
-  // dietary_info?: string[]
-  // is_vegetarian?: boolean
-  // is_vegan?: boolean
-  // is_available: boolean
-  // is_featured?: boolean
-  // display_order: number
-  // created_at: string
-  // updated_at: string
-  // menus?: {
-  //   id: string
-  //   name: string
-  //   restaurant_id?: string
-  // }
-  // categories?: {
-  //   id: string
-  //   name: string
-  //   slug?: string
-  // }
-}
 
 // =============================================================================
 // API Interfaces
@@ -797,47 +887,6 @@ export interface RecipeInterface {
   serving_size?: number;
   menu_item?: MenuItemInterface;
   ingredients?: RecipeIngredientInterface[];
-}
-
-export interface RecipeDataColumn {
-  id: string;
-  menu_item_id: string;
-  name: string;
-  description?: string;
-  created_at: string;
-  updated_at: string;
-  cook_time?: number | null;
-  instructions?: string;
-  prep_time?: number | null;
-  serving_size?: number;
-  menu_item?: MenuItemDataColumn;
-  ingredients?: {
-    id: string;
-    recipe_id: string;
-    inventory_item_id: string;
-    quantity: number | string;
-    unit: string;
-    notes?: string | null;
-    recipe?: RecipeInterface;
-    inventory_items: {
-      id: string;
-      name: string;
-      unit?: string;
-    };
-  }[] | [];
-  menu_items: {
-    id: string;
-    name: string;
-    description?: string | null;
-    price: number | string;
-    image_url?: string | null;
-    is_available: boolean;
-    categories: {
-      id: string;
-      name: string;
-      slug: string;
-    };
-  }
 }
 
 // =============================================================================

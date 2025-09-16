@@ -1,26 +1,18 @@
 import { PrismaClient, menu_items, menus } from '@prisma/client';
-import { 
-  CreateMenu, 
-  UpdateMenu, 
+import {
+  CreateMenu,
+  UpdateMenu,
   MenuQuery,
-  CreateMenuItem, 
-  UpdateMenuItem, 
+  CreateMenuItem,
+  UpdateMenuItem,
   MenuItemQuery,
   BulkUpdateMenuItems,
   BulkToggleAvailability,
-  FeaturedItemsQuery 
+  FeaturedItemsQuery
 } from '@/schemas/menuSchemas';
+import { validate } from 'uuid';
 
 const prisma = new PrismaClient();
-
-// ================================
-// 🔧 HELPER FUNCTIONS
-// ================================
-
-const validateUUID = (id: string): boolean => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(id);
-};
 
 // ================================
 // 🍽️ MENU SERVICES
@@ -67,7 +59,7 @@ export const createMenu = async (data: CreateMenu) => {
 // Lấy menu theo ID
 export const getMenuById = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID menu không hợp lệ');
     }
 
@@ -96,11 +88,11 @@ export const getMenuById = async (id: string) => {
         }
       }
     });
-    
+
     if (!menu) {
       throw new Error('Không tìm thấy menu');
     }
-    
+
     return menu;
   } catch (error) {
     throw new Error(`Lỗi khi lấy thông tin menu: ${error}`);
@@ -111,7 +103,15 @@ export const getMenuById = async (id: string) => {
 export const getAllMenus = async () => {
   try {
     const menus = await prisma.menus.findMany({
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        is_active: true,
+        created_at: true,
+        updated_at: true,
+        display_order: true,
+        image_url: true,
         restaurants: {
           select: {
             id: true,
@@ -201,14 +201,14 @@ export const getMenus = async (filters: MenuQuery) => {
 // Lấy menu theo restaurant ID
 export const getMenusByRestaurantId = async (restaurantId: string) => {
   try {
-    if (!validateUUID(restaurantId)) {
+    if (!validate(restaurantId)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 
     const menus = await prisma.menus.findMany({
-      where: { 
+      where: {
         restaurant_id: restaurantId,
-        is_active: true 
+        is_active: true
       },
       include: {
         menu_items: {
@@ -237,7 +237,7 @@ export const getMenusByRestaurantId = async (restaurantId: string) => {
 // Cập nhật menu
 export const updateMenu = async (id: string, data: UpdateMenu) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID menu không hợp lệ');
     }
 
@@ -279,7 +279,7 @@ export const updateMenu = async (id: string, data: UpdateMenu) => {
 // Xóa menu
 export const deleteMenu = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID menu không hợp lệ');
     }
 
@@ -379,7 +379,7 @@ export const createMenuItem = async (data: CreateMenuItem) => {
 // Lấy món ăn theo ID
 export const getMenuItemById = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID món ăn không hợp lệ');
     }
 
@@ -458,12 +458,12 @@ export const getMenuItemById = async (id: string) => {
 // Lấy danh sách món ăn với filter
 export const getMenuItems = async (filters: MenuItemQuery) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      sort_by = 'display_order', 
-      sort_order = 'asc', 
-      ...whereFilters 
+    const {
+      page = 1,
+      limit = 10,
+      sort_by = 'display_order',
+      sort_order = 'asc',
+      ...whereFilters
     } = filters;
     const skip = (page - 1) * limit;
 
@@ -559,7 +559,6 @@ export const getAllMenuItems = async () => {
           select: {
             id: true,
             name: true,
-            restaurant_id: true,
             restaurants: {
               select: {
                 id: true,
@@ -665,7 +664,7 @@ export const getFeaturedMenuItems = async (filters: FeaturedItemsQuery) => {
 // Cập nhật món ăn
 export const updateMenuItem = async (id: string, data: UpdateMenuItem) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID món ăn không hợp lệ');
     }
 
@@ -721,7 +720,7 @@ export const updateMenuItem = async (id: string, data: UpdateMenuItem) => {
 // Xóa món ăn
 export const deleteMenuItem = async (id: string) => {
   try {
-    if (!validateUUID(id)) {
+    if (!validate(id)) {
       throw new Error('ID món ăn không hợp lệ');
     }
 
@@ -767,7 +766,7 @@ export const bulkUpdateMenuItems = async (data: BulkUpdateMenuItems) => {
 
     // Kiểm tra tất cả IDs hợp lệ
     for (const id of menu_item_ids) {
-      if (!validateUUID(id)) {
+      if (!validate(id)) {
         throw new Error(`ID món ăn không hợp lệ: ${id}`);
       }
     }
@@ -798,7 +797,7 @@ export const bulkToggleAvailability = async (data: BulkToggleAvailability) => {
 
     // Kiểm tra tất cả IDs hợp lệ
     for (const id of menu_item_ids) {
-      if (!validateUUID(id)) {
+      if (!validate(id)) {
         throw new Error(`ID món ăn không hợp lệ: ${id}`);
       }
     }
@@ -829,7 +828,7 @@ export const bulkToggleAvailability = async (data: BulkToggleAvailability) => {
 // Thống kê menu
 export const getMenuStats = async (restaurantId: string) => {
   try {
-    if (!validateUUID(restaurantId)) {
+    if (!validate(restaurantId)) {
       throw new Error('ID nhà hàng không hợp lệ');
     }
 
@@ -845,33 +844,33 @@ export const getMenuStats = async (restaurantId: string) => {
         where: { restaurant_id: restaurantId }
       }),
       prisma.menus.count({
-        where: { 
+        where: {
           restaurant_id: restaurantId,
-          is_active: true 
+          is_active: true
         }
       }),
       prisma.menu_items.count({
-        where: { 
+        where: {
           menus: { restaurant_id: restaurantId }
         }
       }),
       prisma.menu_items.count({
-        where: { 
+        where: {
           menus: { restaurant_id: restaurantId },
-          is_available: true 
+          is_available: true
         }
       }),
       prisma.menu_items.count({
-        where: { 
+        where: {
           menus: { restaurant_id: restaurantId },
           is_featured: true,
-          is_available: true 
+          is_available: true
         }
       }),
       prisma.menu_items.aggregate({
-        where: { 
+        where: {
           menus: { restaurant_id: restaurantId },
-          is_available: true 
+          is_available: true
         },
         _avg: {
           price: true
@@ -891,154 +890,3 @@ export const getMenuStats = async (restaurantId: string) => {
     throw new Error(`Lỗi khi lấy thống kê menu: ${error}`);
   }
 };
-
-// ============================================================================
-// RECIPES
-// ============================================================================
-
-export async function getAllRecipe() {
-  try {
-    const recipes = await prisma.recipes.findMany({
-      include: {
-        ingredients: {
-          include: {
-            inventory_items: {
-              select: {
-                id: true,
-                name: true,
-                unit: true,
-              }
-            }
-          }
-        },
-        menu_items: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            price: true,
-            image_url: true,
-            is_available: true,
-            categories: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!recipes) {
-      throw new Error('Không tìm thấy recipe');
-    }
-
-    return {
-      data: recipes,
-      total: recipes.length,
-      message: `Đã lấy ${recipes.length} công thức`
-    };
-  } catch (error) {
-    throw new Error(`Lỗi khi lấy tất cả thông tin recipes: ${error}`);
-  }
-}
-
-export async function getRecipeById(id: string) {
-  try {
-    if (!validateUUID(id)) {
-      throw new Error('ID recipe không hợp lệ');
-    }
-
-    const recipe = await prisma.recipes.findUnique({
-      where: { id },
-      include: {
-        ingredients: {
-          include: {
-            inventory_items: {
-              select: {
-                id: true,
-                name: true,
-                unit: true,
-              }
-            }
-          }
-        },
-        menu_items: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            price: true,
-            image_url: true,
-            is_available: true,
-            categories: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!recipe) {
-      throw new Error('Không tìm thấy recipe');
-    }
-
-    return recipe;
-  } catch (error) {
-    throw new Error(`Lỗi khi lấy thông tin recipe: ${error}`);
-  }
-}
-
-export async function getRecipeByMenuItemId(id: string) {
-  try {
-    if (!validateUUID(id)) {
-      throw new Error('ID món ăn không hợp lệ');
-    }
-
-    const recipes = await prisma.recipes.findMany({
-      where: { menu_item_id: id },
-      include: {
-        ingredients: {
-          include: {
-            inventory_items: {
-              select: {
-                id: true,
-                name: true,
-                unit: true,
-              }
-            }
-          }
-        },
-        menu_items: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            price: true,
-            image_url: true,
-            is_available: true,
-            categories: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              }
-            }
-          }
-        }
-      }
-    });
-
-    return recipes;
-  } catch (error) {
-    throw new Error(`Lỗi khi lấy danh sách recipe: ${error}`);
-  }
-}
-
-// ============================================================================

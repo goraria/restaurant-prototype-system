@@ -13,6 +13,7 @@ import http, { createServer } from "http";
 import prisma from '@/config/prisma';
 import { errorHandler } from '@/middlewares/errorMiddlewares';
 import { initializeRealtimeChat } from "@/config/realtime";
+import { createGraphQLMiddleware } from "@/config/graphql";
 
 /* ROUTE IMPORTS */
 // import authRoutes from "@/routes/authRoutes";
@@ -20,16 +21,20 @@ import paymentRoutes from "@/routes/purchaseRoutes";
 import productRoutes from "@/routes/productRoutes";
 import voucherRoutes from '@/routes/voucherRoutes';
 import categoryRoutes from '@/routes/categoryRoutes';
+import inventoryRoutes from '@/routes/inventoryRoutes'
+import tableRoutes from '@/routes/tableRoutes'
 import taskRoutes from "@/routes/taskRoutes";
 // import userRoutes from "@/routes/userRoutes";
 import restaurantRoutes from "@/routes/restaurantRoutes";
 // import orderRoutes from "@/routes/orderRoutes";
 import menuRoutes from "@/routes/menuRoutes";
+import recipeRoutes from "@/routes/recipeRoutes"
 import uploadRoutes from "@/routes/uploadRoutes";
 // import chatRoutes from "@/routes/chatRoutes";
 // import clerkRoutes from "@/routes/clerkRoutes";
 // import rlsTestRoutes from "@/routes/rlsTestRoutes";
 import notificationRoutes from "@/routes/notificationRoutes";
+// import graphqlRoutes from "@/routes/graphqlRoutes";
 
 // ================================
 // 🌐 EXPRESS SERVER CONFIGURATION
@@ -120,20 +125,25 @@ app.use("@/public", express.static(directory));
 
 // app.use("/auth", authRoutes); // Keep for backwards compatibility
 app.use("/payment", paymentRoutes); // Payment hooks từ providers
-app.use("/categories", categoryRoutes); // Public category access
-app.use('/menus', menuRoutes); // Public menu viewing
+app.use("/category", categoryRoutes); // Public category access
+app.use('/menu', menuRoutes); // Public menu viewing
+app.use('/recipe', recipeRoutes); // Private recipe viewing
+app.use('/inventory', inventoryRoutes); // Private inventory viewing
+app.use('/table', tableRoutes); // Public table viewing
 app.use('/upload', uploadRoutes); // File uploads
 
 // Protected routes (require Clerk authentication)
-app.use("/products", productRoutes);
+app.use("/product", productRoutes);
 app.use("/voucher", voucherRoutes);
 app.use("/task", taskRoutes);
 // app.use('/users', userRoutes);
-app.use('/restaurants', restaurantRoutes);
+app.use('/restaurant', restaurantRoutes);
 // app.use('/orders', orderRoutes);
 // app.use('/chat', chatRoutes);
 // app.use('/rls', rlsTestRoutes); // RLS testing routes (simple)
-app.use("/notifications", notificationRoutes);
+app.use("/notification", notificationRoutes);
+// app.use("/graphql", graphqlRoutes);
+app.use("/graphql", createGraphQLMiddleware);
 
 app.get('/', (
   req,

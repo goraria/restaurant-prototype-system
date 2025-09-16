@@ -780,6 +780,11 @@ export function DataTable<TData, TValue>({
   search,
   filter,
   max,
+  onReload,
+  onDownload,
+  onCreate,
+  onUpdate,
+  onChange
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -877,6 +882,7 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="icon"
             className=""
+            onClick={onDownload}
           >
             <Download className="h-4 w-4" />
           </Button>
@@ -884,6 +890,7 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="icon"
             className=""
+            onClick={onReload}
           >
             <RotateCw className="h-4 w-4" />
           </Button>
@@ -891,6 +898,7 @@ export function DataTable<TData, TValue>({
             variant="default"
             size="icon"
             className=""
+            onClick={onCreate}
           >
             <PlusCircle className="h-4 w-4" />
           </Button>
