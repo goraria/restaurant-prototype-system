@@ -353,20 +353,68 @@ export default function InventoryPage() {
   })
 
   const stats = useMemo(() => {
-    const totalItems = inventoryItems.length
-    const lowStockItems = inventoryItems.filter((item: InventoryItem) => item.status === 'low-stock').length
-    const outOfStockItems = inventoryItems.filter((item: InventoryItem) => item.status === 'out-of-stock').length
-    const totalValue = inventoryItems.reduce((sum: number, item: InventoryItem) => sum + item.totalValue, 0)
-    const expiringItems = inventoryItems.filter((item: InventoryItem) => {
-      if (!item.expiryDate) return false
-      const expiryDate = new Date(item.expiryDate)
+    const totalItems = ingredients.length
+    const lowStockItems = ingredients.filter((item: IngredientDataColumn) => {
+      const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity || 0
+      const minQuantity = typeof item.min_quantity === 'string' ? parseFloat(item.min_quantity) : item.min_quantity || 0
+      return quantity <= minQuantity && quantity > 0
+    }).length
+    const outOfStockItems = ingredients.filter((item: IngredientDataColumn) => {
+      const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity || 0
+      return quantity === 0
+    }).length
+    const totalValue = ingredients.reduce((sum: number, item: IngredientDataColumn) => {
+      const quantity = typeof item.quantity === 'string' ? parseFloat(item.quantity) : item.quantity || 0
+      const unitCost = typeof item.unit_cost === 'string' ? parseFloat(item.unit_cost) : item.unit_cost || 0
+      return sum + (quantity * unitCost)
+    }, 0)
+    const expiringItems = ingredients.filter((item: IngredientDataColumn) => {
+      if (!item.expiry_date) return false
+      const expiryDate = new Date(item.expiry_date)
       const today = new Date()
       const diffDays = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       return diffDays <= 7 && diffDays > 0
     }).length
 
     return { totalItems, lowStockItems, outOfStockItems, totalValue, expiringItems }
-  }, [inventoryItems])
+  }, [ingredients])
+
+  const statsBoxes: StatsBoxProps[] = useMemo(() => [
+    {
+      title: "Tổng mục kho",
+      stats: stats.totalItems,
+      description: "Tất cả danh mục",
+      icon: Package2,
+    },
+    {
+      title: "Sắp hết hàng",
+      stats: stats.lowStockItems,
+      description: "Cần đặt hàng",
+      color: "professional-yellow",
+      icon: AlertTriangle,
+    },
+    {
+      title: "Hết hàng",
+      stats: stats.outOfStockItems,
+      description: "Cần bổ sung gấp",
+      color: "professional-red",
+      icon: XCircle,
+    },
+    {
+      title: "Sắp hết hạn",
+      stats: stats.expiringItems,
+      description: "Trong 7 ngày tới",
+      color: "professional-orange",
+      icon: Clock,
+    },
+    {
+      title: "Tổng giá trị",
+      stats: formatCurrency({ value: stats.totalValue, currency: "VND" }),
+      description: "Hàng tồn kho",
+      color: "professional-blue",
+      icon: BarChart3,
+    },
+  ], [stats])
 
   const getStatusBadge = (status: InventoryItem['status']) => {
     switch (status) {
@@ -448,76 +496,9 @@ export default function InventoryPage() {
             </div> */}
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Tổng mục kho
-                  </CardTitle>
-                  <Package2 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalItems}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Tất cả danh mục
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Sắp hết hàng
-                  </CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">{stats.lowStockItems}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Cần đặt hàng
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Hết hàng
-                  </CardTitle>
-                  <XCircle className="h-4 w-4 text-red-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{stats.outOfStockItems}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Cần bổ sung gấp
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Sắp hết hạn
-                  </CardTitle>
-                  <Clock className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-orange-600">{stats.expiringItems}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Trong 7 ngày tới
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Tổng giá trị
-                  </CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(stats.totalValue)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Hàng tồn kho
-                  </p>
-                </CardContent>
-              </Card>
+              {statsBoxes.map((stat, index) => (
+                <StatsBox key={index} {...stat} />
+              ))}
             </div>
 
             <Tabs defaultValue="inventory" className="space-y-4">
@@ -645,11 +626,11 @@ export default function InventoryPage() {
                                 <div className="text-xs text-muted-foreground">Hiện tại</div>
                               </div>
                               <div className="text-center">
-                                <div className="text-sm font-medium">{formatCurrency(item.unitCost)}</div>
+                                <div className="text-sm font-medium">{formatCurrency({ value: item.unitCost, currency: "VND" })}</div>
                                 <div className="text-xs text-muted-foreground">Đơn giá</div>
                               </div>
                               <div className="text-center">
-                                <div className="text-sm font-medium">{formatCurrency(item.totalValue)}</div>
+                                <div className="text-sm font-medium">{formatCurrency({ value: item.totalValue, currency: "VND" })}</div>
                                 <div className="text-xs text-muted-foreground">Tổng giá trị</div>
                               </div>
                               <div className="text-center">
@@ -773,18 +754,18 @@ export default function InventoryPage() {
 
             {/* Delete Confirmation Dialog */}
             <DeleteConfirmDialog
-              // open={isDeleteDialogOpen}
-              onOpenChange={setIsDeleteDialogOpen}
               title="Xóa mục kho"
               description={`Bạn có chắc chắn muốn xóa "${deletingItem?.name}"?`}
-            // onConfirm={() => {
-            //   if (deletingItem) {
-            //     deleteInventoryItem(deletingItem.id)
-            //       .unwrap()
-            //       .then(handleDeleteSuccess)
-            //       .catch(() => toast.error('Có lỗi xảy ra khi xóa mục kho!'));
-            //   }
-            // }}
+              onConfirm={async () => {
+                if (deletingItem) {
+                  // deleteInventoryItem(deletingItem.id)
+                  //   .unwrap()
+                  //   .then(handleDeleteSuccess)
+                  //   .catch(() => toast.error('Có lỗi xảy ra khi xóa mục kho!'));
+                  setIsDeleteDialogOpen(false)
+                  setDeletingItem(null)
+                }
+              }}
             />
           </div>
         </>
