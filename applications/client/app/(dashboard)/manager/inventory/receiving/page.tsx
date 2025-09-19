@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -719,18 +719,18 @@ export default function InventoryReceivingPage() {
               </tbody>
             </table>
           </div>
-
-          <div className="mt-4 flex items-center justify-between">
-            <Button variant="ghost" onClick={addReceivingRow}>
-              <Plus className="mr-2 h-4 w-4" /> Thêm dòng
-            </Button>
-            <div className="text-sm text-muted-foreground">
-              Tổng tiền: <span className="font-semibold text-foreground">
-                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalReceivingAmount)}
-              </span>
-            </div>
-          </div>
         </CardContent>
+        <CardFooter className="flex items-center justify-between">
+          <Button variant="default" onClick={addReceivingRow}>
+            <Plus className="h-4 w-4" /> Thêm dòng
+          </Button>
+          <div className="flex items-center justify-center h-9">
+            <span className="text-muted-foreground">{"Tổng tiền: "}</span>
+            <span className="font-semibold text-foreground">
+              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalReceivingAmount)}
+            </span>
+          </div>
+        </CardFooter>
       </Card>
       {/* Header */}
       <div className="flex items-center justify-between">

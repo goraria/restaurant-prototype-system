@@ -1,6 +1,14 @@
 "use client"
 
-import * as React from "react"
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useContext,
+  createContext,
+  ReactNode,
+} from "react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils"
@@ -25,10 +33,10 @@ type FormWizardContextType = {
   onSubmit?: () => void
 }
 
-const FormWizardContext = React.createContext<FormWizardContextType | undefined>(undefined)
+const FormWizardContext = createContext<FormWizardContextType | undefined>(undefined)
 
 function useFormWizard() {
-  const context = React.useContext(FormWizardContext)
+  const context = useContext(FormWizardContext)
   if (!context) {
     throw new Error("useFormWizard must be used within a FormWizard")
   }
@@ -40,7 +48,7 @@ interface FormWizardProps {
   value?: string
   onValueChange?: (value: string) => void
   className?: string
-  children: React.ReactNode
+  children: ReactNode
 }
 
 function FormWizard({
@@ -51,11 +59,11 @@ function FormWizard({
   children,
   ...props
 }: FormWizardProps) {
-  const [currentStep, setCurrentStep] = React.useState(defaultValue || "")
-  const [steps, setSteps] = React.useState<WizardStep[]>([])
-  const [completedSteps, setCompletedSteps] = React.useState<string[]>([])
+  const [currentStep, setCurrentStep] = useState(defaultValue || "")
+  const [steps, setSteps] = useState<WizardStep[]>([])
+  const [completedSteps, setCompletedSteps] = useState<string[]>([])
 
-  const handleValueChange = React.useCallback((newValue: string) => {
+  const handleValueChange = useCallback((newValue: string) => {
     if (onValueChange) {
       onValueChange(newValue)
     } else {
@@ -63,7 +71,7 @@ function FormWizard({
     }
   }, [onValueChange])
 
-  const contextValue = React.useMemo(() => ({
+  const contextValue = useMemo(() => ({
     currentStep: value || currentStep,
     setCurrentStep: handleValueChange,
     steps,
@@ -83,7 +91,7 @@ function FormWizard({
 
 interface FormWizardListProps {
   className?: string
-  children: React.ReactNode
+  children: ReactNode
 }
 
 function FormWizardList({ className, children, ...props }: FormWizardListProps) {
@@ -102,7 +110,7 @@ interface FormWizardTriggerProps {
   description?: string
   disabled?: boolean
   className?: string
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 function FormWizardTrigger({
@@ -116,7 +124,7 @@ function FormWizardTrigger({
 }: FormWizardTriggerProps) {
   const { currentStep, setCurrentStep, steps, setSteps, completedSteps } = useFormWizard()
   
-  React.useEffect(() => {
+  useEffect(() => {
     const step: WizardStep = { id: stepId, title, description, disabled }
     setSteps(prev => {
       const existing = prev.find(s => s.id === stepId)
@@ -172,7 +180,7 @@ function FormWizardTrigger({
 interface FormWizardContentProps {
   stepId: string
   className?: string
-  children: React.ReactNode
+  children: ReactNode
 }
 
 function FormWizardContent({
@@ -196,7 +204,7 @@ function FormWizardContent({
 
 interface FormWizardFooterProps {
   className?: string
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 function FormWizardFooter({ className, children, ...props }: FormWizardFooterProps) {

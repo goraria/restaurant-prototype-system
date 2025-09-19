@@ -721,7 +721,7 @@ export default function Page() {
 
   return (
     <div className="container-wrapper p-6 gap-6 space-y-6 border-none">
-      <FormWizard/>
+      {/*<FormWizard/>*/}
       <Card className="p-4 py-0">
         {/* <DataTableViewOptions table={table} /> */}
         <DataTableCustom columns={columns} data={data} />
