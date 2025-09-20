@@ -139,63 +139,63 @@ export const getAllMenus = async () => {
 
 // Lấy danh sách menu với filter
 export const getMenus = async (filters: MenuQuery) => {
-  try {
-    const { page = 1, limit = 10, sort_by = 'display_order', sort_order = 'asc', ...whereFilters } = filters;
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-
-    if (whereFilters.restaurant_id) {
-      where.restaurant_id = whereFilters.restaurant_id;
-    }
-
-    if (whereFilters.is_active !== undefined) {
-      where.is_active = whereFilters.is_active;
-    }
-
-    if (whereFilters.name) {
-      where.name = {
-        contains: whereFilters.name,
-        mode: 'insensitive'
-      };
-    }
-
-    const [menus, total] = await Promise.all([
-      prisma.menus.findMany({
-        where,
-        include: {
-          restaurants: {
-            select: {
-              id: true,
-              name: true,
-              code: true,
-            }
-          },
-          _count: {
-            select: {
-              menu_items: true,
-            }
-          }
-        },
-        orderBy: { [sort_by]: sort_order },
-        skip,
-        take: limit,
-      }),
-      prisma.menus.count({ where })
-    ]);
-
-    return {
-      data: menus,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    };
-  } catch (error) {
-    throw new Error(`Lỗi khi lấy danh sách menu: ${error}`);
-  }
+  // try {
+  //   const { page = 1, limit = 10, sort_by = 'display_order', sort_order = 'asc', ...whereFilters } = filters;
+  //   const skip = (page - 1) * limit;
+  //
+  //   const where: any = {};
+  //
+  //   if (whereFilters.restaurant_id) {
+  //     where.restaurant_id = whereFilters.restaurant_id;
+  //   }
+  //
+  //   if (whereFilters.is_active !== undefined) {
+  //     where.is_active = whereFilters.is_active;
+  //   }
+  //
+  //   if (whereFilters.name) {
+  //     where.name = {
+  //       contains: whereFilters.name,
+  //       mode: 'insensitive'
+  //     };
+  //   }
+  //
+  //   const [menus, total] = await Promise.all([
+  //     prisma.menus.findMany({
+  //       where,
+  //       include: {
+  //         restaurants: {
+  //           select: {
+  //             id: true,
+  //             name: true,
+  //             code: true,
+  //           }
+  //         },
+  //         _count: {
+  //           select: {
+  //             menu_items: true,
+  //           }
+  //         }
+  //       },
+  //       orderBy: { [sort_by]: sort_order },
+  //       skip,
+  //       take: limit,
+  //     }),
+  //     prisma.menus.count({ where })
+  //   ]);
+  //
+  //   return {
+  //     data: menus,
+  //     pagination: {
+  //       page,
+  //       limit,
+  //       total,
+  //       pages: Math.ceil(total / limit),
+  //     },
+  //   };
+  // } catch (error) {
+  //   throw new Error(`Lỗi khi lấy danh sách menu: ${error}`);
+  // }
 };
 
 // Lấy menu theo restaurant ID
@@ -457,97 +457,97 @@ export const getMenuItemById = async (id: string) => {
 
 // Lấy danh sách món ăn với filter
 export const getMenuItems = async (filters: MenuItemQuery) => {
-  try {
-    const {
-      page = 1,
-      limit = 10,
-      sort_by = 'display_order',
-      sort_order = 'asc',
-      ...whereFilters
-    } = filters;
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-
-    if (whereFilters.menu_id) {
-      where.menu_id = whereFilters.menu_id;
-    }
-
-    if (whereFilters.category_id) {
-      where.category_id = whereFilters.category_id;
-    }
-
-    if (whereFilters.is_available !== undefined) {
-      where.is_available = whereFilters.is_available;
-    }
-
-    if (whereFilters.is_featured !== undefined) {
-      where.is_featured = whereFilters.is_featured;
-    }
-
-    if (whereFilters.name) {
-      where.name = {
-        contains: whereFilters.name,
-        mode: 'insensitive'
-      };
-    }
-
-    if (whereFilters.min_price || whereFilters.max_price) {
-      where.price = {};
-      if (whereFilters.min_price) where.price.gte = whereFilters.min_price;
-      if (whereFilters.max_price) where.price.lte = whereFilters.max_price;
-    }
-
-    if (whereFilters.allergens && whereFilters.allergens.length > 0) {
-      where.allergens = {
-        hasEvery: whereFilters.allergens
-      };
-    }
-
-    if (whereFilters.dietary_info && whereFilters.dietary_info.length > 0) {
-      where.dietary_info = {
-        hasSome: whereFilters.dietary_info
-      };
-    }
-
-    const [menuItems, total] = await Promise.all([
-      prisma.menu_items.findMany({
-        where,
-        include: {
-          menus: {
-            select: {
-              id: true,
-              name: true,
-              restaurant_id: true,
-            }
-          },
-          categories: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            }
-          }
-        },
-        orderBy: { [sort_by]: sort_order },
-        skip,
-        take: limit,
-      }),
-      prisma.menu_items.count({ where })
-    ]);
-
-    return {
-      data: menuItems,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    };
-  } catch (error) {
-    throw new Error(`Lỗi khi lấy danh sách món ăn: ${error}`);
-  }
+  // try {
+  //   const {
+  //     page = 1,
+  //     limit = 10,
+  //     sort_by = 'display_order',
+  //     sort_order = 'asc',
+  //     ...whereFilters
+  //   } = filters;
+  //   const skip = (page - 1) * limit;
+  //
+  //   const where: any = {};
+  //
+  //   if (whereFilters.menu_id) {
+  //     where.menu_id = whereFilters.menu_id;
+  //   }
+  //
+  //   if (whereFilters.category_id) {
+  //     where.category_id = whereFilters.category_id;
+  //   }
+  //
+  //   if (whereFilters.is_available !== undefined) {
+  //     where.is_available = whereFilters.is_available;
+  //   }
+  //
+  //   if (whereFilters.is_featured !== undefined) {
+  //     where.is_featured = whereFilters.is_featured;
+  //   }
+  //
+  //   if (whereFilters.name) {
+  //     where.name = {
+  //       contains: whereFilters.name,
+  //       mode: 'insensitive'
+  //     };
+  //   }
+  //
+  //   if (whereFilters.min_price || whereFilters.max_price) {
+  //     where.price = {};
+  //     if (whereFilters.min_price) where.price.gte = whereFilters.min_price;
+  //     if (whereFilters.max_price) where.price.lte = whereFilters.max_price;
+  //   }
+  //
+  //   if (whereFilters.allergens && whereFilters.allergens.length > 0) {
+  //     where.allergens = {
+  //       hasEvery: whereFilters.allergens
+  //     };
+  //   }
+  //
+  //   if (whereFilters.dietary_info && whereFilters.dietary_info.length > 0) {
+  //     where.dietary_info = {
+  //       hasSome: whereFilters.dietary_info
+  //     };
+  //   }
+  //
+  //   const [menuItems, total] = await Promise.all([
+  //     prisma.menu_items.findMany({
+  //       where,
+  //       include: {
+  //         menus: {
+  //           select: {
+  //             id: true,
+  //             name: true,
+  //             restaurant_id: true,
+  //           }
+  //         },
+  //         categories: {
+  //           select: {
+  //             id: true,
+  //             name: true,
+  //             slug: true,
+  //           }
+  //         }
+  //       },
+  //       orderBy: { [sort_by]: sort_order },
+  //       skip,
+  //       take: limit,
+  //     }),
+  //     prisma.menu_items.count({ where })
+  //   ]);
+  //
+  //   return {
+  //     data: menuItems,
+  //     pagination: {
+  //       page,
+  //       limit,
+  //       total,
+  //       pages: Math.ceil(total / limit),
+  //     },
+  //   };
+  // } catch (error) {
+  //   throw new Error(`Lỗi khi lấy danh sách món ăn: ${error}`);
+  // }
 };
 
 // Lấy tất cả món ăn trong 1 page (không phân trang)

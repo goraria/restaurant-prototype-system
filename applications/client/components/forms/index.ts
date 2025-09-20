@@ -6,3 +6,7 @@ export { default as VoucherForm } from "./VoucherForm";
 export { default as PromotionForm } from "./PromotionForm";
 export { default as InventoryItemForm } from "./InventoryItemForm";
 export { default as TableForm } from "./TableForm";
+export { FileUpload } from "./file-upload";
+export { FileUploadServer } from "./file-upload-server";
+export { FileUploadExample } from "./file-upload-example";
+export { FileUploadServerExample } from "./file-upload-server-example";

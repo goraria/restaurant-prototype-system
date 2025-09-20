@@ -256,51 +256,51 @@ export const getCategories = async (query: CategoryQuery) => {
 /**
  * Get category tree (hierarchical structure)
  */
-export const getCategoryTree = async (parent_id: string | null = null): Promise<CategoryTreeNode[]> => {
-  try {
-    const categories = await prisma.categories.findMany({
-      where: {
-        parent_id: parent_id,
-        is_active: true
-      },
-      include: {
-        _count: {
-          select: {
-            menu_items: true
-          }
-        }
-      },
-      orderBy: {
-        display_order: 'asc'
-      }
-    });
-
-    const tree: CategoryTreeNode[] = [];
-
-    for (const category of categories) {
-      const children = await getCategoryTree(category.id);
-      
-      tree.push({
-        id: category.id,
-        name: category.name,
-        slug: category.slug,
-        description: category.description,
-        image_url: category.image_url,
-        display_order: category.display_order,
-        is_active: category.is_active,
-        menu_items_count: category._count.menu_items,
-        children: children.length > 0 ? children : undefined
-      });
-    }
-
-    return tree;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Failed to get category tree: ${error.message}`);
-    }
-    throw new Error('Failed to get category tree');
-  }
-};
+// export const getCategoryTree = async (parent_id: string | null = null): Promise<CategoryTreeNode[]> => {
+//   try {
+//     const categories = await prisma.categories.findMany({
+//       where: {
+//         parent_id: parent_id,
+//         is_active: true
+//       },
+//       include: {
+//         _count: {
+//           select: {
+//             menu_items: true
+//           }
+//         }
+//       },
+//       orderBy: {
+//         display_order: 'asc'
+//       }
+//     });
+//
+//     const tree: CategoryTreeNode[] = [];
+//
+//     for (const category of categories) {
+//       const children = await getCategoryTree(category.id);
+//
+//       tree.push({
+//         id: category.id,
+//         name: category.name,
+//         slug: category.slug,
+//         description: category.description,
+//         image_url: category.image_url,
+//         display_order: category.display_order,
+//         is_active: category.is_active,
+//         menu_items_count: category._count.menu_items,
+//         children: children.length > 0 ? children : undefined
+//       });
+//     }
+//
+//     return tree;
+//   } catch (error) {
+//     if (error instanceof Error) {
+//       throw new Error(`Failed to get category tree: ${error.message}`);
+//     }
+//     throw new Error('Failed to get category tree');
+//   }
+// };
 
 /**
  * Update category

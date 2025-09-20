@@ -857,7 +857,7 @@ export function DataTableJaptor<TData, TValue>({
     console.log(table.getRowModel().rows.map(row => row.getVisibleCells().map(cell => cell.column.getSize())))
   }
 
-  pro()
+  // pro()
 
   return (
     <Card className="p-0">

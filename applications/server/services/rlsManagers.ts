@@ -11,7 +11,7 @@ export class SupabaseRLSManager {
   constructor() {
     this.supabase = createClient(
       SUPABASE_URL,
-      process.env.EXPRESS_SUPABASE_SERVICE_KEY || SUPABASE_ANON_KEY, // Service key for admin operations
+      process.env.EXPRESS_SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY, // Service key for admin operations
       {
         auth: {
           autoRefreshToken: false,

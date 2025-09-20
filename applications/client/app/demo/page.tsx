@@ -21,6 +21,9 @@ import {
   useGraphqlFirstQuery,
   useGraphqlSecondMutation
 } from "@/state/api";
+import { FileUpload } from "@/components/forms/file-upload";
+import { deleteFile, uploadFile } from "@/utils/supabase/upload";
+import { MenuItemForm } from "@/components/elements/form-data";
 
 export default function Page() {
   const data: Payment[] = [
@@ -717,11 +720,20 @@ export default function Page() {
     // operationName: "MenuItems",
   });
 
-  console.log(menuItems)
+  const response = async () => {
+    // const response = await uploadFile(file, { folder: 'images' });
+
+    // Delete
+    await deleteFile('uploads/image.jpg', 'public');
+  }
 
   return (
     <div className="container-wrapper p-6 gap-6 space-y-6 border-none">
       {/*<FormWizard/>*/}
+      <Card>
+        <MenuItemForm />
+      </Card>
+
       <Card className="p-4 py-0">
         {/* <DataTableViewOptions table={table} /> */}
         <DataTableCustom columns={columns} data={data} />
@@ -745,6 +757,12 @@ export default function Page() {
         {/*  cancelText="Huỷ"*/}
         {/*/>*/}
       </Card>
+
+      <FileUpload
+        onUpload={(response) => console.log(response)}
+        folder="uploads"
+        bucket="waddles"
+      />
     </div>
   )
 }

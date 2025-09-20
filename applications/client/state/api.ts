@@ -161,6 +161,17 @@ export const api = createApi({
 
     // ========== JAPTOR API ENDPOINTS ==========
     // ------------------------------------------------------------------------
+    // Upload
+    // ------------------------------------------------------------------------
+    upload: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/upload",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    // ========== JAPTOR API ENDPOINTS ==========
+    // ------------------------------------------------------------------------
     // Categories CRUD
     // ------------------------------------------------------------------------
     getAllCategories: builder.query<CategoryDataColumn[], void>({
@@ -903,7 +914,8 @@ export const {
   // useGraphqlSubscription,
   // useGraphqlInfiniteQuery,
 
-  
+  useUploadMutation,
+
   // CRUD API Hooks
   // Users
   useGetAllUsersQuery,

@@ -6,8 +6,8 @@ export const CategorySchema = z.object({
   parent_id: z.string().uuid().nullable(),
   name: z.string().min(1).max(100),
   slug: z.string().min(1).max(120),
-  description: z.string().nullable(),
-  image_url: z.string().url().nullable(),
+  description: z.string().optional(),
+  image_url: z.string().url().optional(),
   display_order: z.number().int().min(0).default(0),
   is_active: z.boolean().default(true),
   created_at: z.date(),
@@ -20,8 +20,8 @@ export const CreateCategorySchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
   slug: z.string().min(1, "Slug is required").max(120, "Slug must be less than 120 characters")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase with hyphens only"),
-  description: z.string().nullable().optional(),
-  image_url: z.string().url("Invalid URL format").nullable().optional(),
+  description: z.string().optional(),
+  image_url: z.string().url("Invalid URL format").optional(),
   display_order: z.number().int().min(0).default(0).optional(),
   is_active: z.boolean().default(true).optional(),
 }).refine(async (data) => {
@@ -37,8 +37,8 @@ export const UpdateCategorySchema = z.object({
   name: z.string().min(1).max(100).optional(),
   slug: z.string().min(1).max(120)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase with hyphens only").optional(),
-  description: z.string().nullable().optional(),
-  image_url: z.string().url("Invalid URL format").nullable().optional(),
+  description: z.string().optional(),
+  image_url: z.string().url("Invalid URL format").optional(),
   display_order: z.number().int().min(0).optional(),
   is_active: z.boolean().optional(),
 });
@@ -69,8 +69,8 @@ export const CategoryTreeNodeSchema: z.ZodType<CategoryTreeNode> = z.object({
   id: z.string().uuid(),
   name: z.string(),
   slug: z.string(),
-  description: z.string().nullable(),
-  image_url: z.string().nullable(),
+  description: z.string().optional(),
+  image_url: z.string().optional(),
   display_order: z.number().int(),
   is_active: z.boolean(),
   children: z.array(z.lazy(() => CategoryTreeNodeSchema)).optional(),
@@ -82,8 +82,8 @@ export type CategoryTreeNode = {
   id: string;
   name: string;
   slug: string;
-  description: string | null;
-  image_url: string | null;
+  description?: string;
+  image_url?: string;
   display_order: number;
   is_active: boolean;
   children?: CategoryTreeNode[];
