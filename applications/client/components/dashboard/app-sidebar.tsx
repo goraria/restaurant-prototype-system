@@ -33,7 +33,8 @@ export function AppSidebar({ sidebar, global, user, ...props }: AppSidebarProps)
                 {/* <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"> */}
                   {/* <Command className="size-4" /> */}
                 {/* </div> */}
-                <Image src="/logos/logo.png" alt={global.name} width={40} height={40} />
+                {/* <Image src="/logos/logo.png" alt={global.name} width={40} height={40} /> */}
+                <Image src="/logos/icon.png" alt={global.name} width={32} height={32} />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{global.name}</span>
                   <span className="truncate text-xs">{sidebar.role}</span>
@@ -48,7 +49,7 @@ export function AppSidebar({ sidebar, global, user, ...props }: AppSidebarProps)
         <NavProjects projects={sidebar.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser user={user} type="sidebar" size="lg" side="right" align="end" />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -130,33 +130,33 @@ export const getAllMenus = async (req: Request, res: Response) => {
  * Lấy danh sách menu với filter và pagination
  */
 export const getMenus = async (req: Request, res: Response) => {
-  try {
-    // Validate query parameters
-    const result = MenuQuerySchema.safeParse(req.query);
-
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Tham số truy vấn không hợp lệ',
-        errors: result.error.issues
-      });
-    }
-
-    const menus = await getMenusService(result.data);
-
-    res.status(200).json({
-      success: true,
-      message: 'Lấy danh sách menu thành công',
-      data: menus.data,
-      pagination: menus.pagination
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy danh sách menu';
-    res.status(500).json({
-      success: false,
-      message: errorMessage
-    });
-  }
+  // try {
+  //   // Validate query parameters
+  //   const result = MenuQuerySchema.safeParse(req.query);
+  //
+  //   if (!result.success) {
+  //     return res.status(400).json({
+  //       success: false,
+  //       message: 'Tham số truy vấn không hợp lệ',
+  //       errors: result.error.issues
+  //     });
+  //   }
+  //
+  //   const menus = await getMenusService(result.data);
+  //
+  //   res.status(200).json({
+  //     success: true,
+  //     message: 'Lấy danh sách menu thành công',
+  //     data: menus.data,
+  //     pagination: menus.pagination
+  //   });
+  // } catch (error) {
+  //   const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy danh sách menu';
+  //   res.status(500).json({
+  //     success: false,
+  //     message: errorMessage
+  //   });
+  // }
 };
 
 /**
@@ -376,33 +376,33 @@ export const getMenuItemById = async (req: Request, res: Response) => {
  * Lấy danh sách món ăn với filter và pagination
  */
 export const getMenuItems = async (req: Request, res: Response) => {
-  try {
-    // Validate query parameters
-    const result = MenuItemQuerySchema.safeParse(req.query);
-
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        message: 'Tham số truy vấn không hợp lệ',
-        errors: result.error.issues
-      });
-    }
-
-    const menuItems = await getMenuItemsService(result.data);
-
-    res.status(200).json({
-      success: true,
-      message: 'Lấy danh sách món ăn thành công',
-      data: menuItems.data,
-      pagination: menuItems.pagination
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy danh sách món ăn';
-    res.status(500).json({
-      success: false,
-      message: errorMessage
-    });
-  }
+  // try {
+  //   // Validate query parameters
+  //   const result = MenuItemQuerySchema.safeParse(req.query);
+  //
+  //   if (!result.success) {
+  //     return res.status(400).json({
+  //       success: false,
+  //       message: 'Tham số truy vấn không hợp lệ',
+  //       errors: result.error.issues
+  //     });
+  //   }
+  //
+  //   const menuItems = await getMenuItemsService(result.data);
+  //
+  //   res.status(200).json({
+  //     success: true,
+  //     message: 'Lấy danh sách món ăn thành công',
+  //     data: menuItems.data,
+  //     pagination: menuItems.pagination
+  //   });
+  // } catch (error) {
+  //   const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lấy danh sách món ăn';
+  //   res.status(500).json({
+  //     success: false,
+  //     message: errorMessage
+  //   });
+  // }
 };
 
 export const getAllMenuItems = async (req: Request, res: Response) => {

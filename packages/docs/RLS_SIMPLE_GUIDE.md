@@ -13,7 +13,7 @@ Copy nội dung file `supabase/rls-simple.sql` và paste vào Supabase SQL Edito
 Đảm bảo có các variables trong `.env`:
 ```env
 EXPRESS_SUPABASE_ANON_KEY=your_anon_key
-EXPRESS_SUPABASE_SERVICE_KEY=your_service_key
+EXPRESS_SUPABASE_SERVICE_ROLE_KEY=your_service_key
 EXPRESS_SUPABASE_REALTIME=https://your-project.supabase.co
 ```
 

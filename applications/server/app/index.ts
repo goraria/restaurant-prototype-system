@@ -45,7 +45,8 @@ dotenv.config();
 // dotenv.config({ path: ".env.local" });
 
 const app: Express = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
@@ -339,7 +340,6 @@ const httpServer = http.createServer(app);
 const realtimeServices = initializeRealtimeChat(httpServer);
 export const socketService = realtimeServices.chatSocketService;
 export const supabaseRealtimeService = realtimeServices.supabaseRealtimeService;
-
 
 // ================================
 // 🚀 START SERVER WITH SOCKET.IO & GRAPHQL

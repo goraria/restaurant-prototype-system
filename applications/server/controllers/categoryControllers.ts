@@ -4,7 +4,7 @@ import {
   getCategoryById as getCategoryByIdService,
   getCategoryBySlug as getCategoryBySlugService,
   getCategories as getCategoriesService,
-  getCategoryTree as getCategoryTreeService,
+  // getCategoryTree as getCategoryTreeService,
   updateCategory as updateCategoryService,
   deleteCategory as deleteCategoryService,
   hardDeleteCategory as hardDeleteCategoryService,
@@ -180,25 +180,25 @@ export const getCategories = async (req: Request, res: Response) => {
  * Get category tree (hierarchical structure)
  */
 export const getCategoryTree = async (req: Request, res: Response) => {
-  try {
-    const { parent_id } = req.query;
-    
-    const tree = await getCategoryTreeService(
-      parent_id ? String(parent_id) : null
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Category tree retrieved successfully',
-      data: tree
-    });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to get category tree';
-    res.status(500).json({
-      success: false,
-      message: errorMessage
-    });
-  }
+  // try {
+  //   const { parent_id } = req.query;
+  //
+  //   const tree = await getCategoryTreeService(
+  //     parent_id ? String(parent_id) : null
+  //   );
+  //
+  //   res.status(200).json({
+  //     success: true,
+  //     message: 'Category tree retrieved successfully',
+  //     data: tree
+  //   });
+  // } catch (error) {
+  //   const errorMessage = error instanceof Error ? error.message : 'Failed to get category tree';
+  //   res.status(500).json({
+  //     success: false,
+  //     message: errorMessage
+  //   });
+  // }
 };
 
 /**

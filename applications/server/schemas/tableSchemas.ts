@@ -21,19 +21,19 @@ export const TableSchema = z.object({
 export const CreateTableSchema = z.object({
   restaurant_id: z.string().uuid("ID nhà hàng phải là UUID hợp lệ"),
   table_number: z.string().min(1, "Số bàn là bắt buộc").max(20, "Số bàn không được quá 20 ký tự"),
-  capacity: z.number().int().min(1, "Sức chứa phải từ 1 người trở lên").max(50, "Sức chứa không được quá 50 người"),
-  location: z.string().max(50, "Vị trí không được quá 50 ký tự").nullable().optional(),
-  status: z.enum(['available', 'occupied', 'reserved', 'maintenance', 'out_of_order']).default('available').optional(),
-  qr_code: z.string().max(255, "Mã QR không được quá 255 ký tự").nullable().optional(),
+  capacity: z.number().int().min(1, "Sức chứa phải từ 1 người trở lên").max(50, "Sức chứa không được quá 50 người").default(4),
+  location: z.string().max(50, "Vị trí không được quá 50 ký tự").optional(),
+  status: z.enum(['available', 'occupied', 'reserved', 'maintenance', 'out_of_order']).default('available'),
+  qr_code: z.string().max(255, "Mã QR không được quá 255 ký tự").optional(),
 });
 
 // Update table schema
 export const UpdateTableSchema = z.object({
   table_number: z.string().min(1, "Số bàn là bắt buộc").max(20, "Số bàn không được quá 20 ký tự").optional(),
   capacity: z.number().int().min(1, "Sức chứa phải từ 1 người trở lên").max(50, "Sức chứa không được quá 50 người").optional(),
-  location: z.string().max(50, "Vị trí không được quá 50 ký tự").nullable().optional(),
+  location: z.string().max(50, "Vị trí không được quá 50 ký tự").optional(),
   status: z.enum(['available', 'occupied', 'reserved', 'maintenance', 'out_of_order']).optional(),
-  qr_code: z.string().max(255, "Mã QR không được quá 255 ký tự").nullable().optional(),
+  qr_code: z.string().max(255, "Mã QR không được quá 255 ký tự").optional(),
 });
 
 // Table query schema

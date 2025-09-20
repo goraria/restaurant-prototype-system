@@ -267,7 +267,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 ```env
 EXPRESS_CLERK_WEBHOOK_SECRET=whsec_your_webhook_secret
 EXPRESS_SUPABASE_URL=https://your-project.supabase.co
-EXPRESS_SUPABASE_SERVICE_KEY=your_service_role_key
+EXPRESS_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
 ### Environment Variables (Clients)
