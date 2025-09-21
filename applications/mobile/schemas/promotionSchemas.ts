@@ -40,6 +40,28 @@ export const CreateVoucherSchema = z.object({
     .default(true)
 });
 
+// ================================
+// 🎟️ VOUCHER & PROMOTION SCHEMAS
+// ================================
+
+// Base Promotion Schema (matches Prisma model exactly)
+export const PromotionSchema = z.object({
+  id: z.string().uuid(),
+  restaurant_id: z.string().uuid(),
+  name: z.string().min(1).max(100),
+  description: z.string().optional(),
+  type: z.enum(['percentage', 'fixed_amount', 'buy_one_get_one', 'combo_deal', 'happy_hour', 'seasonal']),
+  discount_value: z.number().min(0), // Decimal(12,2) from database
+  conditions: z.any().optional(), // Json field
+  applicable_items: z.array(z.string()), // String array
+  time_restrictions: z.any().optional(), // Json field
+  start_date: z.date(),
+  end_date: z.date(),
+  is_active: z.boolean().default(true),
+  created_at: z.date(),
+  updated_at: z.date(),
+});
+
 // Promotion schemas
 export const CreatePromotionSchema = z.object({
   restaurant_id: z.string()
@@ -52,29 +74,14 @@ export const CreatePromotionSchema = z.object({
     .optional(),
   type: z.enum(['percentage', 'fixed_amount', 'buy_one_get_one', 'combo_deal', 'happy_hour', 'seasonal']),
   discount_value: z.number()
-    .min(0, 'Giá trị giảm giá phải lớn hơn 0'),
-  conditions: z.object({
-    min_order_value: z.number().min(0).optional(),
-    min_quantity: z.number().min(1).optional(),
-    customer_type: z.enum(['all', 'new', 'vip', 'birthday']).optional(),
-    day_of_week: z.array(z.number().min(0).max(6)).optional(), // 0-6 for Sun-Sat
-    order_type: z.enum(['dine_in', 'takeaway', 'delivery']).optional()
-  }).optional(),
-  applicable_items: z.array(z.string().uuid('ID món ăn không hợp lệ'))
-    .optional()
-    .default([]),
-  time_restrictions: z.object({
-    start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Giờ bắt đầu không hợp lệ (HH:mm)').optional(),
-    end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Giờ kết thúc không hợp lệ (HH:mm)').optional(),
-    days_of_week: z.array(z.number().min(0).max(6)).optional(),
-    exclude_holidays: z.boolean().optional().default(false)
-  }).optional(),
-  start_date: z.string()
-    .datetime('Ngày bắt đầu không hợp lệ'),
-  end_date: z.string()
-    .datetime('Ngày kết thúc không hợp lệ'),
+    .min(0, 'Giá trị giảm giá phải lớn hơn hoặc bằng 0'),
+  conditions: z.any().optional(), // Json field for flexible conditions
+  applicable_items: z.array(z.string())
+    .default([]), // Array of item IDs (strings)
+  time_restrictions: z.any().optional(), // Json field for time restrictions
+  start_date: z.date('Ngày bắt đầu không hợp lệ'),
+  end_date: z.date('Ngày kết thúc không hợp lệ'),
   is_active: z.boolean()
-    .optional()
     .default(true)
 });
 

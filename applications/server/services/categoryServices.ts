@@ -369,6 +369,43 @@ export const updateCategory = async (id: string, data: UpdateCategory) => {
   }
 };
 
+export async function updateStatusCategory(id: string, data: { is_active: boolean }) {
+  try {
+    // Check if category exists
+    const existingCategory = await prisma.categories.findUnique({
+      where: { id }
+    });
+
+    if (!existingCategory) {
+      throw new Error('Category not found');
+    }
+    
+    const category = await prisma.categories.update({
+      where: { id },
+      data: {
+        ...data,
+        updated_at: new Date()
+      },
+      include: {
+        parent_category: true,
+        child_categories: true,
+        _count: {
+          select: {
+            menu_items: true
+          }
+        }
+      }
+    });
+
+    return formatCategory(category);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to update category: ${error.message}`);
+    }
+    throw new Error('Failed to update category');
+  }
+}
+
 /**
  * Delete category (soft delete by setting is_active to false)
  */

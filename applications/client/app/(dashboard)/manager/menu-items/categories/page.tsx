@@ -6,12 +6,10 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow
@@ -22,8 +20,18 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -39,38 +47,36 @@ import {
   DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import {
-  Plus,
   Search,
   MoreHorizontal,
   Edit,
   Trash2,
-  Eye,
   FolderTree,
-  ImageIcon,
-  XCircle, CheckCircle,
-  Clock, Utensils
+  Clock,
+  Utensils
 } from 'lucide-react';
-import { DataTable, DataTableSortButton, DataTableColumnHeader } from '@/components/elements/data-table';
+import {
+  DataTable,
+  DataTableSortButton
+} from '@/components/elements/data-table';
+import { CategoryForm } from "@/components/elements/form-data";
 import { toast } from 'sonner';
-import { formatCurrency } from '@/utils/format-utils';
-import { CategoryDataColumn } from '@/constants/interfaces';
-import { useGetAllCategoriesQuery } from "@/state/api";
+import { CategoryDataColumn, CategoryInterface } from '@/constants/interfaces';
+import {
+  useGetAllCategoriesQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useUpdateStatusCategoryMutation,
+  useDeleteCategoryMutation,
+  useDeleteHardCategoryMutation
+} from "@/state/api";
 
 export default function CategoriesPage() {
   // const [categories, setCategories] = useState();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryDataColumn | null>(null);
-
-  const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    image_url: '',
-    display_order: 0,
-    is_active: true,
-    parent_id: null
-  });
+  const [deletingCategory, setDeletingCategory] = useState<CategoryDataColumn | null>(null);
 
   const {
     data: categories = [],
@@ -79,97 +85,15 @@ export default function CategoriesPage() {
     refetch: refetchCategories
   } = useGetAllCategoriesQuery();
 
-  // Mock data based on database schema
-  const data: CategoryDataColumn[] = [
-    {
-      id: '1',
-      name: 'Món chính',
-      slug: 'mon-chinh',
-      description: 'Các món ăn chính của nhà hàng',
-      image_url: null,
-      display_order: 1,
-      is_active: true,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z',
-      parent_category: null,
-      child_categories: [],
-      _count: {
-        "menu_items": 20
-      },
-      // menu_items_count: 20
-    },
-    {
-      id: '4',
-      name: 'Đồ uống',
-      slug: 'do-uong',
-      description: 'Các loại thức uống',
-      image_url: null,
-      display_order: 2,
-      is_active: true,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z',
-      parent_category: null,
-      child_categories: [
-        {
-          id: "27f315ff-50bc-4f62-8cd4-c0e53530352b",
-          name: "Âu",
-          slug: "western",
-          description: null,
-          created_at: "2025-09-07T16:34:28.013Z",
-          display_order: 0,
-          image_url: null,
-          is_active: true,
-          parent_id: null,
-          updated_at: "2025-09-07T16:34:28.013Z",
-          parent_category: null,
-          child_categories: [],
-          _count: {
-            "menu_items": 10
-          },
-          // menu_items_count: 10
-        },
-      ],
-      _count: {
-        "menu_items": 20
-      },
-      // menu_items_count: 20
-    },
-    {
-      id: '7',
-      name: 'Tráng miệng',
-      slug: 'trang-mieng',
-      description: 'Các món tráng miệng ngọt ngào',
-      image_url: null,
-      display_order: 3,
-      is_active: false,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z',
-      parent_category: null,
-      child_categories: [],
-      _count: {
-        "menu_items": 20
-      },
-      // menu_items_count: 20
-    },
-    {
-      id: "036cfab9-6a79-43e8-be09-e1ef41f96743",
-      name: "Tráng Miệng",
-      slug: "dessert",
-      description: null,
-      created_at: "2025-09-07T16:34:28.862Z",
-      display_order: 0,
-      image_url: null,
-      is_active: false,
-      parent_id: null,
-      updated_at: "2025-09-07T16:34:28.862Z",
-      parent_category: null,
-      child_categories: [],
-      _count: {
-        "menu_items": 20
-      },
-      // menu_items_count: 20
-    }
-  ];
+  // Mutations
+  const [
+    createCategory,
+    { isLoading: isCreating }
+  ] = useCreateCategoryMutation();
+  const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
+  const [updateStatusCategory, { isLoading: isUpdatingStatus }] = useUpdateStatusCategoryMutation();
+  const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
+  const [deleteHardCategory, { isLoading: isDeletingHard }] = useDeleteHardCategoryMutation();
 
   const columns: ColumnDef<CategoryDataColumn, unknown>[] = [
     {
@@ -243,7 +167,11 @@ export default function CategoriesPage() {
       cell: ({ row }) => {
         return (
           <div className="flex items-center justify-center">
-            <Switch checked={row.original.is_active} onCheckedChange={() => {}}/>
+            <Switch 
+              checked={row.original.is_active} 
+              onCheckedChange={(checked) => handleToggleStatus(row.original.id, checked)}
+              disabled={isUpdatingStatus}
+            />
           </div>
         )
       },
@@ -282,7 +210,7 @@ export default function CategoriesPage() {
       enableResizing: false,
       size: 64, // Width cho Actions column
       cell: ({ row }) => {
-        const payment = row.original
+        const r = row.original
 
         return (
           <DropdownMenu>
@@ -301,21 +229,21 @@ export default function CategoriesPage() {
             <DropdownMenuContent align="end">
               {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(payment.id)}
+                onClick={() => navigator.clipboard.writeText(r.id)}
               >
                 Sao chép ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => openEditDialog(payment)}
+                onClick={() => openEditDialog(r)}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Chỉnh sửa
               </DropdownMenuItem>
               {/*<DropdownMenuItem*/}
-              {/*  onClick={() => handleToggleAvailability(payment)}*/}
+              {/*  onClick={() => handleToggleAvailability(r)}*/}
               {/*>*/}
-              {/*  {payment.is_available ? (*/}
+              {/*  {r.is_available ? (*/}
               {/*    <>*/}
               {/*      <XCircle className="mr-2 h-4 w-4" />*/}
               {/*      Tắt trạng thái*/}
@@ -337,7 +265,7 @@ export default function CategoriesPage() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                // onClick={() => openDeleteDialog(payment)}
+                onClick={() => setDeletingCategory(r)}
                 variant="destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -365,287 +293,299 @@ export default function CategoriesPage() {
     },
   ]
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      slug: '',
-      description: '',
-      image_url: '',
-      display_order: 0,
-      is_active: true,
-      parent_id: null
-    });
-    setEditingCategory(null);
-  };
-
-  const openCreateDialog = () => {
-    resetForm();
-    setIsDialogOpen(true);
-  };
-
   const openEditDialog = (category: CategoryDataColumn) => {
     setEditingCategory(category);
-    // setFormData({
-    //   name: category.name,
-    //   slug: category.slug,
-    //   description: category.description || '',
-    //   image_url: category.image_url || '',
-    //   display_order: category.display_order,
-    //   is_active: category.is_active,
-    //   parent_id: category.parent_id
-    // });
     setIsDialogOpen(true);
   };
 
-  const renderCategoryRow = (category: CategoryDataColumn, isChild = false) => (
-    <TableRow key={category.id} className={isChild ? 'bg-muted/50' : ''}>
-      <TableCell className="font-medium">
-        <div className="flex items-center gap-3">
-          {isChild && <div className="w-4 h-4 border-l border-b border-muted-foreground/30 ml-4" />}
-          {category.image_url ? (
-            <div className="relative w-12 h-12 rounded-lg overflow-hidden">
-              <Image
-                src={category.image_url}
-                alt={category.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-              <ImageIcon className="w-6 h-6 text-muted-foreground" />
-            </div>
-          )}
-          <div>
-            <div className="font-semibold">{category.name}</div>
-            <div className="text-sm text-muted-foreground">{category.slug}</div>
-          </div>
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="max-w-xs">
-          {category.description && (
-            <p className="text-sm text-muted-foreground truncate">
-              {category.description}
-            </p>
-          )}
-        </div>
-      </TableCell>
-      <TableCell className="text-center">
-        {category.display_order}
-      </TableCell>
-      <TableCell>
-        <Badge variant={category.is_active ? 'default' : 'secondary'}>
-          {category.is_active ? 'Hoạt động' : 'Tạm dừng'}
-        </Badge>
-      </TableCell>
-      <TableCell className="text-center">
-        {category.child_categories?.length || 0}
-      </TableCell>
-      <TableCell>
-        <div className="text-sm text-muted-foreground">
-          {new Date(category.created_at || '').toLocaleDateString('vi-VN')}
-        </div>
-      </TableCell>
-      <TableCell>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => openEditDialog(category)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Chỉnh sửa
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              Xem chi tiết
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              // onClick={() => handleDelete(category.id)}
-              className="text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Xóa
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TableCell>
-    </TableRow>
-  );
+  // CRUD Handlers
+  const handleCreateCategory = async (categoryData: CategoryInterface) => {
+    try {
+      await createCategory(categoryData).unwrap();
+      toast.success('Tạo danh mục thành công');
+      setIsDialogOpen(false);
+      refetchCategories();
+    } catch (error) {
+      console.error('Error creating category:', error);
+      toast.error('Có lỗi xảy ra khi tạo danh mục');
+    }
+  };
+
+  const handleUpdateCategory = async (categoryData: Partial<CategoryInterface>) => {
+    if (!editingCategory) return;
+
+    try {
+      await updateCategory({
+        id: editingCategory.id,
+        data: categoryData
+      }).unwrap();
+      toast.success('Cập nhật danh mục thành công');
+      setIsDialogOpen(false);
+      setEditingCategory(null);
+      refetchCategories();
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật danh mục');
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      await deleteCategory(categoryId).unwrap();
+      toast.success('Xóa danh mục thành công');
+      refetchCategories();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast.error('Có lỗi xảy ra khi xóa danh mục');
+    }
+  };
+
+  const handleDeleteHardCategory = async (categoryId: string) => {
+    try {
+      await deleteHardCategory(categoryId).unwrap();
+      toast.success('Xóa vĩnh viễn danh mục thành công');
+      refetchCategories();
+    } catch (error) {
+      console.error('Error hard deleting category:', error);
+      toast.error('Có lỗi xảy ra khi xóa vĩnh viễn danh mục');
+    }
+  };
+
+  const handleToggleStatus = async (categoryId: string, isActive: boolean) => {
+    try {
+      await updateStatusCategory({
+        id: categoryId,
+        status: { is_active: isActive }
+      }).unwrap();
+      toast.success(`Danh mục đã được ${isActive ? 'kích hoạt' : 'vô hiệu hóa'}`);
+      refetchCategories();
+    } catch (error) {
+      console.error('Error updating category status:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái danh mục');
+    }
+  };
+
+  const handleFormSuccess = (data: CategoryInterface) => {
+    if (editingCategory) {
+      handleUpdateCategory(data);
+    } else {
+      handleCreateCategory(data);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/*<div className="flex items-center justify-between">*/}
-      {/*  <div>*/}
-      {/*    <h1 className="text-3xl font-bold tracking-tight">Quản lý phân loại</h1>*/}
-      {/*    <p className="text-muted-foreground">*/}
-      {/*      Quản lý các danh mục món ăn và phân loại thực đơn*/}
-      {/*    </p>*/}
-      {/*  </div>*/}
-      {/*  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>*/}
-      {/*    <DialogTrigger asChild>*/}
-      {/*      <Button onClick={openCreateDialog}>*/}
-      {/*        <Plus className="mr-2 h-4 w-4" />*/}
-      {/*        Thêm danh mục*/}
-      {/*      </Button>*/}
-      {/*    </DialogTrigger>*/}
-      {/*    <DialogContent className="sm:max-w-[525px]">*/}
-      {/*      <DialogHeader>*/}
-      {/*        <DialogTitle>*/}
-      {/*          {editingCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}*/}
-      {/*        </DialogTitle>*/}
-      {/*        <DialogDescription>*/}
-      {/*          {editingCategory*/}
-      {/*            ? 'Cập nhật thông tin danh mục món ăn'*/}
-      {/*            : 'Tạo danh mục mới cho món ăn trong thực đơn'*/}
-      {/*          }*/}
-      {/*        </DialogDescription>*/}
-      {/*      </DialogHeader>*/}
-      {/*      <div className="grid gap-4 py-4">*/}
-      {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
-      {/*          <Label htmlFor="name" className="text-right">*/}
-      {/*            Tên danh mục*/}
-      {/*          </Label>*/}
-      {/*          <Input*/}
-      {/*            id="name"*/}
-      {/*            value={formData.name}*/}
-      {/*            onChange={(e) => setFormData({ ...formData, name: e.target.value })}*/}
-      {/*            className="col-span-3"*/}
-      {/*          />*/}
-      {/*        </div>*/}
-      {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
-      {/*          <Label htmlFor="slug" className="text-right">*/}
-      {/*            Slug*/}
-      {/*          </Label>*/}
-      {/*          <Input*/}
-      {/*            id="slug"*/}
-      {/*            value={formData.slug}*/}
-      {/*            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}*/}
-      {/*            className="col-span-3"*/}
-      {/*          />*/}
-      {/*        </div>*/}
-      {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
-      {/*          <Label htmlFor="description" className="text-right">*/}
-      {/*            Mô tả*/}
-      {/*          </Label>*/}
-      {/*          <Textarea*/}
-      {/*            id="description"*/}
-      {/*            value={formData.description}*/}
-      {/*            onChange={(e) => setFormData({ ...formData, description: e.target.value })}*/}
-      {/*            className="col-span-3"*/}
-      {/*          />*/}
-      {/*        </div>*/}
-      {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
-      {/*          <Label htmlFor="image_url" className="text-right">*/}
-      {/*            URL hình ảnh*/}
-      {/*          </Label>*/}
-      {/*          <Input*/}
-      {/*            id="image_url"*/}
-      {/*            value={formData.image_url}*/}
-      {/*            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}*/}
-      {/*            className="col-span-3"*/}
-      {/*          />*/}
-      {/*        </div>*/}
-      {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
-      {/*          <Label htmlFor="display_order" className="text-right">*/}
-      {/*            Thứ tự hiển thị*/}
-      {/*          </Label>*/}
-      {/*          <Input*/}
-      {/*            id="display_order"*/}
-      {/*            type="number"*/}
-      {/*            value={formData.display_order}*/}
-      {/*            onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}*/}
-      {/*            className="col-span-3"*/}
-      {/*          />*/}
-      {/*        </div>*/}
-      {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
-      {/*          <Label htmlFor="is_active" className="text-right">*/}
-      {/*            Hoạt động*/}
-      {/*          </Label>*/}
-      {/*          <Switch*/}
-      {/*            id="is_active"*/}
-      {/*            checked={formData.is_active}*/}
-      {/*            onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}*/}
-      {/*          />*/}
-      {/*        </div>*/}
-      {/*      </div>*/}
-      {/*      <div className="flex justify-end gap-2">*/}
-      {/*        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>*/}
-      {/*          Hủy*/}
-      {/*        </Button>*/}
-      {/*        <Button*/}
-      {/*          // onClick={editingCategory ? handleUpdate : handleCreate}*/}
-      {/*        >*/}
-      {/*          {editingCategory ? 'Cập nhật' : 'Tạo mới'}*/}
-      {/*        </Button>*/}
-      {/*      </div>*/}
-      {/*    </DialogContent>*/}
-      {/*  </Dialog>*/}
-      {/*</div>*/}
+    <>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      >
+        <DialogContent className="">
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingCategory
+                ? 'Cập nhật thông tin danh mục món ăn'
+                : 'Tạo danh mục mới cho món ăn trong thực đơn'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <CategoryForm
+            mode={editingCategory ? "update" : "create"}
+            initialValues={editingCategory || undefined}
+            onSuccess={handleFormSuccess}
+            onCancel={() => {
+              setIsDialogOpen(false);
+              setEditingCategory(null);
+            }}
+            submitText={editingCategory ? "Cập nhật" : "Tạo mới"}
+            isLoading={isCreating || isUpdating}
+          />
+        </DialogContent>
+      </Dialog>
 
-      <DataTable
-        columns={columns}
-        data={categories}
-        // order={["select", "menu-item"]}
-        search={{
-          column: "name",
-          placeholder: "Tìm kiếm danh mục..."
-        }}
-        max="name"
-        filter={[]}
-      />
+      <AlertDialog open={!!deletingCategory} onOpenChange={() => setDeletingCategory(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa danh mục</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa danh mục &quot;{deletingCategory?.name}&quot; không? 
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deletingCategory) {
+                  // handleDeleteCategory(deletingCategory.id);
+                  deleteHardCategory(deletingCategory.id);
+                  setDeletingCategory(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FolderTree className="h-5 w-5" />
-            Danh sách phân loại
-          </CardTitle>
-          <CardDescription>
-            Quản lý các danh mục và phân loại món ăn trong hệ thống
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm kiếm danh mục..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
+      <div className="space-y-6">
+        {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
+        {/*          <Label htmlFor="name" className="text-right">*/}
+        {/*            Tên danh mục*/}
+        {/*          </Label>*/}
+        {/*          <Input*/}
+        {/*            id="name"*/}
+        {/*            value={formData.name}*/}
+        {/*            onChange={(e) => setFormData({ ...formData, name: e.target.value })}*/}
+        {/*            className="col-span-3"*/}
+        {/*          />*/}
+        {/*        </div>*/}
+        {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
+        {/*          <Label htmlFor="slug" className="text-right">*/}
+        {/*            Slug*/}
+        {/*          </Label>*/}
+        {/*          <Input*/}
+        {/*            id="slug"*/}
+        {/*            value={formData.slug}*/}
+        {/*            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}*/}
+        {/*            className="col-span-3"*/}
+        {/*          />*/}
+        {/*        </div>*/}
+        {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
+        {/*          <Label htmlFor="description" className="text-right">*/}
+        {/*            Mô tả*/}
+        {/*          </Label>*/}
+        {/*          <Textarea*/}
+        {/*            id="description"*/}
+        {/*            value={formData.description}*/}
+        {/*            onChange={(e) => setFormData({ ...formData, description: e.target.value })}*/}
+        {/*            className="col-span-3"*/}
+        {/*          />*/}
+        {/*        </div>*/}
+        {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
+        {/*          <Label htmlFor="image_url" className="text-right">*/}
+        {/*            URL hình ảnh*/}
+        {/*          </Label>*/}
+        {/*          <Input*/}
+        {/*            id="image_url"*/}
+        {/*            value={formData.image_url}*/}
+        {/*            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}*/}
+        {/*            className="col-span-3"*/}
+        {/*          />*/}
+        {/*        </div>*/}
+        {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
+        {/*          <Label htmlFor="display_order" className="text-right">*/}
+        {/*            Thứ tự hiển thị*/}
+        {/*          </Label>*/}
+        {/*          <Input*/}
+        {/*            id="display_order"*/}
+        {/*            type="number"*/}
+        {/*            value={formData.display_order}*/}
+        {/*            onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}*/}
+        {/*            className="col-span-3"*/}
+        {/*          />*/}
+        {/*        </div>*/}
+        {/*        <div className="grid grid-cols-4 items-center gap-4">*/}
+        {/*          <Label htmlFor="is_active" className="text-right">*/}
+        {/*            Hoạt động*/}
+        {/*          </Label>*/}
+        {/*          <Switch*/}
+        {/*            id="is_active"*/}
+        {/*            checked={formData.is_active}*/}
+        {/*            onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}*/}
+        {/*          />*/}
+        {/*        </div>*/}
+        {/*      </div>*/}
+        {/*      <div className="flex justify-end gap-2">*/}
+        {/*        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>*/}
+        {/*          Hủy*/}
+        {/*        </Button>*/}
+        {/*        <Button*/}
+        {/*          // onClick={editingCategory ? handleUpdate : handleCreate}*/}
+        {/*        >*/}
+        {/*          {editingCategory ? 'Cập nhật' : 'Tạo mới'}*/}
+        {/*        </Button>*/}
+        {/*      </div>*/}
+        {/*    </DialogContent>*/}
+        {/*  </Dialog>*/}
+        {/*</div>*/}
+
+        <DataTable
+          columns={columns}
+          data={categories}
+          // order={["select", "menu-item"]}
+          search={{
+            column: "name",
+            placeholder: "Tìm kiếm danh mục..."
+          }}
+          max="name"
+          filter={[]}
+          onCreate={() => {
+            setEditingCategory(null);
+            setIsDialogOpen(true);
+          }}
+          onChange={() => {}}
+          onReload={refetchCategories}
+          onDownload={() => {}}
+          onUpdate={(category: CategoryDataColumn) => {
+            setEditingCategory(category);
+            setIsDialogOpen(true);
+          }}
+        />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FolderTree className="h-5 w-5" />
+              Danh sách phân loại
+            </CardTitle>
+            <CardDescription>
+              Quản lý các danh mục và phân loại món ăn trong hệ thống
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Tìm kiếm danh mục..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
             </div>
-          </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tên danh mục</TableHead>
-                <TableHead>Mô tả</TableHead>
-                <TableHead className="text-center">Thứ tự</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead className="text-center">Danh mục con</TableHead>
-                <TableHead>Ngày tạo</TableHead>
-                <TableHead className="text-right">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/*{filteredCategories.map((category) => (*/}
-              {/*  <React.Fragment key={category.id}>*/}
-              {/*    {renderCategoryRow(category)}*/}
-              {/*    {category.child_categories?.map((child) =>*/}
-              {/*      renderCategoryRow(child, true)*/}
-              {/*    )}*/}
-              {/*  </React.Fragment>*/}
-              {/*))}*/}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tên danh mục</TableHead>
+                  <TableHead>Mô tả</TableHead>
+                  <TableHead className="text-center">Thứ tự</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-center">Danh mục con</TableHead>
+                  <TableHead>Ngày tạo</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/*{filteredCategories.map((category) => (*/}
+                {/*  <React.Fragment key={category.id}>*/}
+                {/*    {renderCategoryRow(category)}*/}
+                {/*    {category.child_categories?.map((child) =>*/}
+                {/*      renderCategoryRow(child, true)*/}
+                {/*    )}*/}
+                {/*  </React.Fragment>*/}
+                {/*))}*/}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }

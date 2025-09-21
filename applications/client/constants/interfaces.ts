@@ -84,7 +84,7 @@ export interface DataTableProps<TData, TValue> {
   onReload?: () => void
   onDownload?: () => void
   onCreate?: () => void
-  onUpdate?: () => void
+  onUpdate?: (category: CategoryDataColumn) => void
   onChange?: () => void
 }
 

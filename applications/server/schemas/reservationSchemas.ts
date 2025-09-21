@@ -5,65 +5,79 @@ import { z } from 'zod';
 // ================================
 
 // Base Reservation Schema
+export const ReservationSchema = z.object({
+  id: z.string().uuid(),
+  table_id: z.string().uuid(),
+  customer_id: z.string().uuid().optional(),
+  customer_name: z.string().min(1).max(100),
+  customer_phone: z.string().min(1).max(20),
+  customer_email: z.string().email().max(255).optional(),
+  party_size: z.number().int().min(1),
+  reservation_date: z.date(),
+  duration_hours: z.number().min(0.25).max(24),
+  status: z.enum(['pending', 'confirmed', 'seated', 'completed', 'cancelled', 'no_show']),
+  special_requests: z.string().optional(),
+  notes: z.string().optional(),
+  created_at: z.date(),
+  updated_at: z.date(),
+});
+
+// Create Reservation Schema
 export const CreateReservationSchema = z.object({
   table_id: z.string().uuid("ID bàn không hợp lệ"),
   customer_id: z.string().uuid("ID khách hàng không hợp lệ").optional(),
   customer_name: z.string()
-    .min(2, "Tên khách hàng phải có ít nhất 2 ký tự")
+    .min(1, "Tên khách hàng là bắt buộc")
     .max(100, "Tên khách hàng không được quá 100 ký tự"),
   customer_phone: z.string()
-    .regex(/^(\+84|0)[0-9]{9,10}$/, "Số điện thoại không hợp lệ"),
+    .min(1, "Số điện thoại là bắt buộc")
+    .max(20, "Số điện thoại không được quá 20 ký tự"),
   customer_email: z.string()
     .email("Email không hợp lệ")
+    .max(255, "Email không được quá 255 ký tự")
     .optional(),
   party_size: z.number()
+    .int("Số người phải là số nguyên")
     .min(1, "Số người phải ít nhất 1")
-    .max(20, "Số người không được quá 20"),
-  reservation_date: z.string()
-    .datetime("Thời gian đặt bàn không hợp lệ")
-    .refine((date) => new Date(date) > new Date(), "Thời gian đặt bàn phải trong tương lai"),
+    .max(50, "Số người không được quá 50"),
+  reservation_date: z.date("Thời gian đặt bàn không hợp lệ")
+    .refine((date) => date > new Date(), "Thời gian đặt bàn phải trong tương lai"),
   duration_hours: z.number()
-    .min(0.5, "Thời gian tối thiểu 30 phút")
-    .max(8, "Thời gian tối đa 8 tiếng")
+    .min(0.25, "Thời gian tối thiểu 15 phút")
+    .max(24, "Thời gian tối đa 24 tiếng")
     .default(2),
-  special_requests: z.string()
-    .max(500, "Yêu cầu đặc biệt không được quá 500 ký tự")
-    .optional(),
-  notes: z.string()
-    .max(1000, "Ghi chú không được quá 1000 ký tự")
-    .optional()
+  special_requests: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 // Update Reservation Schema
 export const UpdateReservationSchema = z.object({
   customer_name: z.string()
-    .min(2, "Tên khách hàng phải có ít nhất 2 ký tự")
+    .min(1, "Tên khách hàng là bắt buộc")
     .max(100, "Tên khách hàng không được quá 100 ký tự")
     .optional(),
   customer_phone: z.string()
-    .regex(/^(\+84|0)[0-9]{9,10}$/, "Số điện thoại không hợp lệ")
+    .min(1, "Số điện thoại là bắt buộc")
+    .max(20, "Số điện thoại không được quá 20 ký tự")
     .optional(),
   customer_email: z.string()
     .email("Email không hợp lệ")
+    .max(255, "Email không được quá 255 ký tự")
     .optional(),
   party_size: z.number()
+    .int("Số người phải là số nguyên")
     .min(1, "Số người phải ít nhất 1")
-    .max(20, "Số người không được quá 20")
+    .max(50, "Số người không được quá 50")
     .optional(),
-  reservation_date: z.string()
-    .datetime("Thời gian đặt bàn không hợp lệ")
-    .refine((date) => new Date(date) > new Date(), "Thời gian đặt bàn phải trong tương lai")
+  reservation_date: z.date("Thời gian đặt bàn không hợp lệ")
+    .refine((date) => date > new Date(), "Thời gian đặt bàn phải trong tương lai")
     .optional(),
   duration_hours: z.number()
-    .min(0.5, "Thời gian tối thiểu 30 phút")
-    .max(8, "Thời gian tối đa 8 tiếng")
+    .min(0.25, "Thời gian tối thiểu 15 phút")
+    .max(24, "Thời gian tối đa 24 tiếng")
     .optional(),
-  special_requests: z.string()
-    .max(500, "Yêu cầu đặc biệt không được quá 500 ký tự")
-    .optional(),
-  notes: z.string()
-    .max(1000, "Ghi chú không được quá 1000 ký tự")
-    .optional()
+  special_requests: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 // Reservation Status Update Schema
