@@ -1,5 +1,19 @@
 import { z } from 'zod';
 
+// Interface
+// export interface Category {
+//   id: string;
+//   parent_id: string | null;
+//   name: string;
+//   slug: string;
+//   description: string | null;
+//   image_url: string | null;
+//   display_order: number;
+//   is_active: boolean;
+//   created_at: Date;
+//   updated_at: Date;
+// }
+
 // Base category schema
 export const CategorySchema = z.object({
   id: z.string().uuid(),

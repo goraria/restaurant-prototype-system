@@ -180,6 +180,52 @@ export const api = createApi({
       }),
       providesTags: ["Categories"],
     }),
+    getCategoryById: builder.query<any, string>({
+      query: (id) => ({
+        url: `/category/${id}`
+      }),
+      providesTags: ["Categories"],
+    }),
+    createCategory: builder.mutation<any, any>({
+      query: (data) => ({
+        url: `/category`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Categories"],
+    }),
+    updateCategory: builder.mutation<
+      any,
+      { id: string; data: any; }
+    >({
+      query: ({ id, data }) => ({
+        url: `/category/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Categories"],
+    }),
+    updateStatusCategory: builder.mutation<any, { id: string, status: { is_active: boolean } }>({
+      query: ({ id, status }) => ({
+        url: `/category/${id}`,
+        method: "PATCH",
+        body: status,
+      })
+    }),
+    deleteCategory: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/category/${id}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Categories"],
+    }),
+    deleteHardCategory: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/category/hard/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Categories"],
+    }),
     // ------------------------------------------------------------------------
     // Menus CRUD
     // ------------------------------------------------------------------------
@@ -940,6 +986,12 @@ export const {
 
   // Categories
   useGetAllCategoriesQuery,
+  useGetCategoryByIdQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useUpdateStatusCategoryMutation,
+  useDeleteCategoryMutation,
+  useDeleteHardCategoryMutation,
 
   // Menus
   useGetAllMenusQuery,

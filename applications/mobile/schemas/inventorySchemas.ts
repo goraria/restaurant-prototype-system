@@ -9,30 +9,30 @@ export const InventoryItemSchema = z.object({
   id: z.string().uuid('ID nguyên liệu không hợp lệ'),
   restaurant_id: z.string().uuid('ID nhà hàng không hợp lệ'),
   name: z.string().min(1, 'Tên nguyên liệu không được để trống').max(100, 'Tên nguyên liệu không quá 100 ký tự'),
-  description: z.string().max(500, 'Mô tả không quá 500 ký tự').optional(),
+  description: z.string().optional(),
   unit: z.string().min(1, 'Đơn vị tính không được để trống').max(20, 'Đơn vị tính không quá 20 ký tự'),
   quantity: z.number().min(0, 'Số lượng không được âm'),
   min_quantity: z.number().min(0, 'Số lượng tối thiểu không được âm').optional(),
   max_quantity: z.number().min(0, 'Số lượng tối đa không được âm').optional(),
   unit_cost: z.number().min(0, 'Giá đơn vị không được âm').optional(),
   supplier: z.string().max(100, 'Tên nhà cung cấp không quá 100 ký tự').optional(),
-  expiry_date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Ngày hết hạn không hợp lệ').optional(),
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
+  expiry_date: z.date().optional(),
+  created_at: z.date(),
+  updated_at: z.date(),
 });
 
 // Create Inventory Item Schema
 export const CreateInventoryItemSchema = z.object({
   restaurant_id: z.string().uuid('ID nhà hàng không hợp lệ'),
   name: z.string().min(1, 'Tên nguyên liệu không được để trống').max(100, 'Tên nguyên liệu không quá 100 ký tự'),
-  description: z.string().max(500, 'Mô tả không quá 500 ký tự').optional(),
+  description: z.string().optional(),
   unit: z.string().min(1, 'Đơn vị tính không được để trống').max(20, 'Đơn vị tính không quá 20 ký tự'),
   quantity: z.number().min(0, 'Số lượng không được âm'),
   min_quantity: z.number().min(0, 'Số lượng tối thiểu không được âm').optional(),
   max_quantity: z.number().min(0, 'Số lượng tối đa không được âm').optional(),
   unit_cost: z.number().min(0, 'Giá đơn vị không được âm').optional(),
   supplier: z.string().max(100, 'Tên nhà cung cấp không quá 100 ký tự').optional(),
-  expiry_date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Ngày hết hạn không hợp lệ').optional(),
+  expiry_date: z.date().optional(),
 }).refine(
   (data) => !data.max_quantity || !data.min_quantity || data.max_quantity >= data.min_quantity,
   {
@@ -44,14 +44,14 @@ export const CreateInventoryItemSchema = z.object({
 // Update Inventory Item Schema
 export const UpdateInventoryItemSchema = z.object({
   name: z.string().min(1, 'Tên nguyên liệu không được để trống').max(100, 'Tên nguyên liệu không quá 100 ký tự').optional(),
-  description: z.string().max(500, 'Mô tả không quá 500 ký tự').optional(),
+  description: z.string().optional(),
   unit: z.string().min(1, 'Đơn vị tính không được để trống').max(20, 'Đơn vị tính không quá 20 ký tự').optional(),
   quantity: z.number().min(0, 'Số lượng không được âm').optional(),
   min_quantity: z.number().min(0, 'Số lượng tối thiểu không được âm').optional(),
   max_quantity: z.number().min(0, 'Số lượng tối đa không được âm').optional(),
   unit_cost: z.number().min(0, 'Giá đơn vị không được âm').optional(),
   supplier: z.string().max(100, 'Tên nhà cung cấp không quá 100 ký tự').optional(),
-  expiry_date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Ngày hết hạn không hợp lệ').optional(),
+  expiry_date: z.date().optional(),
 }).refine(
   (data) => !data.max_quantity || !data.min_quantity || data.max_quantity >= data.min_quantity,
   {
