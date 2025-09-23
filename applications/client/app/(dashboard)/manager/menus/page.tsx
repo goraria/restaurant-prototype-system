@@ -30,6 +30,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuSub,
@@ -40,13 +50,17 @@ import { toast } from 'sonner'
 import { ColumnDef } from "@tanstack/react-table";
 
 // Import form components and services
-import { MenuForm } from '@/components/forms';
-import { DeleteConfirmDialog } from '@/components/forms';
+import { MenuForm } from '@/components/elements/form-data';
 import { DataTable, DataTableColumnHeader, DataTableSortButton } from "@/components/elements/data-table";
 import { useAppDispatch } from '@/state/redux';
 import { formatCurrency } from "@/utils/format-utils";
-import { MenuDataColumn, StatsBoxProps } from "@/constants/interfaces";
-import { useGetAllMenusQuery } from "@/state/api";
+import { MenuDataColumn, StatsBoxProps, MenuInterface } from "@/constants/interfaces";
+import {
+  useGetAllMenusQuery,
+  useCreateMenuMutation,
+  useUpdateMenuMutation,
+  useDeleteMenuMutation
+} from "@/state/api";
 import { StatsBox } from "@/components/elements/stats-box";
 
 export default function MenusPage() {
@@ -62,8 +76,16 @@ export default function MenusPage() {
     data: menus = [],
     error,
     isLoading,
-    refetch: refetchMenuItems
+    refetch: refetchMenus
   } = useGetAllMenusQuery();
+
+  // Mutations
+  const [
+    createMenu,
+    { isLoading: isCreating }
+  ] = useCreateMenuMutation();
+  const [updateMenu, { isLoading: isUpdating }] = useUpdateMenuMutation();
+  const [deleteMenu, { isLoading: isDeleting }] = useDeleteMenuMutation();
 
   const columns: ColumnDef<MenuDataColumn, unknown>[] = [
     {
@@ -137,7 +159,11 @@ export default function MenusPage() {
       cell: ({ row }) => {
         return (
           <div className="flex items-center justify-center">
-            <Switch checked={row.original.is_active}/>
+            <Switch 
+              checked={row.original.is_active} 
+              onCheckedChange={(checked) => handleToggleStatus(row.original.id, checked)}
+              disabled={isUpdating}
+            />
           </div>
         )
       },
@@ -183,7 +209,7 @@ export default function MenusPage() {
       enableResizing: false,
       size: 64, // Width cho Actions column
       cell: ({ row }) => {
-        const payment = row.original
+        const r = row.original
 
         return (
           <DropdownMenu>
@@ -202,13 +228,13 @@ export default function MenusPage() {
             <DropdownMenuContent align="end">
               {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(payment.id)}
+                onClick={() => navigator.clipboard.writeText(r.id)}
               >
                 Sao chép ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                // onClick={() => openEditDialog(menu)}
+                onClick={() => openEditDialog(r)}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Chỉnh sửa
@@ -222,7 +248,7 @@ export default function MenusPage() {
                 Lịch sử thay đổi
               </DropdownMenuItem>
               <DropdownMenuItem
-                // onClick={() => openDeleteDialog(menu)}
+                onClick={() => openDeleteDialog(r)}
                 variant="destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -300,6 +326,70 @@ export default function MenusPage() {
     setDeletingMenu(menu)
     setIsDeleteDialogOpen(true)
   }
+
+  // CRUD Handlers
+  const handleCreateMenu = async (menuData: MenuInterface) => {
+    try {
+      await createMenu(menuData).unwrap();
+      toast.success('Tạo menu thành công');
+      setIsCreateDialogOpen(false);
+      refetchMenus();
+    } catch (error) {
+      console.error('Error creating menu:', error);
+      toast.error('Có lỗi xảy ra khi tạo menu');
+    }
+  };
+
+  const handleUpdateMenu = async (menuData: Partial<MenuInterface>) => {
+    if (!editingMenu) return;
+
+    try {
+      await updateMenu({
+        id: editingMenu.id,
+        data: menuData
+      }).unwrap();
+      toast.success('Cập nhật menu thành công');
+      setIsEditDialogOpen(false);
+      setEditingMenu(null);
+      refetchMenus();
+    } catch (error) {
+      console.error('Error updating menu:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật menu');
+    }
+  };
+
+  const handleDeleteMenu = async (menuId: string) => {
+    try {
+      await deleteMenu(menuId).unwrap();
+      toast.success('Xóa menu thành công');
+      refetchMenus();
+    } catch (error) {
+      console.error('Error deleting menu:', error);
+      toast.error('Có lỗi xảy ra khi xóa menu');
+    }
+  };
+
+  const handleToggleStatus = async (menuId: string, isActive: boolean) => {
+    try {
+      await updateMenu({
+        id: menuId,
+        data: { is_active: isActive }
+      }).unwrap();
+      toast.success(`Menu đã được ${isActive ? 'kích hoạt' : 'vô hiệu hóa'}`);
+      refetchMenus();
+    } catch (error) {
+      console.error('Error updating menu status:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái menu');
+    }
+  };
+
+  const handleFormSuccess = (data: MenuInterface) => {
+    if (editingMenu) {
+      handleUpdateMenu(data);
+    } else {
+      handleCreateMenu(data);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -390,13 +480,21 @@ export default function MenusPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MenuIcon className="h-5 w-5" />
-            Danh sách menu
-          </CardTitle>
-          <CardDescription>
-            Quản lý và cấu hình các menu của nhà hàng
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MenuIcon className="h-5 w-5" />
+                Danh sách menu
+              </CardTitle>
+              <CardDescription>
+                Quản lý và cấu hình các menu của nhà hàng
+              </CardDescription>
+            </div>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Thêm menu
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4 mb-6">
@@ -409,7 +507,7 @@ export default function MenusPage() {
                 className="pl-8"
               />
             </div>
-            <Button variant="outline" size="sm" onClick={refetchMenuItems}>
+            <Button variant="outline" size="sm" onClick={refetchMenus}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Làm mới
             </Button>
@@ -515,6 +613,26 @@ export default function MenusPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Create Menu Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Thêm menu mới</DialogTitle>
+            <DialogDescription>
+              Tạo menu mới cho nhà hàng
+            </DialogDescription>
+          </DialogHeader>
+          <MenuForm
+            mode="create"
+            restaurantId="5dc89877-8c0b-482d-a71d-609d6e14cb9e"
+            onSuccess={handleFormSuccess}
+            onCancel={() => setIsCreateDialogOpen(false)}
+            submitText="Tạo mới"
+            isLoading={isCreating}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Menu Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
@@ -527,30 +645,49 @@ export default function MenusPage() {
           {editingMenu && (
             <MenuForm
               mode="update"
-              // initialValues={editingMenu}
-              onSuccess={handleUpdateSuccess}
-              onCancel={() => setIsEditDialogOpen(false)}
+              initialValues={{
+                ...editingMenu,
+                description: editingMenu.description || undefined,
+                image_url: editingMenu.image_url || undefined
+              }}
+              onSuccess={handleFormSuccess}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setEditingMenu(null);
+              }}
+              submitText="Cập nhật"
+              isLoading={isUpdating}
             />
           )}
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <DeleteConfirmDialog
-        trigger={<div style={{ display: 'none' }} />}
-        title="Xóa menu"
-        description={`Bạn có chắc chắn muốn xóa "${deletingMenu?.name}"?`}
-        onConfirm={async () => {
-          // if (deletingMenu) {
-          //   try {
-          //     await deleteMenu(dispatch, deletingMenu.id)
-          //     handleDeleteSuccess()
-          //   } catch (error) {
-          //     toast.error('Có lỗi xảy ra khi xóa menu!')
-          //   }
-          // }
-        }}
-      />
+      <AlertDialog open={!!deletingMenu} onOpenChange={() => setDeletingMenu(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa menu</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa menu &quot;{deletingMenu?.name}&quot; không?
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (deletingMenu) {
+                  await handleDeleteMenu(deletingMenu.id);
+                  setDeletingMenu(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

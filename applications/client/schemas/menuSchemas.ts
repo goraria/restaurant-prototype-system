@@ -17,7 +17,7 @@ export const CreateMenuSchema = z.object({
   display_order: z.number().int().min(0).default(0),
   image_url: z.string()
     .url("URL hình ảnh không hợp lệ")
-    .max(255, "URL hình ảnh không được quá 255 ký tự")
+    // .max(255, "URL hình ảnh không được quá 255 ký tự")
     .optional()
 });
 
@@ -34,7 +34,7 @@ export const UpdateMenuSchema = z.object({
   display_order: z.number().int().min(0).optional(),
   image_url: z.string()
     .url("URL hình ảnh không hợp lệ")
-    .max(255, "URL hình ảnh không được quá 255 ký tự")
+    // .max(255, "URL hình ảnh không được quá 255 ký tự")
     .optional()
 });
 
