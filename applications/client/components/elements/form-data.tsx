@@ -676,12 +676,12 @@ export function MenuForm({
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      restaurant_id: restaurantId || initialValues?.restaurant_id || "",
+      restaurant_id: "4ac60dce-ce60-4df4-a950-3585cbef426f",
       name: initialValues?.name || "",
       description: initialValues?.description || "",
       is_active: initialValues?.is_active ?? true,
       display_order: initialValues?.display_order || 0,
-      image_url: initialValues?.image_url || "",
+      image_url: undefined,
     },
     mode: "onBlur"
   });
@@ -771,29 +771,29 @@ export function MenuForm({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Hình ảnh menu</CardTitle>
-              </CardHeader>
-              <CardContent className="">
-                <FormField
-                  control={form.control}
-                  name="image_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">URL hình ảnh</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="https://example.com/image.jpg"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+            {/*<Card>*/}
+            {/*  <CardHeader>*/}
+            {/*    <CardTitle>Hình ảnh menu</CardTitle>*/}
+            {/*  </CardHeader>*/}
+            {/*  <CardContent className="">*/}
+            {/*    <FormField*/}
+            {/*      control={form.control}*/}
+            {/*      name="image_url"*/}
+            {/*      render={({ field }) => (*/}
+            {/*        <FormItem>*/}
+            {/*          <FormLabel className="text-sm font-medium">URL hình ảnh</FormLabel>*/}
+            {/*          <FormControl>*/}
+            {/*            <Input*/}
+            {/*              placeholder="https://example.com/image.jpg"*/}
+            {/*              {...field}*/}
+            {/*            />*/}
+            {/*          </FormControl>*/}
+            {/*          <FormMessage />*/}
+            {/*        </FormItem>*/}
+            {/*      )}*/}
+            {/*    />*/}
+            {/*  </CardContent>*/}
+            {/*</Card>*/}
           </div>
 
           <div className="col-span-1 flex flex-col gap-6">
@@ -822,31 +822,31 @@ export function MenuForm({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Cài đặt hiển thị</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <FormField
-                  control={form.control}
-                  name="display_order"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Thứ tự hiển thị</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+            {/*<Card>*/}
+            {/*  <CardHeader>*/}
+            {/*    <CardTitle>Cài đặt hiển thị</CardTitle>*/}
+            {/*  </CardHeader>*/}
+            {/*  <CardContent className="flex flex-col gap-4">*/}
+            {/*    <FormField*/}
+            {/*      control={form.control}*/}
+            {/*      name="display_order"*/}
+            {/*      render={({ field }) => (*/}
+            {/*        <FormItem>*/}
+            {/*          <FormLabel className="text-sm font-medium">Thứ tự hiển thị</FormLabel>*/}
+            {/*          <FormControl>*/}
+            {/*            <Input*/}
+            {/*              type="number"*/}
+            {/*              placeholder="0"*/}
+            {/*              {...field}*/}
+            {/*              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}*/}
+            {/*            />*/}
+            {/*          </FormControl>*/}
+            {/*          <FormMessage />*/}
+            {/*        </FormItem>*/}
+            {/*      )}*/}
+            {/*    />*/}
+            {/*  </CardContent>*/}
+            {/*</Card>*/}
           </div>
         </div>
       </form>

@@ -236,6 +236,104 @@ export const api = createApi({
       providesTags: ["Menus"],
     }),
     // ------------------------------------------------------------------------
+    getMenus: builder.query<MenuDataColumn[], void>({
+      query: () => ({
+        url: `/menu/page`
+      }),
+      providesTags: ["Menus"],
+    }),
+    getMenuById: builder.query<any, string>({
+      query: (id) => `/menus/${id}`,
+      providesTags: (result, error, id) => [{ type: "Menus", id }],
+    }),
+    createMenu: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/menu",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    updateMenu: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/menu/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    deleteMenu: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/menu/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+
+    // Menu extras
+    getMenusByRestaurant: builder.query<any, string>({
+      query: (restaurantId) => `/menu/restaurant/${restaurantId}`,
+      providesTags: ["Menus"],
+    }),
+    getMenuStatsByRestaurant: builder.query<any, string>({
+      query: (restaurantId) => `/menu/restaurant/${restaurantId}/stats`,
+      providesTags: ["Menus"],
+    }),
+    getFeaturedMenuItems: builder.query<any[], void>({
+      query: () => `/menu/items/featured`,
+      providesTags: ["Menus"],
+    }),
+    getMenuItems: builder.query<any[], Record<string, any> | void>({
+      query: (params) => ({
+        url: `/menu/items/page`,
+        params: params ?? {}
+      }),
+      providesTags: ["Menus"],
+    }),
+    createMenuItem: builder.mutation<any, any>({
+      query: (data) => ({
+        url: `/menus/items`,
+        method: "POST",
+        body: data
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    getMenuItemById: builder.query<any, string>({
+      query: (id) => `/menus/items/${id}`,
+      providesTags: ["Menus"],
+    }),
+    updateMenuItem: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/menus/items/${id}`,
+        method: "PUT",
+        body: data
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    deleteMenuItem: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/menus/items/${id}`,
+        method: "DELETE"
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    bulkUpdateMenuItems: builder.mutation<any, any>({
+      query: (data) => ({
+        url: `/menus/items/bulk/update`,
+        method: "PUT",
+        body: data
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    bulkToggleMenuItemsAvailability: builder.mutation<any, any>({
+      query: (data) => ({
+        url: `/menus/items/bulk/availability`,
+        method: "PUT",
+        body: data
+      }),
+      invalidatesTags: ["Menus"],
+    }),
+    // ------------------------------------------------------------------------
     getAllMenuItems: builder.query<MenuItemDataColumn[], void>({
       query: () => ({
         url: `/menu/items`
@@ -372,81 +470,6 @@ export const api = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["Orders"],
-    }),
-    getMenus: builder.query<MenuDataColumn[], void>({
-      query: () => ({
-        url: `/menus/page`
-      }),
-      providesTags: ["Menus"],
-    }),
-    getMenuById: builder.query<any, string>({
-      query: (id) => `/menus/${id}`,
-      providesTags: (result, error, id) => [{ type: "Menus", id }],
-    }),
-    createMenu: builder.mutation<any, any>({
-      query: (data) => ({
-        url: "/menus",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: ["Menus"],
-    }),
-    updateMenu: builder.mutation<any, { id: string; data: any }>({
-      query: ({ id, data }) => ({
-        url: `/menus/${id}`,
-        method: "PUT",
-        body: data,
-      }),
-      invalidatesTags: ["Menus"],
-    }),
-    deleteMenu: builder.mutation<any, string>({
-      query: (id) => ({
-        url: `/menus/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Menus"],
-    }),
-
-    // Menu extras
-    getMenusByRestaurant: builder.query<any, string>({
-      query: (restaurantId) => `/menus/restaurant/${restaurantId}`,
-      providesTags: ["Menus"],
-    }),
-    getMenuStatsByRestaurant: builder.query<any, string>({
-      query: (restaurantId) => `/menus/restaurant/${restaurantId}/stats`,
-      providesTags: ["Menus"],
-    }),
-    getFeaturedMenuItems: builder.query<any[], void>({
-      query: () => `/menus/items/featured`,
-      providesTags: ["Menus"],
-    }),
-    getMenuItems: builder.query<any[], Record<string, any> | void>({
-      query: (params) => ({ url: `/menus/items/page`, params: params ?? {} }),
-      providesTags: ["Menus"],
-    }),
-    createMenuItem: builder.mutation<any, any>({
-      query: (data) => ({ url: `/menus/items`, method: "POST", body: data }),
-      invalidatesTags: ["Menus"],
-    }),
-    getMenuItemById: builder.query<any, string>({
-      query: (id) => `/menus/items/${id}`,
-      providesTags: ["Menus"],
-    }),
-    updateMenuItem: builder.mutation<any, { id: string; data: any }>({
-      query: ({ id, data }) => ({ url: `/menus/items/${id}`, method: "PUT", body: data }),
-      invalidatesTags: ["Menus"],
-    }),
-    deleteMenuItem: builder.mutation<any, string>({
-      query: (id) => ({ url: `/menus/items/${id}`, method: "DELETE" }),
-      invalidatesTags: ["Menus"],
-    }),
-    bulkUpdateMenuItems: builder.mutation<any, any>({
-      query: (data) => ({ url: `/menus/items/bulk/update`, method: "PUT", body: data }),
-      invalidatesTags: ["Menus"],
-    }),
-    bulkToggleMenuItemsAvailability: builder.mutation<any, any>({
-      query: (data) => ({ url: `/menus/items/bulk/availability`, method: "PUT", body: data }),
-      invalidatesTags: ["Menus"],
     }),
 
     // Orders extras
