@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useMemo } from "react"
+import { ColumnDef } from "@tanstack/react-table";
 import {
   Card,
   CardContent,
@@ -32,13 +33,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -48,6 +42,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { StatsBox } from "@/components/elements/stats-box";
+import {
+  DataTable,
+  DataTableSortButton,
+  DataTableColumnHeader
+} from "@/components/elements/data-table"
+import { InventoryItemForm } from "@/components/elements/form-data"
+import { IngredientDataColumn, InventoryItemInterface, StatsBoxProps } from '@/constants/interfaces'
+import { formatCurrency } from "@/utils/format-utils";
+import {
+  useGetAllInventoryItemsQuery,
+  useCreateInventoryItemMutation,
+  useUpdateInventoryItemMutation,
+  // useUpdateStatusInventoryItemMutation,
+  useDeleteInventoryItemMutation,
+  // useDeleteHardInventoryItemMutation
+} from "@/state/api"
 import {
   Plus,
   Search,
@@ -75,14 +93,6 @@ import {
   Copy
 } from "lucide-react"
 import { toast } from 'sonner'
-
-import { InventoryItemForm, DeleteConfirmDialog } from '@/components/forms';
-import { DataTable, DataTableColumnHeader, DataTableSortButton } from "@/components/elements/data-table";
-import { ColumnDef } from "@tanstack/react-table";
-import { formatCurrency } from "@/utils/format-utils";
-import { IngredientDataColumn, StatsBoxProps } from "@/constants/interfaces";
-import { StatsBox } from "@/components/elements/stats-box";
-import { useGetAllInventoryItemsQuery } from "@/state/api"
 
 interface InventoryItem {
   id: string
@@ -117,16 +127,9 @@ export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
-  const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null)
-  const [selectedAvailability, setSelectedAvailability] = useState<string>("all")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingIngredient, setEditingIngredient] = useState<IngredientDataColumn | null>(null)
   const [deletingIngredient, setDeletingIngredient] = useState<IngredientDataColumn | null>(null)
-  const [selectedRows, setSelectedRows] = useState<IngredientDataColumn[]>([])
-  const [isBulkOperationLoading, setIsBulkOperationLoading] = useState(false)
 
   const {
     data: ingredients = [],
@@ -134,6 +137,13 @@ export default function InventoryPage() {
     error,
     refetch: refetchIngredients,
   } = useGetAllInventoryItemsQuery()
+
+  // Mutations
+  const [createInventoryItem, { isLoading: isCreating }] = useCreateInventoryItemMutation()
+  const [updateInventoryItem, { isLoading: isUpdating }] = useUpdateInventoryItemMutation()
+  // const [updateStatusInventoryItem, { isLoading: isUpdatingStatus }] = useUpdateStatusInventoryItemMutation()
+  const [deleteInventoryItem, { isLoading: isDeleting }] = useDeleteInventoryItemMutation()
+  // const [deleteHardInventoryItem, { isLoading: isDeletingHard }] = useDeleteHardInventoryItemMutation()
 
   const columns: ColumnDef<IngredientDataColumn, unknown>[] = [
     {
@@ -304,7 +314,10 @@ export default function InventoryPage() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                // onClick={() => openEditDialog(ingredient)}
+                onClick={() => {
+                  setEditingIngredient(ingredient)
+                  setIsDialogOpen(true)
+                }}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Chỉnh sửa
@@ -327,7 +340,7 @@ export default function InventoryPage() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                // onClick={() => openDeleteDialog(ingredient)}
+                onClick={() => setDeletingIngredient(ingredient)}
                 variant="destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -452,18 +465,68 @@ export default function InventoryPage() {
     return new Date(dateString).toLocaleDateString('vi-VN')
   }
 
-  const openCreateDialog = () => {
-    setIsCreateDialogOpen(true)
+  // CRUD Handlers
+  const handleCreateInventoryItem = async (itemData: InventoryItemInterface) => {
+    try {
+      await createInventoryItem(itemData).unwrap()
+      toast.success('Tạo nguyên liệu thành công')
+      setIsDialogOpen(false)
+      refetchIngredients()
+    } catch (error) {
+      console.error('Error creating inventory item:', error)
+      toast.error('Có lỗi xảy ra khi tạo nguyên liệu')
+    }
   }
 
-  const openEditDialog = (item: InventoryItem) => {
-    setEditingItem(item)
-    setIsEditDialogOpen(true)
+  const handleUpdateInventoryItem = async (itemData: Partial<InventoryItemInterface>) => {
+    if (!editingIngredient) return
+
+    try {
+      await updateInventoryItem({
+        id: editingIngredient.id,
+        data: itemData
+      }).unwrap()
+      toast.success('Cập nhật nguyên liệu thành công')
+      setIsDialogOpen(false)
+      setEditingIngredient(null)
+      refetchIngredients()
+    } catch (error) {
+      console.error('Error updating inventory item:', error)
+      toast.error('Có lỗi xảy ra khi cập nhật nguyên liệu')
+    }
   }
 
-  const openDeleteDialog = (item: InventoryItem) => {
-    setDeletingItem(item)
-    setIsDeleteDialogOpen(true)
+  const handleDeleteInventoryItem = async (itemId: string) => {
+    try {
+      await deleteInventoryItem(itemId).unwrap()
+      toast.success('Xóa nguyên liệu thành công')
+      refetchIngredients()
+    } catch (error) {
+      console.error('Error deleting inventory item:', error)
+      toast.error('Có lỗi xảy ra khi xóa nguyên liệu')
+    }
+  }
+
+  // const handleToggleStatus = async (itemId: string, isActive: boolean) => {
+  //   try {
+  //     await updateStatusInventoryItem({
+  //       id: itemId,
+  //       status: { is_active: isActive }
+  //     }).unwrap()
+  //     toast.success(`Nguyên liệu đã được ${isActive ? 'kích hoạt' : 'vô hiệu hóa'}`)
+  //     refetchIngredients()
+  //   } catch (error) {
+  //     console.error('Error updating inventory item status:', error)
+  //     toast.error('Có lỗi xảy ra khi cập nhật trạng thái nguyên liệu')
+  //   }
+  // }
+
+  const handleFormSuccess = (data: InventoryItemInterface) => {
+    if (editingIngredient) {
+      handleUpdateInventoryItem(data)
+    } else {
+      handleCreateInventoryItem(data)
+    }
   }
 
   // if (isLoading) {
@@ -479,6 +542,61 @@ export default function InventoryPage() {
 
   return (
     <>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingIngredient ? 'Chỉnh sửa nguyên liệu' : 'Thêm nguyên liệu mới'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingIngredient
+                ? 'Cập nhật thông tin nguyên liệu'
+                : 'Thêm mới nguyên liệu vào kho'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <InventoryItemForm
+            mode={editingIngredient ? "update" : "create"}
+            restaurantId={editingIngredient ? undefined : "5dc89877-8c0b-482d-a71d-609d6e14cb9e"}
+            initialValues={editingIngredient || undefined}
+            onSuccess={handleFormSuccess}
+            onCancel={() => {
+              setIsDialogOpen(false)
+              setEditingIngredient(null)
+            }}
+            submitText={editingIngredient ? "Cập nhật" : "Tạo mới"}
+            isLoading={isCreating || isUpdating}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingIngredient} onOpenChange={() => setDeletingIngredient(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa nguyên liệu</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa nguyên liệu &quot;{deletingIngredient?.name}&quot; không? 
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deletingIngredient) {
+                  handleDeleteInventoryItem(deletingIngredient.id)
+                  setDeletingIngredient(null)
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {!isLoading ? (
         <>
           <div className="space-y-6">
@@ -551,6 +669,15 @@ export default function InventoryPage() {
                       ]
                     }
                   ]}
+                  onCreate={() => {
+                    setEditingIngredient(null)
+                    setIsDialogOpen(true)
+                  }}
+                  onReload={refetchIngredients}
+                  onUpdate={(item: any) => {
+                    setEditingIngredient(item)
+                    setIsDialogOpen(true)
+                  }}
                 />
                 <Card>
                   <CardHeader>
@@ -714,59 +841,6 @@ export default function InventoryPage() {
                 </Card>
               </TabsContent>
             </Tabs>
-
-            {/* Create Inventory Item Dialog */}
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Thêm mục kho mới</DialogTitle>
-                  <DialogDescription>
-                    Thêm mới mục hàng vào kho
-                  </DialogDescription>
-                </DialogHeader>
-                <InventoryItemForm
-                  mode="create"
-                  // onSuccess={handleCreate}
-                  onCancel={() => setIsCreateDialogOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-
-            {/* Edit Inventory Item Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Chỉnh sửa mục kho</DialogTitle>
-                  <DialogDescription>
-                    Cập nhật thông tin mục kho
-                  </DialogDescription>
-                </DialogHeader>
-                {editingItem && (
-                  <InventoryItemForm
-                    mode="update"
-                    initialValues={editingItem}
-                    // onSuccess={handleUpdate}
-                    onCancel={() => setIsEditDialogOpen(false)}
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <DeleteConfirmDialog
-              title="Xóa mục kho"
-              description={`Bạn có chắc chắn muốn xóa "${deletingItem?.name}"?`}
-              onConfirm={async () => {
-                if (deletingItem) {
-                  // deleteInventoryItem(deletingItem.id)
-                  //   .unwrap()
-                  //   .then(handleDeleteSuccess)
-                  //   .catch(() => toast.error('Có lỗi xảy ra khi xóa mục kho!'));
-                  setIsDeleteDialogOpen(false)
-                  setDeletingItem(null)
-                }
-              }}
-            />
           </div>
         </>
       ) : (

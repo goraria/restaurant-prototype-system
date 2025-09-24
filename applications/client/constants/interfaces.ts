@@ -345,16 +345,20 @@ export interface RecipeDataColumn {
 export interface IngredientDataColumn {
   id: string
   name: string
-  description: string | null
+  description: string | undefined
   unit: string
-  quantity: string | number | null
-  min_quantity: string | number | null
-  max_quantity: string | number | null
+  quantity: number | undefined
+  // quantity: string | number | null
+  min_quantity: number | undefined
+  // min_quantity: string | number | null
+  max_quantity: number | undefined
+  // max_quantity: string | number | null
   created_at: string | Date
   updated_at: string | Date
   expiry_date: string | Date | null
   supplier: string | null
-  unit_cost: string | number | null
+  unit_cost: number | undefined
+  // unit_cost: string | number | null
   restaurants: RestaurantDataColumnShortly
   transactions: [] | null
   recipe_ingredients?: IngredientDataColumnShortly[]

@@ -77,6 +77,7 @@ app.use(cors({
     process.env.EXPRESS_CLIENT_URL!,
     process.env.EXPRESS_MOBILE_URL!,
   ],
+  // origin: "*",
   credentials: true,
 }));
 

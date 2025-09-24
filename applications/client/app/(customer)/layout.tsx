@@ -1,5 +1,6 @@
 import { Header } from "@/components/customer/header"
 import { Footer } from "@/components/layout/footer"
+import { Navbar } from "@/components/layout/navbar";
 
 export default function CustomerLayout({
   children,
@@ -8,8 +9,8 @@ export default function CustomerLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">
+      <Navbar />
+      <main className="container mx-auto p-6">
         {children}
       </main>
       <Footer />

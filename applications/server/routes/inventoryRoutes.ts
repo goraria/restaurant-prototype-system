@@ -5,9 +5,9 @@ import {
   getInventoryItems,
   bulkUpdateInventory,
   getLowStockAlert,
-  // getInventoryItemById,
-  // updateInventoryItem,
-  // deleteInventoryItem,
+  getInventoryItemById,
+  updateInventoryItem,
+  deleteInventoryItem,
   // getInventoryItemsByRestaurantId,
   createInventoryTransaction,
   getInventoryTransactions,
@@ -30,10 +30,10 @@ const router = Router();
 router.get("/", getAllInventoryItem)
 
 // 🔹 Tạo nguyên liệu mới
-router.post('/inventory-items', createInventoryItem);
+router.post('/', createInventoryItem);
 
 // 🔹 Lấy danh sách nguyên liệu với filter & pagination
-router.get('/inventory-items', getInventoryItems);
+router.get('/', getInventoryItems);
 
 // 🔹 Cập nhật hàng loạt
 router.patch('/inventory-items/bulk-update', bulkUpdateInventory);
@@ -42,13 +42,13 @@ router.patch('/inventory-items/bulk-update', bulkUpdateInventory);
 router.get('/inventory-items/low-stock-alert', getLowStockAlert);
 
 // 🔹 Lấy nguyên liệu theo ID
-// router.get('/inventory-items/:id', getInventoryItemById);
+router.get('/:id', getInventoryItemById);
 
 // 🔹 Cập nhật nguyên liệu
-// router.put('/inventory-items/:id', updateInventoryItem);
+router.put('/:id', updateInventoryItem);
 
 // 🔹 Xóa nguyên liệu
-// router.delete('/inventory-items/:id', deleteInventoryItem);
+router.delete('/:id', deleteInventoryItem);
 
 // 🔹 Lấy nguyên liệu theo nhà hàng
 // router.get('/restaurants/:restaurantId/inventory-items', getInventoryItemsByRestaurantId);

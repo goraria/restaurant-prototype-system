@@ -1,10 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { BoxIcon, MoonStar, Moon, Sun, Monitor } from "lucide-react"
 import { useTheme } from "next-themes"
-import { cn } from "@/lib/utils"
-
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -13,6 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { BoxIcon, MoonStar, Moon, Sun, Monitor } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function ModeToggle({
   className,
