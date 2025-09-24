@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react"
 import {
   Card,
   CardContent,
-  CardDescription, CardFooter,
+  CardDescription,
   CardHeader,
   CardTitle
 } from "@/components/ui/card"
@@ -20,8 +20,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  RefreshCw,
-  Download
+  RefreshCw
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
@@ -62,14 +61,12 @@ import {
 import { toast } from 'sonner'
 
 // Import form components and services
-import { MenuItemForm } from '@/components/forms';
+import { MenuItemForm } from '@/components/elements/form-data';
 import {
   useGetAllMenuItemsQuery,
-  useGetMenuItemsQuery,
   useCreateMenuItemMutation,
   useUpdateMenuItemMutation,
   useDeleteMenuItemMutation,
-  useBulkUpdateMenuItemsMutation,
   useBulkToggleMenuItemsAvailabilityMutation
 } from '@/state/api';
 import { DataTable, DataTableColumnHeader, DataTableSortButton } from "@/components/elements/data-table";
@@ -77,7 +74,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 import { formatCurrency } from "@/utils/format-utils";
 import { Switch } from "@/components/ui/switch";
-import { MenuItemDataColumn, StatsBoxProps } from "@/constants/interfaces";
+import { MenuItemDataColumn, StatsBoxProps, MenuItemInterface } from "@/constants/interfaces";
 import { StatsBox } from "@/components/elements/stats-box";
 
 export default function MenuItemsPage() {
@@ -102,7 +99,6 @@ export default function MenuItemsPage() {
   const [createMenuItemMutation] = useCreateMenuItemMutation();
   const [updateMenuItemMutation] = useUpdateMenuItemMutation();
   const [deleteMenuItemMutation] = useDeleteMenuItemMutation();
-  const [bulkUpdateMenuItemsMutation] = useBulkUpdateMenuItemsMutation();
   const [bulkToggleAvailabilityMutation] = useBulkToggleMenuItemsAvailabilityMutation();
 
   const columns: ColumnDef<MenuItemDataColumn, unknown>[] = [
@@ -201,7 +197,10 @@ export default function MenuItemsPage() {
       cell: ({ row }) => {
         return (
           <div className="flex items-center justify-center">
-            <Switch/>
+            <Switch
+              checked={row.original.is_available}
+              onCheckedChange={() => handleToggleAvailability(row.original)}
+            />
           </div>
         )
       },
@@ -417,30 +416,30 @@ export default function MenuItemsPage() {
   }
 
   // CRUD Operations
-  // const handleCreateMenuItem = async (data: any) => {
-  //   try {
-  //     await createMenuItemMutation(data).unwrap()
-  //     handleCreateSuccess()
-  //   } catch (error) {
-  //     console.error('Lỗi khi tạo món ăn:', error)
-  //     toast.error('Có lỗi xảy ra khi tạo món ăn!')
-  //   }
-  // }
+  const handleCreateMenuItem = async (data: MenuItemInterface) => {
+    try {
+      await createMenuItemMutation(data).unwrap()
+      handleCreateSuccess()
+    } catch (error) {
+      console.error('Lỗi khi tạo món ăn:', error)
+      toast.error('Có lỗi xảy ra khi tạo món ăn!')
+    }
+  }
   //
-  // const handleUpdateMenuItem = async (data: any) => {
-  //   if (!editingMenuItem) return
-  //
-  //   try {
-  //     await updateMenuItemMutation({
-  //       id: editingMenuItem.id,
-  //       data
-  //     }).unwrap()
-  //     handleUpdateSuccess()
-  //   } catch (error) {
-  //     console.error('Lỗi khi cập nhật món ăn:', error)
-  //     toast.error('Có lỗi xảy ra khi cập nhật món ăn!')
-  //   }
-  // }
+  const handleUpdateMenuItem = async (data: Partial<MenuItemInterface>) => {
+    if (!editingMenuItem) return
+
+    try {
+      await updateMenuItemMutation({
+        id: editingMenuItem.id,
+        data
+      }).unwrap()
+      handleUpdateSuccess()
+    } catch (error) {
+      console.error('Lỗi khi cập nhật món ăn:', error)
+      toast.error('Có lỗi xảy ra khi cập nhật món ăn!')
+    }
+  }
 
   const handleDeleteMenuItem = async () => {
     if (!deletingMenuItem) return
@@ -885,7 +884,7 @@ export default function MenuItemsPage() {
                   mode="create"
                   restaurantId="5dc89877-8c0b-482d-a71d-609d6e14cb9e"
                   menuId="e904d033-3a03-4905-bc39-4cb0c7f29196"
-                  onSuccess={handleCreateSuccess}
+                  onSuccess={handleCreateMenuItem}
                   onCancel={() => setIsCreateDialogOpen(false)}
                 />
               </DialogContent>
@@ -903,11 +902,12 @@ export default function MenuItemsPage() {
                 {editingMenuItem && (
                   <MenuItemForm
                     mode="update"
-                    // initialValues={{
-                    //   ...editingMenuItem,
-                    //   price: typeof editingMenuItem.price === 'string' ? parseFloat(editingMenuItem.price) : editingMenuItem.price
-                    // }}
-                    onSuccess={handleUpdateSuccess}
+                    initialValues={{
+                      ...editingMenuItem,
+                      price: typeof editingMenuItem.price === 'string' ? parseFloat(editingMenuItem.price) : editingMenuItem.price,
+                      image_url: editingMenuItem.image_url || undefined
+                    } as Partial<MenuItemInterface>}
+                    onSuccess={handleUpdateMenuItem}
                     onCancel={() => setIsEditDialogOpen(false)}
                   />
                 )}

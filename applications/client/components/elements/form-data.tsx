@@ -4,20 +4,12 @@ import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import {
-  Image as ImageIcon,
-  X,
-  Plus,
-  Upload,
-  Loader2,
-} from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -47,8 +39,23 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/elements/pill-tabs";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { z } from "zod";
+import {
+  Image as ImageIcon,
+  X,
+  Plus,
+  Upload,
+  Loader2,
+  CalendarIcon
+} from "lucide-react";
 
 import {
   CreateMenuItemSchema,
@@ -84,7 +91,8 @@ import {
   InventoryItemInterface,
   ReservationInterface,
   PromotionInterface,
-  CategoryDataColumn
+  CategoryDataColumn,
+  IngredientDataColumn
 } from "@/constants/interfaces";
 import { FileUploadServer } from "@/components/forms/file-upload-server";
 
@@ -114,7 +122,7 @@ export interface MenuFormProps {
 export interface InventoryItemFormProps {
   mode?: "create" | "update"
   restaurantId?: string
-  initialValues?: Partial<InventoryItemInterface>
+  initialValues?: IngredientDataColumn
   onSuccess?: (data: InventoryItemInterface) => void
   onCancel?: () => void
   submitText?: string
@@ -867,14 +875,14 @@ export function InventoryItemForm({
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      restaurant_id: restaurantId || initialValues?.restaurant_id || "",
+      restaurant_id: "4ac60dce-ce60-4df4-a950-3585cbef426f",
       name: initialValues?.name || "",
       description: initialValues?.description || "",
-      unit: initialValues?.unit || "",
+      unit: initialValues?.unit || "gram",
       quantity: initialValues?.quantity || 0,
-      min_quantity: initialValues?.min_quantity || undefined,
-      max_quantity: initialValues?.max_quantity || undefined,
-      unit_cost: initialValues?.unit_cost || undefined,
+      min_quantity: initialValues?.min_quantity || 0,
+      max_quantity: initialValues?.max_quantity || 10000,
+      unit_cost: initialValues?.unit_cost || 10000,
       supplier: initialValues?.supplier || "",
       expiry_date: initialValues?.expiry_date ? new Date(initialValues.expiry_date) : undefined,
     },
@@ -954,12 +962,25 @@ export function InventoryItemForm({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-sm font-medium">Đơn vị tính *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="VD: kg, cái, hộp, lít"
-                            {...field}
-                          />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Chọn đơn vị tính" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Gram">Gram</SelectItem>
+                            <SelectItem value="Kilogram">Kilogram</SelectItem>
+                            <SelectItem value="Hộp">Hộp</SelectItem>
+                            <SelectItem value="Quả">Quả</SelectItem>
+                            <SelectItem value="Cái">Cái</SelectItem>
+                            <SelectItem value="Chai">Chai</SelectItem>
+                            <SelectItem value="Lít">Lít</SelectItem>
+                            <SelectItem value="Kg">Kg</SelectItem>
+                            <SelectItem value="Bịch">Bịch</SelectItem>
+                            <SelectItem value="Gói">Gói</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1103,27 +1124,46 @@ export function InventoryItemForm({
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="expiry_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Ngày hết hạn</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
-                          value={field.value ? field.value.toISOString().split('T')[0] : ""}
-                          onChange={(e) => {
-                            const date = e.target.value ? new Date(e.target.value) : undefined;
-                            field.onChange(date);
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/*<FormField*/}
+                {/*  control={form.control}*/}
+                {/*  name="expiry_date"*/}
+                {/*  render={({ field }) => (*/}
+                {/*    <FormItem>*/}
+                {/*      <FormLabel className="text-sm font-medium">Ngày hết hạn</FormLabel>*/}
+                {/*      <FormControl>*/}
+                {/*        <DatePicker*/}
+                {/*          date={field.value}*/}
+                {/*          onDateChange={field.onChange}*/}
+                {/*          placeholder="Chọn ngày hết hạn"*/}
+                {/*        />*/}
+                {/*      </FormControl>*/}
+                {/*      <FormMessage />*/}
+                {/*    </FormItem>*/}
+                {/*  )}*/}
+                {/*/>*/}
+
+                {/*<FormField*/}
+                {/*  control={form.control}*/}
+                {/*  name="expiry_date"*/}
+                {/*  render={({ field }) => (*/}
+                {/*    <FormItem>*/}
+                {/*      <FormLabel className="text-sm font-medium">Ngày hết hạn</FormLabel>*/}
+                {/*      <FormControl>*/}
+                {/*        <Input*/}
+                {/*          type="date"*/}
+                {/*          {...field}*/}
+                {/*          value={field.value ? field.value.toISOString().split('T')[0] : ""}*/}
+                {/*          onChange={(e) => {*/}
+                {/*            const date = e.target.value ? new Date(e.target.value) : undefined;*/}
+                {/*            // console.log(date);*/}
+                {/*            field.onChange(date);*/}
+                {/*          }}*/}
+                {/*        />*/}
+                {/*      </FormControl>*/}
+                {/*      <FormMessage />*/}
+                {/*    </FormItem>*/}
+                {/*  )}*/}
+                {/*/>*/}
               </CardContent>
             </Card>
           </div>
@@ -1132,6 +1172,285 @@ export function InventoryItemForm({
     </Form>
   );
 }
+
+// export function InventoryItemForm({
+//   mode = "create",
+//   restaurantId,
+//   initialValues,
+//   onSuccess,
+//   onCancel,
+//   submitText,
+//   isLoading = false
+// }: InventoryItemFormProps) {
+//   const schema = mode === "create" ? CreateInventoryItemSchema : UpdateInventoryItemSchema;
+//   const form = useForm({
+//     resolver: zodResolver(schema),
+//     defaultValues: {
+//       restaurant_id: "4ac60dce-ce60-4df4-a950-3585cbef426f",
+//       name: initialValues?.name || "",
+//       description: initialValues?.description || "",
+//       unit: initialValues?.unit || "gram",
+//       quantity: initialValues?.quantity || 0,
+//       min_quantity: initialValues?.min_quantity || 0,
+//       max_quantity: initialValues?.max_quantity || 10000,
+//       unit_cost: initialValues?.unit_cost || 10000,
+//       supplier: initialValues?.supplier || "",
+//       expiry_date: initialValues?.expiry_date ? new Date(initialValues.expiry_date) : undefined,
+//     },
+//     mode: "onBlur"
+//   });
+
+//   const onSubmit = async (data: z.infer<typeof schema>) => {
+//     try {
+//       console.log("Submitting inventory item:", data);
+
+//       // Here you would call your API mutation
+//       // For now, just call onSuccess with the data
+//       if (onSuccess) {
+//         onSuccess(data as InventoryItemInterface);
+//       }
+//     } catch (error) {
+//       console.error("Error submitting form:", error);
+//     }
+//   };
+
+//   return (
+//     <Form {...form}>
+//       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+//         <div className="flex justify-end gap-4 mb-6">
+//           <Button
+//             type="button"
+//             variant="outline"
+//             onClick={onCancel}
+//             disabled={isLoading}
+//           >
+//             Hủy
+//           </Button>
+//           <Button
+//             type="submit"
+//             disabled={isLoading}
+//             className="min-w-[120px]"
+//           >
+//             {isLoading ? (
+//               <>
+//                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+//                 Đang xử lý...
+//               </>
+//             ) : (
+//               submitText || (mode === "create" ? "Tạo nguyên liệu" : "Cập nhật nguyên liệu")
+//             )}
+//           </Button>
+//         </div>
+
+//         <div className="grid grid-cols-3 gap-6">
+//           <div className="col-span-2 flex flex-col gap-6">
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle>Thông tin nguyên liệu</CardTitle>
+//               </CardHeader>
+//               <CardContent className="flex flex-col gap-4">
+//                 <div className="grid grid-cols-2 gap-6">
+//                   <FormField
+//                     control={form.control}
+//                     name="name"
+//                     render={({ field }) => (
+//                       <FormItem>
+//                         <FormLabel className="">Tên nguyên liệu *</FormLabel>
+//                         <FormControl>
+//                           <Input
+//                             placeholder="VD: Thịt bò, Cà rốt, Gà ta"
+//                             {...field}
+//                           />
+//                         </FormControl>
+//                         <FormMessage />
+//                       </FormItem>
+//                     )}
+//                   />
+
+//                   <FormField
+//                     control={form.control}
+//                     name="unit"
+//                     render={({ field }) => (
+//                       <FormItem>
+//                         <FormLabel className="text-sm font-medium">Đơn vị tính *</FormLabel>
+//                         <FormControl>
+//                           <Input
+//                             placeholder="VD: kg, cái, hộp, lít"
+//                             {...field}
+//                           />
+//                         </FormControl>
+//                         <FormMessage />
+//                       </FormItem>
+//                     )}
+//                   />
+//                 </div>
+
+//                 <FormField
+//                   control={form.control}
+//                   name="description"
+//                   render={({ field }) => (
+//                     <FormItem>
+//                       <FormLabel className="text-sm font-medium">Mô tả</FormLabel>
+//                       <FormControl>
+//                         <Textarea
+//                           placeholder="Mô tả chi tiết về nguyên liệu..."
+//                           {...field}
+//                           value={field.value || ""}
+//                         />
+//                       </FormControl>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+//               </CardContent>
+//             </Card>
+
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle>Số lượng và giá cả</CardTitle>
+//               </CardHeader>
+//               <CardContent className="flex flex-col gap-4">
+//                 <div className="grid grid-cols-3 gap-6">
+//                   <FormField
+//                     control={form.control}
+//                     name="quantity"
+//                     render={({ field }) => (
+//                       <FormItem>
+//                         <FormLabel className="text-sm font-medium">Số lượng hiện tại *</FormLabel>
+//                         <FormControl>
+//                           <Input
+//                             type="number"
+//                             step="0.01"
+//                             placeholder="0.00"
+//                             {...field}
+//                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+//                           />
+//                         </FormControl>
+//                         <FormMessage />
+//                       </FormItem>
+//                     )}
+//                   />
+
+//                   <FormField
+//                     control={form.control}
+//                     name="min_quantity"
+//                     render={({ field }) => (
+//                       <FormItem>
+//                         <FormLabel className="text-sm font-medium">Số lượng tối thiểu</FormLabel>
+//                         <FormControl>
+//                           <Input
+//                             type="number"
+//                             step="0.01"
+//                             placeholder="0.00"
+//                             {...field}
+//                             onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+//                             value={field.value || ""}
+//                           />
+//                         </FormControl>
+//                         <FormMessage />
+//                       </FormItem>
+//                     )}
+//                   />
+
+//                   <FormField
+//                     control={form.control}
+//                     name="max_quantity"
+//                     render={({ field }) => (
+//                       <FormItem>
+//                         <FormLabel className="text-sm font-medium">Số lượng tối đa</FormLabel>
+//                         <FormControl>
+//                           <Input
+//                             type="number"
+//                             step="0.01"
+//                             placeholder="0.00"
+//                             {...field}
+//                             onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+//                             value={field.value || ""}
+//                           />
+//                         </FormControl>
+//                         <FormMessage />
+//                       </FormItem>
+//                     )}
+//                   />
+//                 </div>
+
+//                 <FormField
+//                   control={form.control}
+//                   name="unit_cost"
+//                   render={({ field }) => (
+//                     <FormItem>
+//                       <FormLabel className="text-sm font-medium">Giá đơn vị (VNĐ)</FormLabel>
+//                       <FormControl>
+//                         <Input
+//                           type="number"
+//                           step="0.01"
+//                           placeholder="0.00"
+//                           {...field}
+//                           onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+//                           value={field.value || ""}
+//                         />
+//                       </FormControl>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+//               </CardContent>
+//             </Card>
+//           </div>
+
+//           <div className="col-span-1 flex flex-col gap-6">
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle>Thông tin bổ sung</CardTitle>
+//               </CardHeader>
+//               <CardContent className="flex flex-col gap-4">
+//                 <FormField
+//                   control={form.control}
+//                   name="supplier"
+//                   render={({ field }) => (
+//                     <FormItem>
+//                       <FormLabel className="text-sm font-medium">Nhà cung cấp</FormLabel>
+//                       <FormControl>
+//                         <Input
+//                           placeholder="Tên nhà cung cấp"
+//                           {...field}
+//                           value={field.value || ""}
+//                         />
+//                       </FormControl>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+
+//                 <FormField
+//                   control={form.control}
+//                   name="expiry_date"
+//                   render={({ field }) => (
+//                     <FormItem>
+//                       <FormLabel className="text-sm font-medium">Ngày hết hạn</FormLabel>
+//                       <FormControl>
+//                         <Input
+//                           type="date"
+//                           {...field}
+//                           value={field.value ? field.value.toISOString().split('T')[0] : ""}
+//                           onChange={(e) => {
+//                             const date = e.target.value ? new Date(e.target.value) : undefined;
+//                             field.onChange(date);
+//                           }}
+//                         />
+//                       </FormControl>
+//                       <FormMessage />
+//                     </FormItem>
+//                   )}
+//                 />
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </form>
+//     </Form>
+//   );
+// }
 
 export function ReservationForm({
   mode = "create",
@@ -1950,6 +2269,45 @@ export function TableForm({
         </div>
       </form>
     </Form>
+  );
+}
+
+interface DatePickerProps {
+  date?: Date;
+  onDateChange?: (date: Date | undefined) => void;
+  placeholder?: string;
+}
+
+function DatePicker({ date, onDateChange, placeholder = "Chọn ngày" }: DatePickerProps) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal",
+            !date && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date ? format(date, "dd/MM/yyyy") : <span>{placeholder}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={onDateChange}
+          // onSelect={(selectedDate) => {
+          //   // Create date in local timezone to match input[type="date"] behavior
+          //   // Convert selectedDate to YYYY-MM-DD format and parse as local date
+          //   const dateValue = selectedDate ? new Date(selectedDate.toISOString().split('T')[0]) : undefined;
+          //   onDateChange?.(dateValue);
+          // }}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
 

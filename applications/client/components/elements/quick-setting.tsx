@@ -36,49 +36,49 @@ export function QuickSetting({
 	const colors = [
 		{
 			name: "primary",
-			className: "foreground",
+			className: "bg-foreground",
       color: "neutral",
 			active: true
 		},
 		{
 			name: "cyan",
-			className: "professional-primary-1",
+			className: "bg-professional-primary-1",
       color: "#696CFF",
 			active: false
 		},
     {
       name: "green",
-      className: "professional-primary-2",
+      className: "bg-professional-primary-2",
       color: "#0D9394",
       active: false
     },
 		{
 			name: "yellow",
-			className: "professional-primary-3",
+			className: "bg-professional-primary-3",
       color: "#FFAB1D",
 			active: false
 		},
 		{
 			name: "red",
-			className: "professional-primary-4",
+			className: "bg-professional-primary-4",
       color: "#EB3D63",
 			active: false
 		},
 		{
 			name: "blue",
-			className: "professional-primary-5",
+			className: "bg-professional-primary-5",
       color: "#2092EC",
 			active: false
 		},
 		{
 			name: "orange",
-			className: "orange-500",
+			className: "bg-orange-500",
       color: "#EC9720",
 			active: false
 		},
 		{
 			name: "purple",
-			className: "purple-500",
+			className: "bg-purple-500",
       color: "#884fff",
 			active: false
 		}
@@ -107,7 +107,7 @@ export function QuickSetting({
               <span className="sr-only">Quick Setting</span>
             </Button>
           </SheetTrigger>
-          <SheetContent>
+          <SheetContent className="">
             <SheetHeader className="pb-0">
               <SheetTitle>Theme Customizer</SheetTitle>
               <SheetDescription>
@@ -142,7 +142,7 @@ export function QuickSetting({
                       className={cn(
                         "flex justify-center items-center border-2 aspect-square rounded-md transition-colors cursor-pointer",
                         selectedColor === color.name
-                          ? // ? "border-primary"
+                          ? // ? "border-primary" h-9 w-9
                             `border-primary`
                           : "hover:border-primary/50",
                       )}
@@ -158,7 +158,7 @@ export function QuickSetting({
                         pull="center"
                         border="square"
                         type="hidden"
-                        className={`bg-${color.className} rounded-md`}
+                        className={cn("rounded-sm h-7 w-7", color.className)}
                         // style={{
                         // 	backgroundColor: color.color
                         // }}
@@ -169,13 +169,14 @@ export function QuickSetting({
                     key={"custom"}
                     onClick={() => setSelectedColor("")}
                     className={cn(
-                      "flex justify-center items-center border-2 aspect-square rounded transition-colors cursor-pointer",
+                      "flex justify-center items-center border-2 aspect-square rounded-md transition-colors cursor-pointer",
                       selectedColor === ""
                         ? "border-primary"
                         : "hover:border-primary/50",
+                        // h-9 w-9
                     )}
                   >
-                    <PaintBucket className="h-full w-full p-2 text-destructive" />
+                    <PaintBucket className="h-7 w-7 text-destructive" />
                   </div>
                 </div>
               </RadioGroup>

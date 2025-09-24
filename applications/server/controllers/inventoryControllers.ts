@@ -69,6 +69,7 @@ export async function getAllInventoryItem(
 // Tạo nguyên liệu mới
 export const createInventoryItem = async (req: Request, res: Response) => {
   try {
+    console.log(req.body)
     const validatedData = CreateInventoryItemSchema.parse(req.body);
     const item = await createInventoryItemService(validatedData);
     
@@ -87,23 +88,31 @@ export const createInventoryItem = async (req: Request, res: Response) => {
 };
 
 // Lấy nguyên liệu theo ID
-// export const getInventoryItemById = async (req: Request, res: Response) => {
-//   try {
-//     const { id } = req.params;
-//     const item = await getInventoryItemByIdService(id);
+export const getInventoryItemById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID inventory là bắt buộc'
+      });
+    }
+
+    const item = await getInventoryItemByIdService(id);
     
-//     res.status(200).json({
-//       success: true,
-//       message: 'Lấy thông tin nguyên liệu thành công',
-//       data: item
-//     });
-//   } catch (error: any) {
-//     res.status(404).json({
-//       success: false,
-//       message: error.message || 'Không tìm thấy nguyên liệu',
-//     });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      message: 'Lấy thông tin nguyên liệu thành công',
+      data: item
+    });
+  } catch (error: any) {
+    res.status(404).json({
+      success: false,
+      message: error.message || 'Không tìm thấy nguyên liệu',
+    });
+  }
+};
 
 // Lấy danh sách nguyên liệu với filter
 export const getInventoryItems = async (req: Request, res: Response) => {
@@ -145,43 +154,59 @@ export const getInventoryItems = async (req: Request, res: Response) => {
 // };
 
 // Cập nhật nguyên liệu
-// export const updateInventoryItem = async (req: Request, res: Response) => {
-//   try {
-//     const { id } = req.params;
-//     const validatedData = UpdateInventoryItemSchema.parse(req.body);
-//     const item = await updateInventoryItemService(id, validatedData);
+export const updateInventoryItem = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID inventory là bắt buộc'
+      });
+    }
+
+    const validatedData = UpdateInventoryItemSchema.parse(req.body);
+    const item = await updateInventoryItemService(id, validatedData);
     
-//     res.status(200).json({
-//       success: true,
-//       message: 'Cập nhật nguyên liệu thành công',
-//       data: item
-//     });
-//   } catch (error: any) {
-//     res.status(400).json({
-//       success: false,
-//       message: error.message || 'Lỗi khi cập nhật nguyên liệu',
-//       error: error.issues || error
-//     });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      message: 'Cập nhật nguyên liệu thành công',
+      data: item
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Lỗi khi cập nhật nguyên liệu',
+      error: error.issues || error
+    });
+  }
+};
 
 // Xóa nguyên liệu
-// export const deleteInventoryItem = async (req: Request, res: Response) => {
-//   try {
-//     const { id } = req.params;
-//     const result = await deleteInventoryItemService(id);
+export const deleteInventoryItem = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID inventory là bắt buộc'
+      });
+    }
+
+    const result = await deleteInventoryItemService(id);
     
-//     res.status(200).json({
-//       success: true,
-//       message: result.message
-//     });
-//   } catch (error: any) {
-//     res.status(400).json({
-//       success: false,
-//       message: error.message || 'Lỗi khi xóa nguyên liệu',
-//     });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      message: result.message
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Lỗi khi xóa nguyên liệu',
+    });
+  }
+};
 
 // Cập nhật hàng loạt
 export const bulkUpdateInventory = async (req: Request, res: Response) => {

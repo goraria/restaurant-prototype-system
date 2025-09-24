@@ -116,7 +116,7 @@ export function RadioInputOption({
 			<div 
 				onClick={() => onSelect(value)}
 				className={cn(
-					"flex border-2 p-3 transition-colors cursor-pointer gap-2 border-transparent",
+					"flex p-3 transition-colors cursor-pointer gap-2 border-transparent",
 					getFlipClasses(flip),
 					getPullClasses(pull),
 					getBorderClasses(border),

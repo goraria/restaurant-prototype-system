@@ -359,6 +359,45 @@ export const api = createApi({
       providesTags: ["Inventory"],
     }),
     // ------------------------------------------------------------------------
+    // Inventory
+    createInventoryItem: builder.mutation<any, any>({
+      query: (data) => ({
+        url: `/inventory`,
+        method: "POST",
+        body: data
+      }),
+    }),
+    getInventoryItems: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/inventory-items`, params: params ?? {} }),
+    }),
+    bulkUpdateInventory: builder.mutation<any, any>({
+      query: (data) => ({ url: `/inventory-items/bulk-update`, method: "PATCH", body: data }),
+    }),
+    getLowStockAlert: builder.query<any, void>({ query: () => `/inventory-items/low-stock-alert` }),
+    getInventoryItemById: builder.query<any, string>({ query: (id) => `/inventory-items/${id}` }),
+    updateInventoryItem: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/inventory/${id}`,
+        method: "PUT",
+        body: data
+      }),
+    }),
+    deleteInventoryItem: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/inventory/${id}`,
+        method: "DELETE"
+      }),
+    }),
+    getInventoryItemsByRestaurantId: builder.query<any, string>({
+      query: (restaurantId) => `/restaurants/${restaurantId}/inventory-items`,
+    }),
+    createInventoryTransaction: builder.mutation<any, any>({
+      query: (data) => ({ url: `/inventory-transactions`, method: "POST", body: data }),
+    }),
+    getInventoryTransactions: builder.query<any, Record<string, any> | void>({
+      query: (params) => ({ url: `/inventory-transactions`, params: params ?? {} }),
+    }),
+    // ------------------------------------------------------------------------
     // Tables CRUD
     // ------------------------------------------------------------------------
     getAllTables: builder.query<TableDataColumn[], void>({
@@ -635,35 +674,7 @@ export const api = createApi({
     vnpayCallback: builder.mutation<any, any>({
       query: (data) => ({ url: `/payment/vnpay/callback`, method: "POST", body: data }),
     }),
-
-    // Inventory
-    createInventoryItem: builder.mutation<any, any>({
-      query: (data) => ({ url: `/inventory-items`, method: "POST", body: data }),
-    }),
-    getInventoryItems: builder.query<any, Record<string, any> | void>({
-      query: (params) => ({ url: `/inventory-items`, params: params ?? {} }),
-    }),
-    bulkUpdateInventory: builder.mutation<any, any>({
-      query: (data) => ({ url: `/inventory-items/bulk-update`, method: "PATCH", body: data }),
-    }),
-    getLowStockAlert: builder.query<any, void>({ query: () => `/inventory-items/low-stock-alert` }),
-    getInventoryItemById: builder.query<any, string>({ query: (id) => `/inventory-items/${id}` }),
-    updateInventoryItem: builder.mutation<any, { id: string; data: any }>({
-      query: ({ id, data }) => ({ url: `/inventory-items/${id}`, method: "PUT", body: data }),
-    }),
-    deleteInventoryItem: builder.mutation<any, string>({
-      query: (id) => ({ url: `/inventory-items/${id}`, method: "DELETE" }),
-    }),
-    getInventoryItemsByRestaurantId: builder.query<any, string>({
-      query: (restaurantId) => `/restaurants/${restaurantId}/inventory-items`,
-    }),
-    createInventoryTransaction: builder.mutation<any, any>({
-      query: (data) => ({ url: `/inventory-transactions`, method: "POST", body: data }),
-    }),
-    getInventoryTransactions: builder.query<any, Record<string, any> | void>({
-      query: (params) => ({ url: `/inventory-transactions`, params: params ?? {} }),
-    }),
-    // 
+    // ///////////////////////
     createRecipe: builder.mutation<any, any>({
       query: (data) => ({ url: `/recipes`, method: "POST", body: data }),
     }),
@@ -1040,6 +1051,9 @@ export const {
 
   // Ingredients
   useGetAllInventoryItemsQuery,
+  useCreateInventoryItemMutation,
+  useUpdateInventoryItemMutation,
+  useDeleteInventoryItemMutation,
 
   // Tables
   useGetAllTablesQuery,
