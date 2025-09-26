@@ -29,15 +29,17 @@ export default function CartPage() {
             <CardContent className="flex flex-col gap-2">
               <div className="flex justify-between">
                 <p>Nhà hàng</p>
-                <Link href="/" className="hover:text-professional-main">Waddles Restaurant</Link>
+                <Link href="/" className="font-medium hover:text-professional-main">
+                  Waddles Restaurant
+                </Link>
               </div>
               <div className="flex justify-between">
                 <p>Bàn ăn</p>
-                <p>01</p>
+                <p className="font-medium">01</p>
               </div>
               <div className="flex justify-between">
                 <p>Số món ăn đã gọi</p>
-                <p>21</p>
+                <p className="font-medium">21</p>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
