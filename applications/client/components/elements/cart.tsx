@@ -3,7 +3,7 @@ import {
   DropdownMenu,
   DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
+  DropdownMenuSeparator, DropdownMenuShortcut,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,11 @@ export function CartButton() {
             </DropdownMenuItem>
             {/* Add more notification items */}
           </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>
+            Xem tất cả
+            <DropdownMenuShortcut>⇧⌘A</DropdownMenuShortcut>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>
