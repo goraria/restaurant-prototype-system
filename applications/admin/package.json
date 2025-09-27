@@ -11,9 +11,9 @@
     "shadcn": "npx shadcn@latest add -a -o"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.48.1",
-    "@clerk/localizations": "^3.25.3",
-    "@clerk/themes": "^2.4.21",
+    "@clerk/clerk-react": "^5.49.0",
+    "@clerk/localizations": "^3.25.4",
+    "@clerk/themes": "^2.4.22",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -60,7 +60,7 @@
     "react-hook-form": "^7.63.0",
     "react-redux": "^9.2.0",
     "react-resizable-panels": "^3.0.6",
-    "recharts": "3.2.1",
+    "recharts": "2.15.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.13",
@@ -71,7 +71,7 @@
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/node": "^24.5.2",
-    "@types/react": "^19.1.13",
+    "@types/react": "^19.1.14",
     "@types/react-dom": "^19.1.9",
     "@types/uuid": "^11.0.0",
     "@vitejs/plugin-react-swc": "^4.1.0",
