@@ -5,18 +5,18 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "turbo": "next dev",
-    "build": "next build",
+    "build": "next build --turbopack",
     "start": "next start",
     "lint": "next lint",
     "clean": "rm -rf .next node_modules",
     "shadcn": "npx shadcn@latest add -a -o"
   },
   "dependencies": {
-    "@clerk/clerk-js": "^5.95.0",
-    "@clerk/localizations": "^3.25.3",
-    "@clerk/nextjs": "^6.32.2",
-    "@clerk/themes": "^2.4.21",
-    "@clerk/types": "^4.88.0",
+    "@clerk/clerk-js": "^5.96.0",
+    "@clerk/localizations": "^3.25.4",
+    "@clerk/nextjs": "^6.33.0",
+    "@clerk/themes": "^2.4.22",
+    "@clerk/types": "^4.89.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -90,6 +90,7 @@
     "eslint-config-next": "15.5.4",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
+    "shadcn": "^3.3.1",
     "tailwindcss": "^4",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
