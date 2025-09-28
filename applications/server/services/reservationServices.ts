@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, reservation_status_enum } from '@prisma/client';
 import { 
   CreateReservationType, 
   UpdateReservationType, 
@@ -16,6 +16,104 @@ const prisma = new PrismaClient();
 // ================================
 // 🎯 RESERVATION SERVICES
 // ================================
+
+export async function getAllReservations() {
+  try {
+    const reservations = await prisma.reservations.findMany({
+      select: {
+        id: true,
+        customer_name: true,
+        customer_phone: true,
+        customer_email: true,
+        party_size: true,
+        reservation_date: true,
+        duration_hours: true,
+        status: true,
+        special_requests: true,
+        notes: true,
+        created_at: true,
+        updated_at: true,
+        tables: {
+          select: {
+            id: true,
+            table_number: true,
+            capacity: true,
+            location: true,
+            restaurants: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          }
+        },
+        customers: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            full_name: true,
+            phone_number: true,
+            avatar_url: true,
+            clerk_id: true
+          }
+        },
+        // Include count of related records if needed
+        // _count: {
+        //   select: {
+        //
+        //   }
+        // }
+      }
+    });
+
+    if (!reservations) {
+      throw new Error('Không tìm thấy đơn đặt bàn');
+    }
+
+    return reservations;
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy thông tin đơn đặt bàn: ${error}`);
+  }
+}
+
+export async function updateStatusReservation(
+  id: string,
+  status: reservation_status_enum
+) {
+  try {
+    const existingReservation = await prisma.reservations.findUnique({
+      where: { id }
+    });
+
+    if (!existingReservation) {
+      throw new Error('Category not found');
+    }
+
+    const reservation = await prisma.reservations.update({
+      where: { id },
+      data: {
+        status,
+        updated_at: new Date()
+      },
+      // include: {
+      //   _count: {
+      //     select: {
+      //       menu_items: true
+      //     }
+      //   }
+      // }
+    });
+
+    return reservation;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to update reservation: ${error.message}`);
+    }
+    throw new Error('Failed to update reservation');
+  }
+}
 
 /**
  * Tạo đặt bàn mới
@@ -318,7 +416,7 @@ export async function updateReservationStatus(id: string, data: UpdateReservatio
     };
 
     const allowedStatuses = validTransitions[existingReservation.status];
-    if (!allowedStatuses.includes(data.status)) {
+    if (!allowedStatuses || !allowedStatuses.includes(data.status)) {
       throw new Error(`Không thể chuyển từ trạng thái ${existingReservation.status} sang ${data.status}`);
     }
 
@@ -567,7 +665,7 @@ export async function createWalkIn(data: CreateWalkInType) {
       customer_phone: data.customer_phone || 'N/A', // Đảm bảo luôn có giá trị
       party_size: data.party_size,
       customer_email: undefined,
-      reservation_date: new Date().toISOString(),
+      reservation_date: new Date(),
       duration_hours: 2,
       special_requests: undefined,
       notes: `Walk-in customer. ${data.notes || ''}`
@@ -657,6 +755,196 @@ export async function getReservationAnalytics(data: ReservationAnalyticsType) {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Lỗi phân tích thống kê'
+    };
+  }
+}
+
+/**
+ * Tạo waitlist khi không có bàn trống
+ * Note: Waitlist table needs to be added to Prisma schema
+ */
+export async function createWaitlist(data: CreateWaitlistType) {
+  try {
+    // TODO: Implement waitlist functionality when waitlist table is added to schema
+    return {
+      success: false,
+      error: 'Waitlist functionality not yet implemented'
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi tạo danh sách chờ'
+    };
+  }
+}
+
+/**
+ * Lấy danh sách waitlist
+ * Note: Waitlist table needs to be added to Prisma schema
+ */
+export async function getWaitlist(restaurant_id: string, status?: string) {
+  try {
+    // TODO: Implement waitlist functionality when waitlist table is added to schema
+    return {
+      success: false,
+      error: 'Waitlist functionality not yet implemented'
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi lấy danh sách chờ'
+    };
+  }
+}
+
+/**
+ * Cập nhật trạng thái waitlist
+ * Note: Waitlist table needs to be added to Prisma schema
+ */
+export async function updateWaitlistStatus(id: string, status: string, notes?: string) {
+  try {
+    // TODO: Implement waitlist functionality when waitlist table is added to schema
+    return {
+      success: false,
+      error: 'Waitlist functionality not yet implemented'
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi cập nhật danh sách chờ'
+    };
+  }
+}
+
+/**
+ * Lấy đặt bàn theo khách hàng
+ */
+export async function getReservationsByCustomer(customer_id: string, status?: string) {
+  try {
+    const where: any = { customer_id };
+    if (status) {
+      where.status = status;
+    }
+
+    const reservations = await prisma.reservations.findMany({
+      where,
+      include: {
+        tables: {
+          include: {
+            restaurants: true
+          }
+        }
+      },
+      orderBy: { reservation_date: 'desc' }
+    });
+
+    return {
+      success: true,
+      data: reservations
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi lấy đặt bàn khách hàng'
+    };
+  }
+}
+
+/**
+ * Tìm kiếm đặt bàn theo số điện thoại
+ */
+export async function searchReservationsByPhone(phone: string, restaurant_id?: string) {
+  try {
+    const where: any = {
+      customer_phone: {
+        contains: phone,
+        mode: 'insensitive'
+      }
+    };
+
+    if (restaurant_id) {
+      where.tables = {
+        restaurant_id
+      };
+    }
+
+    const reservations = await prisma.reservations.findMany({
+      where,
+      include: {
+        tables: {
+          include: {
+            restaurants: true
+          }
+        }
+      },
+      orderBy: { reservation_date: 'desc' }
+    });
+
+    return {
+      success: true,
+      data: reservations
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi tìm kiếm đặt bàn'
+    };
+  }
+}
+
+/**
+ * Lấy thống kê đặt bàn theo ngày
+ */
+export async function getDailyReservationStats(restaurant_id: string, date: string) {
+  try {
+    const startOfDay = new Date(date);
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+    const stats = await prisma.reservations.groupBy({
+      by: ['status'],
+      where: {
+        tables: { restaurant_id },
+        reservation_date: {
+          gte: startOfDay,
+          lt: endOfDay
+        }
+      },
+      _count: { id: true },
+      _avg: { party_size: true }
+    });
+
+    const totalReservations = await prisma.reservations.count({
+      where: {
+        tables: { restaurant_id },
+        reservation_date: {
+          gte: startOfDay,
+          lt: endOfDay
+        }
+      }
+    });
+
+    return {
+      success: true,
+      data: {
+        date,
+        total_reservations: totalReservations,
+        by_status: stats.map(stat => ({
+          status: stat.status,
+          count: stat._count.id,
+          avg_party_size: stat._avg.party_size
+        }))
+      }
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi lấy thống kê ngày'
     };
   }
 }

@@ -22,6 +22,7 @@ import {
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle
@@ -46,15 +47,18 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import {
   Image as ImageIcon,
   X,
   Plus,
+  CalendarIcon,
   Upload,
   Loader2,
-  CalendarIcon
+  Users,
+  MapPin
 } from "lucide-react";
 
 import {
@@ -95,6 +99,14 @@ import {
   IngredientDataColumn
 } from "@/constants/interfaces";
 import { FileUploadServer } from "@/components/forms/file-upload-server";
+import {
+  useGetAllTablesQuery,
+  useGetTablesQuery,
+  useGetAllUsersQuery,
+  useCreateReservationMutation,
+  useCheckAvailabilityMutation
+} from "@/state/api";
+import { useUser } from "@clerk/nextjs";
 
 export interface MenuItemFormProps {
   mode?: "create" | "update"
@@ -1461,17 +1473,65 @@ export function ReservationForm({
   submitText,
   isLoading = false
 }: ReservationFormProps) {
+  // Clerk user hook
+  const { user: clerkUser, isLoaded: isUserLoaded } = useUser();
+
+  // RTK Query hooks
+  const { data: tablesData, isLoading: isLoadingTables } = useGetAllTablesQuery();
+  const [createReservation, { isLoading: isCreatingReservation }] = useCreateReservationMutation();
+
+  const [selectedTable, setSelectedTable] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    initialValues?.reservation_date ? new Date(initialValues.reservation_date) : undefined
+  );
+  const [selectedTime, setSelectedTime] = useState("");
+  const [guestCount, setGuestCount] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+
+  // const availableTables = tablesData?.data || [];
+
+  // Check availability when date, time, and table are selected
+  const [checkAvailability] = useCheckAvailabilityMutation();
+  const [availabilityResult, setAvailabilityResult] = useState<any>(null);
+
+  // Function to check availability
+  const checkTableAvailability = async () => {
+    if (selectedDate && selectedTime && selectedTable) {
+      try {
+        const result = await checkAvailability({
+          table_id: selectedTable,
+          reservation_date: selectedDate.toISOString(),
+          duration_hours: form.watch("duration_hours") || 2,
+          party_size: parseInt(guestCount) || 2
+        }).unwrap();
+        setAvailabilityResult(result);
+      } catch (error) {
+        console.error("Error checking availability:", error);
+        setAvailabilityResult(null);
+      }
+    }
+  };
+
+  const isTableAvailable = availabilityResult?.available ?? true;
+
+  const timeSlots = [
+    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
+    "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
+    "20:00", "20:30", "21:00", "21:30"
+  ];
+
   const schema = mode === "create" ? CreateReservationSchema : UpdateReservationSchema;
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       table_id: initialValues?.table_id || "",
-      customer_id: initialValues?.customer_id || undefined,
-      customer_name: initialValues?.customer_name || "",
+      customer_id: "f594a593-3cad-4429-b595-7731c0f75ca8", // initialValues?.customer_id ||
+      customer_name: initialValues?.customer_name || clerkUser?.fullName || (clerkUser?.firstName && clerkUser?.lastName ? `${clerkUser.firstName} ${clerkUser.lastName}` : "") || "",
       customer_phone: initialValues?.customer_phone || "",
-      customer_email: initialValues?.customer_email || "",
+      customer_email: initialValues?.customer_email || clerkUser?.primaryEmailAddress?.emailAddress || "",
       party_size: initialValues?.party_size || 2,
-      reservation_date: initialValues?.reservation_date ? new Date(initialValues.reservation_date) : undefined,
+      // reservation_date: initialValues?.reservation_date ? new Date(initialValues.reservation_date) : undefined, // Remove this - will be set in onSubmit
       duration_hours: initialValues?.duration_hours || 2,
       special_requests: initialValues?.special_requests || "",
       notes: initialValues?.notes || "",
@@ -1481,174 +1541,222 @@ export function ReservationForm({
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
-      console.log("Submitting reservation:", data);
+      // Check availability first if we have date, time, and table
+      if (selectedDate && selectedTime && selectedTable && !isTableAvailable) {
+        console.error("Table is not available for the selected time");
+        return;
+      }
 
-      // Here you would call your API mutation
-      // For now, just call onSuccess with the data
+      // Combine date and time into a single Date object
+      let reservationDateTime: Date | undefined;
+      if (selectedDate && selectedTime) {
+        // Create date string in YYYY-MM-DD format
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        // Combine date and time: "2025-10-02T08:00:00"
+        const dateTimeStr = `${dateStr}T${selectedTime}:00`;
+        reservationDateTime = new Date(dateTimeStr);
+        console.log('Combined date and time:', { dateStr, selectedTime, dateTimeStr, reservationDateTime });
+      }
+
+      // Prepare data for submission
+      const reservationData = {
+        ...data,
+        table_id: selectedTable || undefined,
+        reservation_date: reservationDateTime,
+        // customer_id: data.customer_id || undefined,
+      };
+
+      console.log("Submitting reservation:", reservationData);
+
+      // Use RTK Query mutation
+      const result = await createReservation(reservationData).unwrap();
+
       if (onSuccess) {
-        onSuccess(data as ReservationInterface);
+        onSuccess(result);
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Error submitting reservation:", error);
+      // Error handling will be done by RTK Query toast
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex justify-end gap-4 mb-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            Hủy
-          </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="min-w-[120px]"
-          >
-            {isLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Đang xử lý...
-              </>
-            ) : (
-              submitText || (mode === "create" ? "Tạo đặt bàn" : "Cập nhật đặt bàn")
-            )}
-          </Button>
-        </div>
+        {/*<div className="flex justify-end gap-4 mb-6">*/}
+        {/*  <Button*/}
+        {/*    type="button"*/}
+        {/*    variant="outline"*/}
+        {/*    onClick={onCancel}*/}
+        {/*    disabled={isLoading}*/}
+        {/*  >*/}
+        {/*    Hủy*/}
+        {/*  </Button>*/}
+        {/*  <Button*/}
+        {/*    type="submit"*/}
+        {/*    disabled={isLoading || isCreatingReservation || (selectedTable && !isTableAvailable)}*/}
+        {/*    className="min-w-[120px]"*/}
+        {/*  >*/}
+        {/*    {isLoading || isCreatingReservation ? (*/}
+        {/*      <>*/}
+        {/*        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>*/}
+        {/*        Đang xử lý...*/}
+        {/*      </>*/}
+        {/*    ) : (*/}
+        {/*      submitText || (mode === "create" ? "Tạo đặt bàn" : "Cập nhật đặt bàn")*/}
+        {/*    )}*/}
+        {/*  </Button>*/}
+        {/*</div>*/}
 
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2 flex flex-col gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin khách hàng</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="customer_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="">Tên khách hàng *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Nhập tên khách hàng"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+        <Card>
+          <CardHeader>
+            <CardTitle>Thông tin đặt bàn</CardTitle>
+            <CardDescription>
+              Vui lòng điền đầy đủ thông tin để đặt bàn
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Thông tin khách hàng */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="customer_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Họ và tên *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập họ và tên"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <FormField
-                    control={form.control}
-                    name="customer_phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Số điện thoại *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="VD: 0123456789"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              <FormField
+                control={form.control}
+                name="customer_phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Số điện thoại *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập số điện thoại"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                <FormField
-                  control={form.control}
-                  name="customer_email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="customer@example.com"
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+            <FormField
+              control={form.control}
+              name="customer_email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Nhập email (tùy chọn)"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Chi tiết đặt bàn</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="party_size"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Số người *</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="1"
-                            max="50"
-                            placeholder="2"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 2)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            {/*<FormField*/}
+            {/*  control={form.control}*/}
+            {/*  name="customer_email"*/}
+            {/*  render={({ field }) => (*/}
+            {/*    <FormItem>*/}
+            {/*      <FormLabel>Email khách hàng</FormLabel>*/}
+            {/*      <FormControl>*/}
+            {/*        <Input*/}
+            {/*          {...field}*/}
+            {/*          value={field.value || ""}*/}
+            {/*          placeholder="Email khách hàng"*/}
+            {/*        />*/}
+            {/*      </FormControl>*/}
+            {/*      <FormMessage />*/}
+            {/*    </FormItem>*/}
+            {/*  )}*/}
+            {/*/>*/}
 
-                  <FormField
-                    control={form.control}
-                    name="duration_hours"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Thời gian (giờ) *</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.25"
-                            min="0.25"
-                            max="24"
-                            placeholder="2.00"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 2)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+            {/* Thông tin khách hàng từ Clerk */}
+            {/*<FormField*/}
+            {/*  control={form.control}*/}
+            {/*  name="customer_name"*/}
+            {/*  render={({ field }) => (*/}
+            {/*    <FormItem>*/}
+            {/*      <FormLabel>Tên khách hàng</FormLabel>*/}
+            {/*      <FormControl>*/}
+            {/*        <Input*/}
+            {/*          {...field}*/}
+            {/*          value={field.value || ""}*/}
+            {/*          placeholder="Tên khách hàng"*/}
+            {/*        />*/}
+            {/*      </FormControl>*/}
+            {/*      <FormMessage />*/}
+            {/*    </FormItem>*/}
+            {/*  )}*/}
+            {/*/>*/}
+
+            {/* Ngày và giờ */}
+            <div className="grid md:grid-cols-5 gap-4">
+              <div className="col-span-2 space-y-2">
+
+                {/*<Label>Ngày đặt bàn *</Label>*/}
+                {/*<Popover>*/}
+                {/*  <PopoverTrigger asChild>*/}
+                {/*    <Button variant="outline" className="w-full justify-start">*/}
+                {/*      <CalendarIcon className="mr-2 h-4 w-4" />*/}
+                {/*      {selectedDate ? (*/}
+                {/*        format(selectedDate, "dd/MM/yyyy", { locale: vi })*/}
+                {/*      ) : (*/}
+                {/*        "Chọn ngày"*/}
+                {/*      )}*/}
+                {/*    </Button>*/}
+                {/*  </PopoverTrigger>*/}
+                {/*  <PopoverContent className="w-auto p-0">*/}
+                {/*    <Calendar*/}
+                {/*      mode="single"*/}
+                {/*      selected={selectedDate}*/}
+                {/*      onSelect={(date) => {*/}
+                {/*        setSelectedDate(date);*/}
+                {/*        if (date) {*/}
+                {/*          form.setValue("reservation_date", date);*/}
+                {/*        }*/}
+                {/*      }}*/}
+                {/*      disabled={(date) => date < new Date()}*/}
+                {/*      initialFocus*/}
+                {/*    />*/}
+                {/*  </PopoverContent>*/}
+                {/*</Popover>*/}
 
                 <FormField
                   control={form.control}
                   name="reservation_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium">Thời gian đặt bàn *</FormLabel>
+                      <FormLabel className="text-sm font-medium">Ngày đặt bàn</FormLabel>
                       <FormControl>
                         <Input
-                          type="datetime-local"
-                          {...field}
-                          value={field.value ? field.value.toISOString().slice(0, 16) : ""}
+                          type="date"
+                          value={selectedDate ? selectedDate.toISOString().split('T')[0] : ""}
                           onChange={(e) => {
-                            const date = e.target.value ? new Date(e.target.value) : undefined;
-                            field.onChange(date);
+                            const dateString = e.target.value;
+                            const date = dateString ? new Date(dateString) : undefined;
+                            console.log('Date input change:', { dateString, date });
+                            setSelectedDate(date);
+                            form.setValue("reservation_date", date, { shouldValidate: true });
                           }}
                         />
                       </FormControl>
@@ -1656,75 +1764,167 @@ export function ReservationForm({
                     </FormItem>
                   )}
                 />
-              </CardContent>
-            </Card>
-          </div>
+              </div>
 
-          <div className="col-span-1 flex flex-col gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Thông tin bổ sung</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <FormField
-                  control={form.control}
-                  name="table_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">ID bàn *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="table-uuid"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        ID của bàn được đặt
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="col-span-1 space-y-2">
+                <Label>Giờ đặt bàn *</Label>
+                <Select value={selectedTime} onValueChange={setSelectedTime} required>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Chọn giờ" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {timeSlots.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="special_requests"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Yêu cầu đặc biệt</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Yêu cầu đặc biệt..."
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="col-span-1 space-y-2">
+                <Label>Số người *</Label>
+                <Select value={guestCount} onValueChange={(value) => {
+                  setGuestCount(value);
+                  form.setValue("party_size", parseInt(value));
+                }} required>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Chọn số người" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20].map((num) => (
+                      <SelectItem key={num} value={num.toString()}>
+                        {num} người
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Ghi chú</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Ghi chú thêm..."
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              <div className="col-span-1 space-y-2">
+                <Label>Tầng *</Label>
+                <Select value={selectedLocation} onValueChange={setSelectedLocation} required>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Chọn vị trí" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {["Tầng 1 - Khu chính", "Tầng 1 - Khu gia đình", "Tầng 2 - Khu riêng tư", "Tầng 2 - Khu VIP", "Tầng 3 - Khu ngoài trời"].map((floor) => (
+                      <SelectItem key={floor} value={floor}>
+                        {floor}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Chọn bàn */}
+            {guestCount && selectedLocation && (
+              <div className="space-y-4">
+                <Label>Chọn bàn (tùy chọn)</Label>
+                {isLoadingTables ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    <span className="ml-2">Đang tải danh sách bàn...</span>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {tablesData?.filter((table) => 
+                      table.location === selectedLocation &&
+                      table.capacity >= parseInt(guestCount)
+                    ).map((table) => (
+                      <Card
+                        key={table.id}
+                        className={`cursor-pointer transition-colors ${selectedTable === table.id ? 'ring-2 ring-orange-500' : ''
+                          }`}
+                        onClick={() => {
+                          setSelectedTable(selectedTable === table.id ? "" : table.id);
+                          form.setValue("table_id", selectedTable === table.id ? "" : table.id);
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-medium">Bàn {table.table_number}</h4>
+                            <Badge variant="outline">
+                              <Users className="h-3 w-3 mr-1" />
+                              {table.capacity}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            <MapPin className="h-3 w-3 inline mr-1" />
+                            {table.location || "Vị trí chưa xác định"}
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant="secondary" className="text-xs">
+                              Sức chứa: {table.capacity} người
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {table.status === 'available' ? 'Có sẵn' : 'Đang sử dụng'}
+                            </Badge>
+                            {selectedDate && selectedTime && selectedTable === table.id && (
+                              <Badge
+                                variant={isTableAvailable ? "default" : "destructive"}
+                                className="text-xs"
+                              >
+                                {tablesData?.isLoading ? 'Đang kiểm tra...' :
+                                  isTableAvailable ? 'Có thể đặt' : 'Không khả dụng'}
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {tablesData?.filter((table) => 
+                    table.location === selectedLocation && 
+                    table.capacity >= parseInt(guestCount)
+                  ).length === 0 && !isLoadingTables && (
+                  <p className="text-center text-muted-foreground py-4">
+                    Không có bàn nào ở vị trí &quot;{selectedLocation}&quot; phù hợp với {guestCount} người
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Yêu cầu đặc biệt */}
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Yêu cầu đặc biệt</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Ví dụ: Sinh nhật, kỷ niệm, dị ứng thực phẩm..."
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={isLoading}
+              onClick={() => console.log('Form values:', form.getValues())}
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Đang xử lý...
+                </>
+              ) : (
+                "Xác nhận đặt bàn"
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </form>
     </Form>
   );
@@ -1765,9 +1965,15 @@ export function PromotionForm({
         ...data,
         start_date: data.start_date,
         end_date: data.end_date,
-        applicable_items: typeof data.applicable_items === 'string'
-          ? data.applicable_items.split(',').map(id => id.trim()).filter(Boolean)
-          : data.applicable_items || [],
+        applicable_items: (() => {
+          if (Array.isArray(data.applicable_items)) {
+            return data.applicable_items;
+          }
+          if (typeof data.applicable_items === 'string') {
+            return data.applicable_items.split(',').map((id: string) => id.trim()).filter(Boolean);
+          }
+          return [];
+        })(),
         conditions: data.conditions ? JSON.parse(data.conditions as string) : undefined,
         time_restrictions: data.time_restrictions ? JSON.parse(data.time_restrictions as string) : undefined,
       };
@@ -1777,7 +1983,7 @@ export function PromotionForm({
       // Here you would call your API mutation
       // For now, just call onSuccess with the data
       if (onSuccess) {
-        onSuccess(processedData as PromotionInterface);
+        onSuccess(processedData as any);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -2515,29 +2721,6 @@ export function CategoryForm({
                   )}
                 />
 
-                {/*<FormField*/}
-                {/*  control={form.control}*/}
-                {/*  name="parent_id"*/}
-                {/*  render={({ field }) => (*/}
-                {/*    <FormItem>*/}
-                {/*      <FormLabel className="text-sm font-medium">Danh mục cha</FormLabel>*/}
-                {/*      <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} value={field.value || "none"}>*/}
-                {/*        <FormControl>*/}
-                {/*          <SelectTrigger className="w-full">*/}
-                {/*            <SelectValue placeholder="Chọn danh mục cha (tùy chọn)" />*/}
-                {/*          </SelectTrigger>*/}
-                {/*        </FormControl>*/}
-                {/*        <SelectContent>*/}
-                {/*          <SelectItem value="none">Không có</SelectItem>*/}
-                {/*          // TODO: Load parent categories from API*/}
-                {/*          <SelectItem value="cat-1">Danh mục 1</SelectItem>*/}
-                {/*          <SelectItem value="cat-2">Danh mục 2</SelectItem>*/}
-                {/*        </SelectContent>*/}
-                {/*      </Select>*/}
-                {/*      <FormMessage />*/}
-                {/*    </FormItem>*/}
-                {/*  )}*/}
-                {/*/>*/}
               </CardContent>
             </Card>
           </div>

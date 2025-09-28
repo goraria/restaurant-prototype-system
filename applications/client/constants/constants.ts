@@ -952,6 +952,29 @@ export const staffSidebar = {
       items: [],
     },
     {
+      title: "Đặt bàn",
+      describe: "Table reservation system",
+      url: "#",
+      icon: QrCode,
+      items: [
+        {
+          title: "Tất cả đặt bàn",
+          describe: "Make new reservation",
+          url: "/staff/reservations",
+        },
+        {
+          title: "Duyệt đặt bàn",
+          describe: "Make new reservation",
+          url: "/staff/reservations/approve",
+        },
+        {
+          title: "Lịch sử đặt bàn",
+          describe: "Reservation history",
+          url: "/staff/reservations/history",
+        },
+      ],
+    },
+    {
       title: "Đơn hàng",
       describe: "Order management and processing",
       url: "#",

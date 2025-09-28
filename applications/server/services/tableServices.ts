@@ -1,4 +1,4 @@
-import { PrismaClient, tables, reservations, table_orders } from '@prisma/client';
+import { PrismaClient, tables, reservations, table_orders, table_status_enum } from '@prisma/client';
 import { 
   CreateTable, 
   UpdateTable, 
@@ -434,6 +434,134 @@ export const checkTableAvailability = async (data: TableAvailability) => {
     return availableTables;
   } catch (error) {
     throw new Error(`Lỗi khi kiểm tra bàn trống: ${error}`);
+  }
+};
+
+/**
+ * Lấy bàn theo nhà hàng với thông tin đặt bàn
+ */
+export const getTablesWithReservations = async (restaurant_id: string, date?: string) => {
+  try {
+    if (!validate(restaurant_id)) {
+      throw new Error('ID nhà hàng không hợp lệ');
+    }
+
+    const whereClause: any = { restaurant_id };
+    const reservationWhere: any = {};
+
+    if (date) {
+      const startOfDay = new Date(date);
+      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+      reservationWhere.reservation_date = {
+        gte: startOfDay,
+        lt: endOfDay
+      };
+    }
+
+    const tables = await prisma.tables.findMany({
+      where: whereClause,
+      include: {
+        reservations: {
+          where: reservationWhere,
+          include: {
+            customers: {
+              select: {
+                id: true,
+                first_name: true,
+                last_name: true,
+                phone_number: true
+              }
+            }
+          },
+          orderBy: { reservation_date: 'asc' }
+        },
+        _count: {
+          select: {
+            reservations: {
+              where: reservationWhere
+            }
+          }
+        }
+      },
+      orderBy: { table_number: 'asc' }
+    });
+
+    return tables;
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy bàn với đặt bàn: ${error}`);
+  }
+};
+
+/**
+ * Cập nhật trạng thái bàn khi có đặt bàn
+ */
+export const updateTableStatusForReservation = async (table_id: string, status: table_status_enum) => {
+  try {
+    if (!validate(table_id)) {
+      throw new Error('ID bàn không hợp lệ');
+    }
+
+    const updatedTable = await prisma.tables.update({
+      where: { id: table_id },
+      data: {
+        status,
+        updated_at: new Date()
+      }
+    });
+
+    return updatedTable;
+  } catch (error) {
+    throw new Error(`Lỗi khi cập nhật trạng thái bàn: ${error}`);
+  }
+};
+
+/**
+ * Lấy thống kê sử dụng bàn
+ */
+export const getTableUsageStats = async (restaurant_id: string, date_from?: string, date_to?: string) => {
+  try {
+    if (!validate(restaurant_id)) {
+      throw new Error('ID nhà hàng không hợp lệ');
+    }
+
+    const whereClause: any = {
+      tables: { restaurant_id }
+    };
+
+    if (date_from && date_to) {
+      whereClause.reservation_date = {
+        gte: new Date(date_from),
+        lte: new Date(date_to)
+      };
+    }
+
+    const stats = await prisma.reservations.groupBy({
+      by: ['table_id'],
+      where: whereClause,
+      _count: { id: true },
+      _avg: { party_size: true }
+    });
+
+    const tableStats = await prisma.tables.findMany({
+      where: { restaurant_id },
+      select: {
+        id: true,
+        table_number: true,
+        capacity: true,
+        status: true
+      }
+    });
+
+    return {
+      table_stats: tableStats,
+      usage_stats: stats.map(stat => ({
+        table_id: stat.table_id,
+        reservation_count: stat._count.id,
+        avg_party_size: stat._avg.party_size
+      }))
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy thống kê sử dụng bàn: ${error}`);
   }
 };
 

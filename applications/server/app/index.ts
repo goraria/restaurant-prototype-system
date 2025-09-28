@@ -34,6 +34,7 @@ import uploadRoutes from "@/routes/uploadRoutes";
 // import clerkRoutes from "@/routes/clerkRoutes";
 // import rlsTestRoutes from "@/routes/rlsTestRoutes";
 import notificationRoutes from "@/routes/notificationRoutes";
+import reservationRoutes from "@/routes/reservationRoutes";
 // import graphqlRoutes from "@/routes/graphqlRoutes";
 
 // ================================
@@ -132,6 +133,7 @@ app.use('/menu', menuRoutes); // Public menu viewing
 app.use('/recipe', recipeRoutes); // Private recipe viewing
 app.use('/inventory', inventoryRoutes); // Private inventory viewing
 app.use('/table', tableRoutes); // Public table viewing
+app.use('/reservation', reservationRoutes); // Public table viewing
 app.use('/upload', uploadRoutes); // File uploads
 
 // Protected routes (require Clerk authentication)

@@ -40,8 +40,10 @@ export const CreateReservationSchema = z.object({
     .int("Số người phải là số nguyên")
     .min(1, "Số người phải ít nhất 1")
     .max(50, "Số người không được quá 50"),
-  reservation_date: z.date("Thời gian đặt bàn không hợp lệ")
-    .refine((date) => date > new Date(), "Thời gian đặt bàn phải trong tương lai"),
+  reservation_date: z.union([
+    z.date(),
+    z.string().transform((str) => new Date(str))
+  ]).refine((date) => date > new Date(), "Thời gian đặt bàn phải trong tương lai"),
   duration_hours: z.number()
     .min(0.25, "Thời gian tối thiểu 15 phút")
     .max(24, "Thời gian tối đa 24 tiếng")
@@ -182,6 +184,57 @@ export const CreateWaitlistSchema = z.object({
     .optional()
 });
 
+// Waitlist Status Update Schema
+export const UpdateWaitlistStatusSchema = z.object({
+  status: z.enum(['waiting', 'notified', 'seated', 'cancelled', 'expired'], {
+    message: "Trạng thái waitlist không hợp lệ"
+  }),
+  notes: z.string()
+    .max(500, "Ghi chú không được quá 500 ký tự")
+    .optional()
+});
+
+// Waitlist Query Schema
+export const WaitlistQuerySchema = z.object({
+  restaurant_id: z.string().uuid("ID nhà hàng không hợp lệ"),
+  status: z.enum(['waiting', 'notified', 'seated', 'cancelled', 'expired']).optional(),
+  page: z.number().min(1, "Trang phải lớn hơn 0").default(1),
+  limit: z.number().min(1, "Giới hạn phải lớn hơn 0").max(100, "Giới hạn tối đa 100").default(10),
+  sort_by: z.enum(['created_at', 'preferred_time', 'party_size']).default('created_at'),
+  sort_order: z.enum(['asc', 'desc']).default('asc')
+});
+
+// Reservation Search Schema
+export const ReservationSearchSchema = z.object({
+  phone: z.string()
+    .min(1, "Số điện thoại là bắt buộc")
+    .max(20, "Số điện thoại không được quá 20 ký tự"),
+  restaurant_id: z.string().uuid("ID nhà hàng không hợp lệ").optional()
+});
+
+// Daily Stats Schema
+export const DailyStatsSchema = z.object({
+  restaurant_id: z.string().uuid("ID nhà hàng không hợp lệ"),
+  date: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Định dạng ngày phải là YYYY-MM-DD")
+});
+
+// Table Availability Enhanced Schema
+export const EnhancedTableAvailabilitySchema = z.object({
+  restaurant_id: z.string().uuid("ID nhà hàng không hợp lệ"),
+  party_size: z.number()
+    .min(1, "Số người phải ít nhất 1")
+    .max(50, "Số người không được quá 50"),
+  reservation_date: z.string().datetime("Thời gian không hợp lệ"),
+  duration_hours: z.number()
+    .min(0.5, "Thời gian tối thiểu 30 phút")
+    .max(8, "Thời gian tối đa 8 tiếng")
+    .default(2),
+  preferred_location: z.string().optional(),
+  max_price_per_hour: z.number().optional(),
+  features: z.array(z.string()).optional()
+});
+
 // Export all schemas
 export type CreateReservationType = z.infer<typeof CreateReservationSchema>;
 export type UpdateReservationType = z.infer<typeof UpdateReservationSchema>;
@@ -192,3 +245,8 @@ export type BulkUpdateReservationType = z.infer<typeof BulkUpdateReservationSche
 export type ReservationAnalyticsType = z.infer<typeof ReservationAnalyticsSchema>;
 export type CreateWalkInType = z.infer<typeof CreateWalkInSchema>;
 export type CreateWaitlistType = z.infer<typeof CreateWaitlistSchema>;
+export type UpdateWaitlistStatusType = z.infer<typeof UpdateWaitlistStatusSchema>;
+export type WaitlistQueryType = z.infer<typeof WaitlistQuerySchema>;
+export type ReservationSearchType = z.infer<typeof ReservationSearchSchema>;
+export type DailyStatsType = z.infer<typeof DailyStatsSchema>;
+export type EnhancedTableAvailabilityType = z.infer<typeof EnhancedTableAvailabilitySchema>;
