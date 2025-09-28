@@ -14,6 +14,7 @@ import {
   MenuItemDataColumn,
   MenuItemInterface,
   RecipeDataColumn,
+  ReservationDataColumn, ReservationStatusEnum,
   TableDataColumn
 } from "@/constants/interfaces";
 
@@ -130,7 +131,8 @@ export const api = createApi({
     "Categories",
     "Recipes",
     "Inventory",
-    "Table"
+    "Table",
+    "Reservations"
   ],
   endpoints: (builder) => ({
     // ========== GRAPHQL API ENDPOINTS ==========
@@ -721,11 +723,31 @@ export const api = createApi({
     }),
 
     // Reservations
+    getAllReservations: builder.query<ReservationDataColumn[], void>({
+      query: () => ({
+        url: `/reservation`,
+      }),
+      providesTags: ["Reservations"],
+    }),
+    updateStatusReservation: builder.mutation<void, { id: string, status: ReservationStatusEnum }>({
+      query: ({ id, status }) => ({
+        url: `/reservation/${id}`,
+        method: "PATCH",
+        body: status,
+      })
+    }),
     createReservation: builder.mutation<any, any>({
-      query: (data) => ({ url: `/reservations`, method: "POST", body: data }),
+      query: (data) => ({
+        url: `/reservation`,
+        method: "POST",
+        body: data
+      }),
     }),
     getReservations: builder.query<any, Record<string, any> | void>({
-      query: (params) => ({ url: `/reservations`, params: params ?? {} }),
+      query: (params) => ({
+        url: `/reservations`,
+        params: params ?? {}
+      }),
     }),
     getTodayReservations: builder.query<any, void>({ query: () => `/reservations/today` }),
     getUpcomingReservations: builder.query<any, void>({ query: () => `/reservations/upcoming` }),
@@ -1065,6 +1087,22 @@ export const {
   useGetTablesByRestaurantQuery,
   useUpdateTableStatusMutation,
   useCheckTableAvailabilityMutation,
+
+  // Reservations
+  useGetAllReservationsQuery,
+  useUpdateStatusReservationMutation,
+  useCreateReservationMutation,
+  useGetReservationsQuery,
+  useGetTodayReservationsQuery,
+  useGetUpcomingReservationsQuery,
+  useCheckAvailabilityMutation,
+  useCreateWalkInMutation,
+  useBulkUpdateReservationsMutation,
+  useReservationAnalyticsMutation,
+  useGetReservationByIdQuery,
+  useUpdateReservationMutation,
+  useUpdateReservationStatusMutation,
+  useDeleteReservationMutation,
 
   // useUpdateUserMutation,
   // useCreateCourseMutation,

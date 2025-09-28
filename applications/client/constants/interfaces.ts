@@ -207,6 +207,19 @@ export type NotificationStatusEnum = 'unread' | 'read' | 'archived';
 // =============================================================================
 // =============================================================================
 
+export interface UserDataColumnShortly {
+  id: string
+  username: string
+  email: string
+  full_name: string
+  phone_number: string
+  avatar_url: string
+  clerk_id: string
+  // loyalty_points: string
+  // total_orders: string
+  // total_spent: string
+}
+
 export interface RestaurantDataColumnShortly {
   id: string
   name: string
@@ -263,8 +276,9 @@ export interface TableDataColumnShortly {
   table_number: string
   capacity: number | null
   location: string |null
-  status: string | number | null
-  qr_code: string | number | null
+  // status: string | number | null
+  // qr_code: string | number | null
+  restaurants: RestaurantDataColumnShortly
 }
 
 // ============================================================================
@@ -384,6 +398,27 @@ export interface TableDataColumn {
     table_orders: number
   }
   // ??
+}
+
+// Done
+export interface ReservationDataColumn {
+  id: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email?: string;
+  party_size: number;
+  reservation_date: string;
+  duration_hours: number;
+  status: ReservationStatusEnum;
+  special_requests?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  tables?: TableDataColumnShortly | null;
+  customers?: UserDataColumnShortly | null;
+  // _count?: {
+  //
+  // }
 }
 
 // =============================================================================

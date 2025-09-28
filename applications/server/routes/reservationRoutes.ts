@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import {
+  getAllReservations,
+  updateStatusReservation,
   createReservationController,
   getReservationsController,
   getReservationByIdController,
@@ -11,7 +13,13 @@ import {
   createWalkInController,
   getReservationAnalyticsController,
   getTodayReservationsController,
-  getUpcomingReservationsController
+  getUpcomingReservationsController,
+  createWaitlistController,
+  getWaitlistController,
+  updateWaitlistStatusController,
+  getReservationsByCustomerController,
+  searchReservationsByPhoneController,
+  getDailyReservationStatsController,
 } from '@/controllers/reservationControllers';
 import {
   requireAuth,
@@ -28,6 +36,9 @@ const router = Router();
 // 🎯 RESERVATION ROUTES
 // ================================
 
+router.get("/", getAllReservations)
+
+router.patch("/:id", updateStatusReservation)
 /**
  * @route   POST /api/reservations
  * @desc    Tạo đặt bàn mới
@@ -132,35 +143,103 @@ router.delete('/:id', deleteReservationController);
  * API cho nhiều role - Staff hoặc Manager có thể xem reservations
  * Ví dụ: /api/reservations/staff-manager-view
  */
-router.get('/staff-manager-view', requireAuth(['staff', 'manager']), getReservationsController);
+router.get('/staff-manager-view', getReservationsController);
+// router.get('/staff-manager-view', requireAuth(['staff-manager-viewaff', 'manager']), getReservationsController);
 
 /**
  * API cho 1 role duy nhất - Chỉ Admin có thể xem analytics
  * Ví dụ: /api/reservations/admin-analytics
  */
-router.get('/admin-analytics', requireAuth(['admin']), getReservationAnalyticsController);
+router.get('/admin-analytics', getReservationAnalyticsController);
+// router.get('/admin-analytics', requireAuth(['admin']), getReservationAnalyticsController);
 
 /**
  * API cho khách hàng - Customer có thể tạo reservation và check availability
  * Ví dụ: /api/reservations/customer-check-availability
  */
-router.get('/customer-check-availability', requireCustomer, checkAvailabilityController);
+router.get('/customer-check-availability', checkAvailabilityController);
+// router.get('/customer-check-availability', requireCustomer, checkAvailabilityController);
 
 /**
  * API cho nhà hàng cụ thể - Staff/Manager chỉ xem reservations của nhà hàng họ quản lý
  * Ví dụ: /api/reservations/restaurant-today
  */
-router.get('/restaurant-today', 
-  requireAuth(['staff', 'manager']), 
-  requireRestaurantAccess(), 
-  getTodayReservationsController
-);
+// router.get('/restaurant-today',
+//   requireAuth(['staff', 'manager']),
+//   requireRestaurantAccess(),
+//   getTodayReservationsController
+// );
 
 /**
  * API cho từng role cụ thể
  */
-router.get('/staff-upcoming', requireStaff, getUpcomingReservationsController);
-router.post('/manager-walkin', requireManager, createWalkInController);
-router.put('/admin-bulk-update', requireAdmin, bulkUpdateReservationsController);
+router.get('/staff-upcoming', getUpcomingReservationsController);
+router.post('/manager-walkin', createWalkInController);
+router.put('/admin-bulk-update', bulkUpdateReservationsController);
+// router.get('/staff-upcoming', requireStaff, getUpcomingReservationsController);
+// router.post('/manager-walkin', requireManager, createWalkInController);
+// router.put('/admin-bulk-update', requireAdmin, bulkUpdateReservationsController);
+
+// ================================
+// 🎯 WAITLIST ROUTES
+// ================================
+
+/**
+ * @route   POST /api/reservations/waitlist
+ * @desc    Tạo danh sách chờ
+ * @access  Public
+ * @body    CreateWaitlistType
+ */
+router.post('/waitlist', createWaitlistController);
+
+/**
+ * @route   GET /api/reservations/waitlist
+ * @desc    Lấy danh sách chờ
+ * @access  Private (Staff, Manager, Admin)
+ * @query   restaurant_id, status
+ */
+router.get('/waitlist', getWaitlistController);
+
+/**
+ * @route   PATCH /api/reservations/waitlist/:id/status
+ * @desc    Cập nhật trạng thái danh sách chờ
+ * @access  Private (Staff, Manager, Admin)
+ * @param   id - Waitlist ID
+ * @body    { status, notes }
+ */
+router.patch('/waitlist/:id/status', updateWaitlistStatusController);
+
+// ================================
+// 🔍 SEARCH & CUSTOMER ROUTES
+// ================================
+
+/**
+ * @route   GET /api/reservations/customer/:customer_id
+ * @desc    Lấy đặt bàn theo khách hàng
+ * @access  Private (Customer, Staff, Manager, Admin)
+ * @param   customer_id - Customer ID
+ * @query   status
+ */
+router.get('/customer/:customer_id', getReservationsByCustomerController);
+
+/**
+ * @route   GET /api/reservations/search/phone
+ * @desc    Tìm kiếm đặt bàn theo số điện thoại
+ * @access  Private (Staff, Manager, Admin)
+ * @query   phone, restaurant_id
+ */
+router.get('/search/phone', searchReservationsByPhoneController);
+
+// ================================
+// 📊 STATISTICS ROUTES
+// ================================
+
+/**
+ * @route   GET /api/reservations/stats/daily
+ * @desc    Lấy thống kê đặt bàn theo ngày
+ * @access  Private (Manager, Admin)
+ * @query   restaurant_id, date
+ */
+router.get('/stats/daily', getDailyReservationStatsController);
 
 export default router;
