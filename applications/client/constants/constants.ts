@@ -110,7 +110,7 @@ export const appGlobal = {
 export const navigation = [
   {
     title: "Thực đơn",
-    href: "/menu",
+    href: "/menus",
     icon: Utensils,
     description: "Khám phá các món ăn ngon"
   },

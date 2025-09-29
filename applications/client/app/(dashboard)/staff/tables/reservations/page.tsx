@@ -368,7 +368,7 @@ export default function ReservationsPage() {
     try {
       await updateStatusReservation({
         id: reservationId,
-        status: { status: newStatus }
+        status: newStatus,
       }).unwrap();
       toast.success(`Cập nhật trạng thái thành công`);
       refetchReservations();
@@ -379,13 +379,13 @@ export default function ReservationsPage() {
   };
 
   const openEditDialog = (reservation: ReservationDataColumn) => {
-    setEditingReservation(reservation)
+    // setEditingReservation(reservation)
     setIsEditDialogOpen(true)
   }
 
   const openDeleteDialog = (reservation: ReservationDataColumn) => {
     setDeletingReservation(reservation)
-    setIsDeleteDialogOpen(true)
+    // setIsDeleteDialogOpen(true)
   }
 
   if (isLoading) {
