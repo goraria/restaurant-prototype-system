@@ -186,7 +186,7 @@ export default function MenuPage() {
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <Card key={i} className="overflow-hidden">
+              <Card key={i} className="overflow-hidden p-0">
                 <div className="aspect-[4/3] bg-muted animate-pulse" />
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-2">

@@ -167,7 +167,7 @@ export async function zalopayPayment(
     //khi thanh toán xong, zalopay server sẽ POST đến url này để thông báo cho server của mình
     //Chú ý: cần dùng ngrok để public url thì Zalopay Server mới call đến được
     callback_url: 'https://b074-1-53-37-194.ngrok-free.app/callback',
-    description: `Lazada - Payment for the order #${transID}`,
+    description: `#${transID}`,
     bank_code: '',
     mac: ""
   };
@@ -196,7 +196,7 @@ export async function zalopayPayment(
     .digest('hex');
 
   try {
-    const result = await axios.post(process.env.endpoint!, null, { params: order });
+    const result = await axios.post(process.env.ZLP_MERCHANT_ENDPOINT!, null, { params: order });
 
     return res.status(200).json(result.data);
   } catch (error) {
