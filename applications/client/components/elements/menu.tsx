@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/elements/badge"
@@ -8,7 +9,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Star, Heart, ShoppingCart, Utensils } from "lucide-react"
 import { MenuItemDataColumn } from "@/constants/interfaces"
 import { formatCurrency } from "@/utils/format-utils"
-import Image from "next/image"
 
 interface MenuItemCardProps {
   item: MenuItemDataColumn
@@ -30,7 +30,7 @@ export function MenuItemCard({ item, onSelectItem, selectedItem }: MenuItemCardP
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            <Utensils className="h-16 w-16" />
+            <Utensils className="h-12 w-12" />
           </div>
         )}
         <div className="absolute top-4 left-4 space-y-2">
@@ -57,11 +57,11 @@ export function MenuItemCard({ item, onSelectItem, selectedItem }: MenuItemCardP
         </div>
       </div>
 
-      <CardContent className="p-6">
+      <CardContent className="p-6 pt-0">
         {/* Rating */}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <Star className="h-4 w-4 fill-professional-yellow text-professional-yellow" />
             <span className="font-medium">4.5</span>
           </div>
           <span className="text-sm text-muted-foreground">
@@ -83,7 +83,7 @@ export function MenuItemCard({ item, onSelectItem, selectedItem }: MenuItemCardP
 
         {/* Price & Actions */}
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-orange-600">
+          <span className="text-2xl font-bold text-professional-orange">
             {formatCurrency({ value: parseFloat(item.price), currency: "VND" })}
           </span>
           <div className="flex gap-2">

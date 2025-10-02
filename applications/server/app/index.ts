@@ -35,6 +35,7 @@ import uploadRoutes from "@/routes/uploadRoutes";
 // import rlsTestRoutes from "@/routes/rlsTestRoutes";
 import notificationRoutes from "@/routes/notificationRoutes";
 import reservationRoutes from "@/routes/reservationRoutes";
+import purchaseRoutes from "@/routes/purchaseRoutes";
 // import graphqlRoutes from "@/routes/graphqlRoutes";
 
 // ================================
@@ -146,6 +147,7 @@ app.use('/restaurant', restaurantRoutes);
 // app.use('/chat', chatRoutes);
 // app.use('/rls', rlsTestRoutes); // RLS testing routes (simple)
 app.use("/notification", notificationRoutes);
+app.use("/purchase", purchaseRoutes)
 // app.use("/graphql", graphqlRoutes);
 app.use("/graphql", createGraphQLMiddleware);
 
